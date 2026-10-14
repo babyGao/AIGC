@@ -1,0 +1,39 @@
+《天龙八部之宿敌》水墨 MV（同人创作 / 非官方）
+================================================
+
+歌曲
+- 《天龙八部之宿敌》 演唱：许嵩　作词：许嵩　作曲：许嵩　编曲：蔡庭贵
+- 画面里的歌词（卡拉 OK 字幕、sudi.srt）为该歌曲歌词，著作权归原作者所有。
+- 逐字时间轴（data/timing.krc → data/lyrics.json）取自公开的 KRC 卡拉 OK 歌词时间数据，只用作字幕与画面的时间参照。
+- 本工程不包含、也不分发原曲录音。成片 sudi.mp4 没有音轨（第 0 帧 = 原曲 0:00）；
+  你自己持有原曲音频时，可以用 with_song.sh 封装带原曲的版本（只在你本地生成）。
+
+画面
+- 全部画面由代码逐帧绘制（Canvas2D 笔墨引擎 + WebGL 宣纸合成器），没有照片、视频素材或 AI 生成图像。
+- 笔墨引擎改写自 Lemo-Opuscar「中国水墨 Chinese Ink Wash」风格库的示例代码（MIT License，Copyright (c) 2026 LemoLab；
+  许可证原文见 engine/LICENSE-lemo-opuscar.txt）：engine/ink.js、engine/land.js 原样使用；engine/comp.js 为提速改写；
+  src/figure.js 改写自其 hero.js。风格规范来自 https://github.com/lemomo-ai/lemo-opuscar （styles/ink-wash/STYLE.md）。
+- Clawd 小兽的造型来自 Claude Code（Anthropic）的终端吉祥物，这里用水墨重新画过。
+- 故事、分镜、人物、道具、转场与片尾印章为本片原创；人物为写意人形，不使用原著人物名。
+
+字体（SIL Open Font License 1.1，许可证在 fonts/）
+- Noto Serif SC（思源宋体）Light / Medium — Google，fonts/OFL-NotoSerifSC.txt（卡拉 OK 歌词）
+- Ma Shan Zheng（马善政楷书）— Ma Shan Zheng，fonts/OFL-MaShanZheng.txt（片名、信、金锁、题跋、印文的字形）
+- 两种字体都只取本片用到的字做了子集（fonts/charset.txt）。
+
+音乐（music/score.py 是未完成的原创配乐草稿，成片不使用；若自行生成，素材授权见 music/CREDITS_music.txt）
+- 二胡、古筝（越南筝 Đàn tranh 代古筝）、大鼓、定音鼓、手鼓、锣、低音弦乐等采样：
+  Samples (CC0): Karoryfer Samples / sfzinstruments, VS Chamber Orchestra: Community Edition (Versilian Studios),
+  Versilian Community Sample Library (Versilian Studios)
+- 古琴、琵琶：物理建模合成（Lemo-Opuscar core/audio/pluck.py）；箫：在 score.py 里合成。
+
+声音设计（可选，with_song.sh 设 FX=0.35 时叠加）
+- 环境声与拟音（雨、雷、风、笔声、印声、水滴、墨龙……）全部在 mix.py 里用 numpy 程序化合成，没有第三方录音。
+
+引文
+- 题跋「天上星 亮晶晶 永灿烂 长安宁」引自金庸《天龙八部》中阿朱金锁片上的字（短引）。
+
+工具
+- Lemo-Opuscar 渲染与混音工具（MIT）、Playwright / Chromium、FFmpeg、NumPy / SciPy。
+
+你在使用、发布本片时，对其中涉及的歌曲、歌词等第三方内容的授权自行负责。
