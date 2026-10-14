@@ -206,7 +206,7 @@ def render_phrase(notes, base_db, pan=0.03, tag=None):
         if hold < .3: o.pop('grace', None); o.pop('slide', None)
         same_prev = i > 0 and abs(notes[i - 1]['m'] - m) < .01
         skip = .22 if first else (.2 if same_prev else .25)          # 跳过采样的慢起弓，字头立刻发声
-        fade = .012 if first else (.015 if same_prev else .012)
+        fade = .01 if first else (.015 if same_prev else .008)
         db = base_db + nt.get('db', 0.0)
         x = erhu_note(m, hold, rel, skip=skip, fade=fade, gain=10 ** (db / 20), **o)
         put('lead', x, t, 1.0, pan)
