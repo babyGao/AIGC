@@ -1,0 +1,80 @@
+{
+ "_doc": "全片时间轴唯一真值（秒）。画面 src/timeline.js、配乐 music/score.py、混音 mix.py 都读这一份。网格：第 n 小节起点 = T0 + n*BAR（96.9 BPM，4/4）。",
+ "dur": 263.34,
+ "T0": 0.2821,
+ "BAR": 2.476888,
+ "bpm": 96.896,
+ "sections": {
+  "intro": [
+   0,
+   22.574
+  ],
+  "v1": [
+   22.574,
+   62.204
+  ],
+  "c1": [
+   62.204,
+   101.835
+  ],
+  "inter": [
+   101.835,
+   124.127
+  ],
+  "v2": [
+   124.127,
+   163.757
+  ],
+  "c2": [
+   163.757,
+   203.387
+  ],
+  "brk": [
+   203.387,
+   205.864
+  ],
+  "c3": [
+   205.864,
+   245.494
+  ],
+  "outro": [
+   245.494,
+   263.34
+  ]
+ },
+ "ev": {
+  "thunder0": 0.0,
+  "flash1": 0.5,
+  "flash2": 1.3,
+  "washA": 1.9,
+  "washB": 3.4,
+  "titleA": 3.4,
+  "titleB": 7.6,
+  "titleSeal": 8.1,
+  "tiltA": 9.0,
+  "tiltDrum": 10.19,
+  "tiltB": 22.3,
+  "stormA": 101.835,
+  "hushMusic": 106.9,
+  "drip": 108.55,
+  "strike": 109.265,
+  "unmask": 110.365,
+  "gong": 111.742,
+  "catch": 115.6,
+  "lockOpen": 120.0,
+  "handDrop": 121.6,
+  "harmonic": 122.2,
+  "starScoop": 135.6,
+  "starGive": 139.6,
+  "arrowSnap": 200.13,
+  "brkMusicA": 202.3,
+  "brkMusicB": 205.6,
+  "snowflake": 203.8,
+  "embrace": 235.0,
+  "evapA": 245.494,
+  "hop": 254.55,
+  "seal": 255.402,
+  "colophonA": 256.2,
+  "colophonB": 261.4
+ }
+}

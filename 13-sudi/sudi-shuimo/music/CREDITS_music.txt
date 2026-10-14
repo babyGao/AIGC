@@ -1,0 +1,3 @@
+Music: original score for 《宿敌》 ink-wash MV (music/score.py).
+Samples (CC0): Karoryfer Samples / sfzinstruments, VS Chamber Orchestra: Community Edition (Versilian Studios), Versilian Community Sample Library (Versilian Studios)
+Guqin and pipa: physical models (core/audio/pluck.py); xiao: synthesized in score.py. No third-party audio.
