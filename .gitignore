@@ -1,0 +1,14 @@
+# 依赖
+node_modules/
+__pycache__/
+.venv/
+venv/
+
+# 构建产物（out/video.mp4 约 99MB，接近 GitHub 单文件 100MB 上限）
+**/out/
+
+# 环境与系统文件
+.env
+.env.*
+.DS_Store
+Thumbs.db
