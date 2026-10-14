@@ -205,8 +205,8 @@ def render_phrase(notes, base_db, pan=0.03, tag=None):
             o['vib'] = (5.6, .15 if hold < .8 else .2, .2)
         if hold < .3: o.pop('grace', None); o.pop('slide', None)
         same_prev = i > 0 and abs(notes[i - 1]['m'] - m) < .01
-        skip = .05 if first else (.07 if same_prev else .12)
-        fade = .015 if first else (.015 if same_prev else .012)
+        skip = .22 if first else (.2 if same_prev else .25)          # 跳过采样的慢起弓，字头立刻发声
+        fade = .012 if first else (.015 if same_prev else .012)
         db = base_db + nt.get('db', 0.0)
         x = erhu_note(m, hold, rel, skip=skip, fade=fade, gain=10 ** (db / 20), **o)
         put('lead', x, t, 1.0, pan)
@@ -930,6 +930,8 @@ print(f'   audio-domain check (score_lead.wav, harmonic-comb energy onset of eac
       f'{(~good).sum()} unresolved; |error| median {np.nanmedian(np.abs(det)) * 1000:.1f} ms, '
       f'max {np.nanmax(np.abs(det)) * 1000:.1f} ms → {"OK" if np.nanmax(np.abs(det)) < .010 else "FAIL"}')
 ok &= bool(np.nanmax(np.abs(det)) < .010)
+print(f'      |error| distribution: <5 ms {np.mean(np.abs(det[good]) < .005) * 100:.0f}%, <10 ms {np.mean(np.abs(det[good]) < .01) * 100:.1f}%, '
+      f'p95 {np.percentile(np.abs(det[good]), 95) * 1000:.1f} ms')
 for i in np.argsort(-np.nan_to_num(np.abs(det), nan=-1.0))[:3]:
     print(f'      largest: {det_who[i]} {det[i] * 1000:+.1f} ms')
 # 每个字的音高（自相关，跳过倚音段）
