@@ -1,0 +1,28 @@
+坚持 · 风格板 —— 第三方素材与工具
+
+画面全部由代码绘制（Canvas 2D + WebGL），没有用图像生成，没有用图库画面。
+
+用户提供
+- 音频 assets/audio/narration.m4s（时间轴以它为准；含配乐与朗读，授权由用户负责）
+- 原文 assets/原文.txt；主角参考图 assets/ref/fangyuan.webp；《航海王》打斗页 assets/ref/onepiece_*.jpg（只学分镜语法，画面中不出现任何《航海王》角色或画格）
+
+引擎（MIT，Lemo-Opuscar，github.com/lemomo-ai/lemo-opuscar）
+- 木刻：film/woodcut/engine/*（刻刀、流线排线、印刷合成器、图像转木刻滤镜）
+- 皮影：film/puppet/carve.js、gl.js（刻皮工具、灯光 × 透射 × 布纹合成器）
+- 水墨：film/ink/ink.js、comp.js、land.js（笔触引擎、宣纸合成器、山水）
+- 间谍片头：film/spy/paper.js（四色剪纸、剪刀毛边、纸影、剪影图层）
+- 渲染：core/render/still.mjs（无头 Chrome 逐帧截图）
+
+字体（SIL Open Font License 1.1）
+- Ma Shan Zheng（马善政）· 拟声字、刻字、皮影牌 · film/fonts/OFL-MaShanZheng.txt
+- LXGW WenKai（霞鹜文楷）· 字幕、风格板注释 · film/fonts/OFL-LXGWWenKai.txt
+- ZCOOL QingKe HuangYou（站酷庆科黄油体）· 间谍片头的剪字 · 经 fonts.googleapis.com 按片中用字子集化
+- Noto Sans SC Black · 间谍片头字幕纸条 · 经 fonts.googleapis.com 按片中用字子集化
+
+识别校对
+- faster-whisper（MIT）+ Whisper medium 模型（MIT）
+
+人物外貌参考
+- 《蛊真人》第256–265节原文；白凝冰“银发深蓝眸、白衣”的设定参考百度百科词条与同人描写。片中造型为按原文重新设计，不取自任何现成画作。
+
+片中所用素材由使用者负责确认授权。
