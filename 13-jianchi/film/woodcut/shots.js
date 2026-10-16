@@ -97,7 +97,7 @@ export function render(cv, els, o) {
       e.bolts.forEach(Ln => { m.lineJoin = 'miter'; m.strokeStyle = fg; m.lineWidth = 9; m.beginPath(); Ln.forEach((p, k) => k ? m.lineTo(p[0], p[1]) : m.moveTo(p[0], p[1])); m.stroke(); }); }
     // 漫画符号：跟格底相反的颜色（黑格里刻白、白格里留黑），描一圈反色边
     if (e.t === 'marks') { const fg = tone === 'light' ? '#000' : '#fff', bgc = tone === 'light' ? '#fff' : '#000';
-      e.polys.forEach(P => { m.fillStyle = '#fff'; m.strokeStyle = '#000'; m.lineWidth = 4; poly(m, P); m.fill(); m.stroke(); });   // 泪、汗：白水珠描黑边（漫画的画法）
+      e.polys.forEach(P => { m.fillStyle = '#fff'; m.strokeStyle = '#000'; m.lineWidth = 6.5; poly(m, P); m.fill(); m.stroke(); });   // 泪、汗：白水珠描黑边（漫画的画法）
       e.lines.forEach((Ln, i) => { m.lineCap = 'round'; m.strokeStyle = bgc; m.lineWidth = 9; m.beginPath(); Ln.forEach((p, k) => k ? m.lineTo(p[0], p[1]) : m.moveTo(p[0], p[1])); m.stroke(); m.strokeStyle = fg; m.lineWidth = 4.5; m.stroke(); }); }
     // 云头：刻白的一朵卷云，底下两道墨线
     if (e.t === 'cloud') { const [cx, cy] = e.at, w = e.w, P = []; for (let j = 0; j <= 36; j++) { const u = j / 36; P.push([cx - w / 2 + w * u, cy - Math.abs(Math.sin(u * Math.PI * 3.5)) * w * .1 - Math.sin(u * Math.PI) * w * .06]); } P.push([cx + w * .42, cy + w * .08], [cx - w * .42, cy + w * .08]); m.fillStyle = '#fff'; poly(m, P); m.fill(); m.strokeStyle = '#000'; m.lineWidth = 2.5; for (let j = 0; j < 2; j++) { m.beginPath(); m.moveTo(cx - w * .3 + j * 20, cy + w * .02 + j * 7); m.quadraticCurveTo(cx, cy - 6 + j * 7, cx + w * .3 - j * 20, cy + w * .02 + j * 7); m.stroke(); } }

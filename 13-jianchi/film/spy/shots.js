@@ -34,7 +34,7 @@ export function render(cv, els, o) {
     if (e.t === 'aura') { e.polys.forEach(Q => P.piece(Q, PAL.ink, { gap: 0, shadow: false })); e.bolts.forEach(Ln => { g.save(); g.lineJoin = 'miter'; g.strokeStyle = PAL.ink; g.lineWidth = 14; g.beginPath(); Ln.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke(); g.strokeStyle = PAL.red === P.S.bg ? PAL.bone : PAL.red; g.lineWidth = 7; g.stroke(); g.restore(); }); }
     // 漫画符号：泪、汗 = 骨白小纸片描墨边；青筋 = 警示红纸条；抖动线 = 墨黑细条
     if (e.t === 'marks') {
-      e.polys.forEach(Q => { g.save(); g.strokeStyle = PAL.ink; g.lineWidth = 4; g.beginPath(); P.pathPoly(g, Q); g.stroke(); g.restore(); P.piece(Q, PAL.bone, { gap: 0, shadow: false }); });
+      e.polys.forEach(Q => { g.save(); g.strokeStyle = PAL.ink; g.lineWidth = 7; g.beginPath(); P.pathPoly(g, Q); g.stroke(); g.restore(); P.piece(Q, PAL.bone, { gap: 0, shadow: false }); });
       e.lines.forEach(Ln => { g.save(); g.lineCap = 'round'; g.strokeStyle = P.S.bg === PAL.ink ? PAL.red : PAL.ink; g.lineWidth = 6; g.beginPath(); Ln.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke(); g.restore(); });
     }
     // 浅水：一张河青纸；深青细缝 = 平静；骨白细圈 = 涟漪；往前涨的水线是一条骨白浪沫纸边

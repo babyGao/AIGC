@@ -243,4 +243,24 @@ export function K8() {
   els.push({ t: 'cap', who: '', text: '有的因为仇恨而坚持', side: 'left' });
   return els;
 }
-export const SHOTS = { K2, K3, K4, K5, K5_puppet, K6, K7, K8 };
+
+// K9 · 2:52 我曾经哭泣过，渐渐的我不再流泪（左右对切，动作匹配）
+// 原文第265节方源的独白。TREATMENT：前世用“镜像版”——左边是前世，同一张侧脸（量自用户参考图）镜像过来，在哭；
+// 右边是如今，同一张侧脸，面无表情。两张脸隔着中缝对望，像照镜子（诺兰：两条时间线对切）。
+// 航海王只给左边：两道泪流、往下落的竖线；右边什么都不加。
+export function K9() {
+  const s = 4.3, at = (x, flip) => mkXf({ s, from: [425, 112], at: [x, 70], flip });
+  const past = flatten(FY.FULL_SIDE_CRY, FY, at(470, true)), now = flatten(FY.FULL_SIDE, FY, at(1450, false));
+  const eye = past.find(o => o.role === 'eye').iris;
+  const L = [[-80, 0], [944, 0], [904, 804], [-80, 804]], R = [[968, 0], [2000, 0], [2000, 804], [928, 804]];
+  return [
+    { t: 'bg', tone: 'light' },
+    { t: 'panel', poly: L, tone: 'dark', paper: 'ink', els: [
+      { t: 'speed', polys: FX.speedLines([-60, -100, 900, 900], Math.PI / 2, 60, 101, 7) },
+      { t: 'fig', ops: past, key: 'k9past', s: s / 2.2 },
+      { t: 'marks', polys: FX.tears(eye[0] + 6, eye[1] + 14, 330, 1, 102), lines: [] } ] },
+    { t: 'panel', poly: R, tone: 'light', paper: 'bone', els: [{ t: 'fig', ops: now, key: 'k9now', s: s / 2.2 }] },
+    { t: 'cap', who: '方源', text: '我曾经哭泣过，渐渐的我不再流泪' },
+  ];
+}
+export const SHOTS = { K2, K3, K4, K5, K5_puppet, K6, K7, K8, K9 };

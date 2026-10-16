@@ -106,7 +106,7 @@ export function render(cv, els, o) {
     if (e.t === 'aura') lay(gg => { e.polys.forEach(Q => K.fill(gg, '#1e120a', path(Q.map(X)))); e.bolts.forEach(Ln => { gg.save(); gg.lineJoin = 'miter'; gg.strokeStyle = '#1b130d'; gg.lineWidth = 12; gg.beginPath(); Ln.map(X).forEach((p, k) => k ? gg.lineTo(p[0], p[1]) : gg.moveTo(p[0], p[1])); gg.stroke(); gg.strokeStyle = '#c4261a'; gg.lineWidth = 6; gg.stroke(); gg.restore(); }); }, 83);
     // 漫画符号：泪、汗 = 浅色薄皮片描墨；青筋 = 染红皮条；抖动线 = 墨线
     if (e.t === 'marks') lay(gg => {
-      e.polys.forEach(Q => { const Pp = Q.map(X); K.fill(gg, '#eaf2f6', path(Pp)); K.ink(gg, 1.8, path(Pp)); });
+      e.polys.forEach(Q => { const Pp = Q.map(X); K.fill(gg, '#eaf2f6', path(Pp)); K.ink(gg, 3, path(Pp)); });
       e.lines.forEach(Ln => { gg.save(); gg.lineCap = 'round'; gg.strokeStyle = '#1b130d'; gg.lineWidth = 6; gg.beginPath(); Ln.map(X).forEach((p, k) => k ? gg.lineTo(p[0], p[1]) : gg.moveTo(p[0], p[1])); gg.stroke(); gg.strokeStyle = '#b8211a'; gg.lineWidth = 3; gg.stroke(); gg.restore(); });
     }, 81);
     // 浅水：一块靛青水纹皮；横缝 = 平静，涟漪剪成扁圈缝；往前涨的水线描一道墨边，前沿剪一排小水点

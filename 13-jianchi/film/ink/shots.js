@@ -93,7 +93,7 @@ export function render(cv, els, o) {
     if (e.t === 'aura') { e.polys.forEach((Pp, i) => I.mass(L.cw, Pp, .92, 2, i)); e.bolts.forEach((Ln, i) => I.draw(L.ink, I.mk(Ln, { w: 9, tone: I.TONE.jiao, dry: .45, rough: .3, per: 2, seed: 960 + i }))); }
     // 漫画符号：泪、汗 = 留白的水珠勾一圈浓墨细笔；青筋、抖动线 = 焦墨短笔
     if (e.t === 'marks') {
-      e.polys.forEach((Pp, i) => { for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.beginPath(); Pp.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); c.fill(); c.restore(); } I.draw(L.ink, I.mk(Pp.concat([Pp[0]]), { w: 2.6, tone: I.TONE.jiao, dry: .15, rough: .1, seed: 930 + i })); });
+      e.polys.forEach((Pp, i) => { for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.beginPath(); Pp.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); c.fill(); c.restore(); } I.draw(L.ink, I.mk(Pp.concat([Pp[0]]), { w: 3.8, tone: I.TONE.jiao, dry: .15, rough: .1, seed: 930 + i })); });
       e.lines.forEach((Ln, i) => I.draw(L.ink, I.mk(Ln, { w: 6, tone: I.TONE.jiao, dry: .3, rough: .2, prof: 'brush', seed: 950 + i })));
     }
     if (e.t === 'cloud') { const [x, y] = e.at, w = e.w; for (let j = 0; j < 3; j++) { const pts = []; for (let a = 0; a <= 1.7 * Math.PI; a += .25) pts.push([x - w * .4 + j * w * .38 + Math.cos(a) * w * .14 * (1 - a / 9), y + 4 + Math.sin(a) * w * .07]); I.draw(L.ink, I.mk(pts, { w: 2, tone: I.TONE.zhong, dry: .4, seed: 490 + j })); } }
