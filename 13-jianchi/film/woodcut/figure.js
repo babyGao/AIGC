@@ -9,6 +9,10 @@ const cache = new Map();
 
 export function carveFigure(g, ops, o = {}) {
   const key = o.key, L = o.light || WC.light(-.55, -.6, .6), sc = o.scale || 1, rnd = mulberry(o.seed ?? 5);
+  if (o.silhouette) {   // 远处逆光的剪影：整个人留黑（亮天上的黑影）
+    for (const op of ops) { const P = op.poly || op.open; if (P) fillP(g, P, '#000'); else if (op.role === 'line' && op.w > 1.2) { g.lineWidth = op.w; g.strokeStyle = '#000'; g.beginPath(); op.pts.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke(); } }
+    return;
+  }
   let C = key && cache.get(key);
   if (!C) {
     C = { shapes: new Map(), cuts: [], strands: [] };
@@ -58,6 +62,7 @@ export function carveFigure(g, ops, o = {}) {
         g.fillStyle = '#000'; g.beginPath(); g.arc(op.iris[0], op.iris[1], op.iris[2], 0, 7); g.fill(); g.restore(); break;
       }
       case 'line': {
+        if (op.w < (o.minLine ?? .22)) break;          // 太小的线刻不出来，省掉
         const n = op.pts.length, w = Math.max(.9, op.w * (op.dark < .45 ? .8 : 1.15));
         const ws = op.pts.map((_, k) => { const u = k / (n - 1); return w * Math.min(1, u / .15, (1 - u) / .25) ** .55 + .35; });
         WC.drawStrokes(g, [WC.mkStroke(op.pts, ws, { kind: 'k', seed: i * 7 + 1, chip: .08 })], { color: '#000' });

@@ -77,7 +77,7 @@ export function inkFigure(L, ops, o = {}) {
   }
   for (const it of S) {
     for (const c of [L.cw, L.cd]) { c.save(); if (it.clipY != null) { c.beginPath(); c.rect(-1e4, -1e4, 3e4, 1e4 + it.clipY); c.clip(); } }
-    if (it.kind === 'erase') for (const c of [L.cw, L.cd]) { c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; c.beginPath(); it.poly.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); c.fill(); c.globalCompositeOperation = 'source-over'; }
+    if (it.kind === 'erase') for (const c of [L.cw, L.cd]) { c.globalAlpha = 1; c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; c.beginPath(); it.poly.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); c.fill(); c.globalCompositeOperation = 'source-over'; }
     else if (it.kind === 'mass') I.mass(it.layer === 'wet' ? L.cw : L.cd, it.poly, it.a, 2 * sc, 3);
     else if (it.kind === 'stroke') I.draw(L.ink, it.s, 1, 1);
     else if (it.kind === 'iris') { L.cd.save(); L.cd.beginPath(); it.open.forEach((p, k) => k ? L.cd.lineTo(p[0], p[1]) : L.cd.moveTo(p[0], p[1])); L.cd.closePath(); L.cd.clip(); I.blot(L.cd, it.x, it.y, it.r, .92, 0, 1, 5); L.cd.restore(); }

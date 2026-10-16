@@ -81,3 +81,19 @@ function arm() {
 
 export const FY_CARRY = { box: [100, 110, 820, 985], parts: [FY_WALK, { layers: corpse() }, { layers: arm() }] };
 // 背后长发要压在尸体腿上面吗？不：尸体在近侧（离镜头更近），方源的背发在他身后，所以尸体盖住背发。
+
+// ── 第264节前半：两人都还被夹着（马鸿运刚断气，赵怜云还在另一侧腋下，K1–K3 用）──
+// 赵怜云在远侧腋下：大部分被方源的身子挡住，只露出前面的白发头、肩，和后面的腿。老妪，白发（第246节），哭不出声。
+function zhao() {
+  const L = [];
+  L.push({ fill: 'robeIn', pts: strokeOutline([[528, 318], [610, 334], [676, 380], [706, 452], [716, 516]], u => 40 - 14 * u), part: 'zLegs' });
+  L.push({ fill: 'ink', pts: [[700, 500], [732, 500], [740, 534], [726, 548], [702, 542]], key: 'zShoe' });
+  L.push({ fill: 'robeIn', pts: [[400, 296], [340, 300], [300, 318], [280, 340], [292, 366], [330, 366], [400, 352]], part: 'zTorso' });
+  const T = rplacer([300, 372], 96, -0.9);
+  L.push(...profileHead(T, { age: .95, female: 1, expr: 'cry', nose: 1.05 }));
+  L.push({ fill: 'hairW', pts: [[-.13, -.7], [-.08, -.9], [.1, -1.02], [.32, -1.04], [.52, -.95], [.6, -.76], [.56, -.58], [.44, -.5], [.36, -.58], [.3, -.7], [.14, -.79], [-.02, -.78]].map(T), key: 'zCap' });
+  L.push({ fill: 'hairW', pts: [[.42, -1.0], [.5, -1.14], [.64, -1.18], [.72, -1.08], [.68, -.96], [.56, -.92]].map(T), key: 'zBun' });
+  L.push({ fill: 'gold', pts: [[-.1, -.76], [.1, -.86], [.32, -.86], [.32, -.8], [.1, -.8], [-.08, -.71]].map(T), key: 'zCirclet' });
+  return L;
+}
+export const FY_CARRY2 = { box: [100, 110, 820, 985], parts: [{ layers: zhao() }, FY_WALK, { layers: corpse() }, { layers: arm() }] };
