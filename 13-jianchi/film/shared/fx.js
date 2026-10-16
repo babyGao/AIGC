@@ -114,3 +114,11 @@ export function calmLines(x0, x1, hz, y1, rows = 16, seed = 13) {
   for (let i = 0; i < rows; i++) { const u = (i + .5) / rows, y = hz + (y1 - hz) * u ** 1.7, k = 2 + Math.floor(u * 5); for (let j = 0; j < k; j++) { const x = x0 + r() * (x1 - x0), l = 20 + u * 160 * (.4 + r()); out.push([[x, y], [x + l, y + (r() - .5) * 2]]); } }
   return out;
 }
+// 巨眼（“天意”）：杏仁形眼眶 + 往下看的虹膜、瞳孔 + 上下睫毛。look = 虹膜往下偏的比例
+export function eye(cx, cy, w, h, look = .2, seed = 14) {
+  const r = mulberry(seed), n = 40, up = [], low = [];
+  for (let i = 0; i <= n; i++) { const u = i / n, x = cx - w / 2 + w * u, s = Math.sin(u * Math.PI); up.push([x, cy - h / 2 * s ** .8]); low.push([x, cy + h / 2 * s ** 1.1 * .8]); }
+  const ir = h * .36, iris = [cx, cy + h * look, ir], pupil = [cx, cy + h * look, ir * .42];
+  const lashes = []; for (let i = 3; i < n - 2; i += 3) { const p = up[i], a = -Math.PI / 2 + (i / n - .5) * 1.6, L = h * (.16 + r() * .1); lashes.push([p, [p[0] + Math.cos(a) * L * .6, p[1] + Math.sin(a) * L * .6 - 4], [p[0] + Math.cos(a) * L, p[1] + Math.sin(a) * L]]); }
+  return { lid: up.concat(low.slice().reverse()), up, low, iris, pupil, lashes };
+}

@@ -81,6 +81,18 @@ export function render(cv, els, o) {
       const P = A.concat(B.reverse()).map(X); K.fill(gg, '#b8211a', path(P)); K.ink(gg, 1.6, path(P));
     }), 63);
     if (e.t === 'debris') lay(gg => e.items.forEach((d, i) => { const P = d.poly.map(X); K.fill(gg, i % 2 ? '#c98a26' : '#b8211a', path(P)); K.ink(gg, 1.4, path(P)); }), 64);
+    // 地面条：草原（染赭的皮条，刻细缝当草，同 K1）
+    if (e.t === 'ground') lay(gg => {
+      const y0 = X([0, e.hz])[1], [x0, , x1, y1] = CLOTH, top = []; for (let x = x0 - 10; x <= x1 + 10; x += 14) top.push([x, y0 + 6 * Math.sin(x / 210) + 3 * Math.sin(x / 63)]);
+      const P = top.concat([[x1 + 10, y1 + 10], [x0 - 10, y1 + 10]]);
+      K.fill(gg, '#a8742e', path(P)); K.within(gg, path(P), () => { const r = mulberry(5); for (let i = 0; i < 260; i++) { const x = x0 + r() * (x1 - x0), y = y0 + 14 + r() * (y1 - y0 - 14), h = 7 + r() * 9; K.cutTaper(gg, [[x, y], [x + (r() - .5) * 5, y - h]], 2.2); } K.strata(gg, x0, x1, x => y0 + 46 + 4 * Math.sin(x / 90), 2, 22, 3); });
+      K.ink(gg, 2.2, q => { q.moveTo(top[0][0], top[0][1]); for (const p of top) q.lineTo(p[0], p[1]); });
+    }, 70);
+    // 天意的手：操纵者的手影投在幕布上（离幕远 → 边缘发虚），攥着横杆，杆上垂下细杆连着台上的人（方源身上没有杆）
+    if (e.t === 'hand') {
+      lay(gg => { gg.filter = 'blur(3.5px)'; const [bx0, bx1, by] = e.bar, a = X([bx0, by - 11]), b = X([bx1, by + 11]); gg.fillStyle = 'rgb(34,20,12)'; gg.fillRect(a[0], a[1], b[0] - a[0], b[1] - a[1]); K.fill(gg, 'rgb(34,20,12)', path(e.poly.map(X))); K.fill(gg, 'rgb(34,20,12)', path(e.thumb.map(X))); gg.filter = 'none'; gg.globalCompositeOperation = 'destination-out'; gg.strokeStyle = 'rgba(0,0,0,.55)'; gg.lineWidth = 3; gg.beginPath(); path(e.thumb.map(X))(gg); gg.stroke(); gg.globalCompositeOperation = 'source-over'; }, 77);   // 拇指边上留一道亮缝，跟手指分开
+      lay(gg => { gg.filter = 'blur(1.5px)'; gg.strokeStyle = 'rgba(50,32,18,.75)'; gg.lineWidth = 3; e.rods.forEach(([x0, y0, x1, y1]) => { const a = X([x0, y0]), b = X([x1, y1]); gg.beginPath(); gg.moveTo(a[0], a[1]); gg.lineTo(b[0], b[1]); gg.stroke(); gg.fillStyle = 'rgba(50,32,18,.85)'; gg.beginPath(); gg.arc(b[0], b[1], 5, 0, 7); gg.fill(); }); gg.filter = 'none'; }, 78);
+    }
     // 水面：一条靛青水纹皮，横缝 = 平静的水纹，涟漪剪成扁圈缝
     if (e.t === 'water') lay(gg => {
       const top = X([0, e.hz])[1], P = [[CLOTH[0] - 10, top], [CLOTH[2] + 10, top], [CLOTH[2] + 10, CLOTH[3] + 10], [CLOTH[0] - 10, CLOTH[3] + 10]];

@@ -11,6 +11,8 @@
 //   { t:'beam', poly, streaks, color }   光柱（color:'blue' = 爱情仙蛊的湛蓝，木刻唯一的色版、水墨唯一的花青）
 //   { t:'splash', cols, drops }      水花皇冠
 //   { t:'cloud', at, w }             托着远处群仙的云头
+//   { t:'ground', hz } / { t:'river', river }   草原（地平线 hz 以下）/ 逆流河（riverBanks 的结果；河头平静，往下游起浪）
+//   { t:'eye', ...FX.eye() }          “天意”的巨眼（天上）
 // 各风格的 shots.js 只管怎么画每一类元素。
 import * as XH from './models/xuehu.js';
 import * as MLQ from './models/maoliqiu.js';
@@ -20,6 +22,7 @@ import { flattenLayers } from './models/flatten.js';
 import { placer, rplacer } from './models/profile.js';
 import { flatten, mkXf } from './models/flatten.js';
 import * as FX from './fx.js';
+import { riverBanks, bez } from './scene.js';
 
 const place = (M, lib, { from, at, s, rot = 0, flip = false }) => flatten(M, lib, mkXf({ s, from, at, rot, flip }));
 
@@ -84,4 +87,67 @@ export function K4() {
     { t: 'cap', who: '', text: '九转爱情仙蛊！' },
   ];
 }
-export const SHOTS = { K2, K3, K4 };
+
+// K5 · 1:01 这一刻，他四面楚歌（高位俯拍，方源居中）
+// 原文第264节：天意！方源仰头。这一刻，他四面楚歌。不仅是雪胡老祖、毛里球、中洲蛊仙要为难他，剿杀他泄愤，
+// 而且天意也无处不在，千方百计地要铲除他这个当今天下最大的变数！……但至始至终，他都面无表情。
+// 调度：镜头高高往下看，方源在正中、很小，仰头；河从他身后（右下）流来、到他脚下断开。
+// 左边北原一群（雪胡老祖指着他）、右边毛里球从画外压进来、天上两侧是中洲群仙 —— 人都朝着他，近处的只看得见背影，被画框切掉；
+// 天顶一只“天意”的巨眼往下看。集中线从四边一起压向方源（航海王），人多、框挤、他小（诺兰）。
+export function K5() {
+  const hz = 250, at = [960, 540];
+  const fy = (() => { const s = 160 / 875; return { ops: flatten(CARRY.FY_CARRY_UP, CARRY, mkXf({ s, from: [445, 955], at })), s }; })();
+  const back = (x, y, H, o) => ({ ops: flattenLayers({ layers: standing({ ...o, back: true }, placer([x, y], H)) }, p => p), s: H / 875, y });
+  const front = (x, y, H, o) => ({ ops: flattenLayers({ layers: standing(o, placer([x, y], H)) }, p => p), s: H / 875, y });
+  const beiyuan = [back(150, 520, 150, { robe: 'robeD', hair: 'hair', style: 'bun' }), back(420, 545, 160, { robe: 'robeD', hair: 'hair', style: 'long' }),
+    back(300, 640, 220, { robe: 'robeD', hair: 'hairW', style: 'bun', fur: true, sleeve: 'point' }),   // 雪胡老祖：白发、白毛裘，指着方源
+    back(70, 720, 270, { robe: 'robeD', hair: 'hair', style: 'bun' }), back(520, 840, 330, { robe: 'robeD', hair: 'hair', style: 'long', belt: 'gold' })];
+  const changsheng = [back(1660, 600, 200, { robe: 'robeD', hair: 'hair', style: 'crown' }), back(1830, 700, 260, { robe: 'robeD', hair: 'hair', style: 'bun' })];
+  const zhongzhou = [[420, 222, 92], [520, 214, 86], [610, 226, 80], [1300, 224, 84], [1390, 212, 92], [1490, 226, 80]].map(([x, y, H], i) => front(x, y, H, { robe: 'robe', hair: 'hair', style: i % 3 ? 'bun' : 'crown', belt: 'blue', beard: i === 1 }));
+  const mlq = (() => { const M = MLQ.MLQ_SIDE, H = 430, [x0, y0, x1, y1] = M.box, s = H / (y1 - y0); return { ops: flatten(M, MLQ, mkXf({ s, from: [x0, y1], at: [1480, 520] })), s }; })();
+  const crowd = [...beiyuan, ...changsheng].sort((a, b) => a.y - b.y);
+  return [
+    { t: 'bg', tone: 'dark' },
+    { t: 'sky', hz },
+    { t: 'eye', ...FX.eye(960, 112, 720, 196, .22, 51) },
+    { t: 'cloud', at: [515, 232], w: 300 }, { t: 'cloud', at: [1395, 234], w: 300 },
+    ...zhongzhou.map((f, i) => ({ t: 'fig', ops: f.ops, key: 'k5zz' + i, s: f.s })),
+    { t: 'ground', hz },
+    { t: 'river', river: riverBanks(bez([966, 532], [1120, 520], [1330, 640], [1560, 830], 60), bez([966, 548], [1040, 580], [1120, 700], [1080, 830], 60)) },
+    { t: 'focus', polys: FX.focusLines(at[0], at[1] - 70, 300, 1500, 150, 52, 26) },
+    { t: 'fig', ops: mlq.ops, key: 'k5mlq', s: mlq.s },
+    { t: 'fig', ops: fy.ops, key: 'k5fy', s: fy.s },
+    ...crowd.map((f, i) => ({ t: 'fig', ops: f.ops, key: 'k5c' + i, s: f.s })),
+    { t: 'cap', who: '', text: '这一刻，他四面楚歌' },
+  ];
+}
+
+// K5 皮影版：皮影只能侧身，没法俯拍。按 TREATMENT“去幕后”：天意是举杆的手 —— 幕布上方压下来一只巨大的手影（操纵者的手），
+// 攥着一根横杆，杆上垂下细杆连着台上每一个人（北原、毛里球、中洲群仙），只有方源身上没有杆，他仰头看那只手。
+export function K5_puppet() {
+  const gy = 712, side = (x, y, H, o, flip) => ({ ops: flattenLayers({ layers: sideStanding(o, placer([x, y], H, flip)) }, p => p), s: H / 875, head: [x, y - H * .95] });
+  const fy = (() => { const s = 300 / 875; return { ops: flatten(CARRY.FY_CARRY_UP, CARRY, mkXf({ s, from: [445, 955], at: [1010, gy] })), s }; })();
+  const beiyuan = [side(250, gy, 270, { robe: 'robeD', hair: 'hair', style: 'bun' }, true), side(560, gy, 300, { robe: 'robeD', hair: 'hairW', style: 'bun', fur: true, beard: true, sleeve: 'point', face: { age: .85, nose: 1.3, expr: 'roar' } }, true), side(400, gy, 262, { robe: 'robeD', hair: 'hair', style: 'long', belt: 'gold' }, true)];
+  const zz = [side(760, 400, 170, { robe: 'robe', hair: 'hair', style: 'crown', belt: 'blue', face: { age: .3 } }, true), side(880, 392, 176, { robe: 'robe', hair: 'hair', style: 'crown', belt: 'blue', beard: true, face: { age: .4 } }, true), side(1180, 398, 168, { robe: 'robe', hair: 'hair', style: 'bun', belt: 'blue' }, false)];
+  const mlq = (() => { const M = MLQ.MLQ_SIDE, H = 400, [x0, y0, x1, y1] = M.box, s = H / (y1 - y0); return { ops: flatten(M, MLQ, mkXf({ s, from: [x0, y1], at: [1330, gy + 8] })), s, head: [1330 + (700 - x0) * s, gy - 330] }; })();
+  // 手影：腕从幕布顶上伸下来，手背朝外，四根手指弯过横杆、在杆下露出四个指节（指缝处有凹口），拇指从近侧横压在食指上。
+  // 比例按握拳的手：腕宽≈指节宽×.7，四指等宽、中指最长。
+  const hand = [[880, -200], [1090, -200], [1100, 0], [1130, 50], [1150, 100], [1150, 140], [1144, 165], [1128, 178], [1108, 178], [1092, 166], [1086, 180], [1070, 192], [1046, 195], [1024, 186], [1016, 172], [1010, 186], [994, 200], [968, 202], [946, 192], [940, 176], [934, 188], [916, 196], [892, 194], [874, 182], [868, 166], [858, 150], [830, 140], [806, 120], [800, 95], [812, 70], [840, 40], [868, 10]];
+  const thumb = [[812, 80], [850, 100], [900, 124], [944, 138], [962, 150], [952, 168], [920, 162], [880, 148], [838, 130], [806, 110]];
+  for (const p of [...hand, ...thumb]) { p[0] = 975 + (p[0] - 975) * 1.35; p[1] = 150 + (p[1] - 150) * 1.35; }   // 放大，握点不动
+  const bar = [420, 1520, 150];
+  const targets = [...beiyuan.map(f => f.head), ...zz.map(f => f.head), mlq.head];
+  const rods = targets.map(([x, y]) => [Math.max(bar[0] + 20, Math.min(bar[1] - 20, x + (960 - x) * .25)), bar[2] + 8, x, y]);
+  return [
+    { t: 'bg', tone: 'light' },
+    { t: 'ground', hz: gy },
+    { t: 'cloud', at: [820, 406], w: 320 }, { t: 'cloud', at: [1180, 402], w: 200 },
+    ...zz.map((f, i) => ({ t: 'fig', ops: f.ops, key: 'k5pz' + i, s: f.s })),
+    { t: 'fig', ops: mlq.ops, key: 'k5pmlq', s: mlq.s },
+    ...beiyuan.map((f, i) => ({ t: 'fig', ops: f.ops, key: 'k5pb' + i, s: f.s })),
+    { t: 'fig', ops: fy.ops, key: 'k5pfy', s: fy.s },
+    { t: 'hand', poly: hand, thumb, bar, rods },
+    { t: 'cap', who: '', text: '这一刻，他四面楚歌' },
+  ];
+}
+export const SHOTS = { K2, K3, K4, K5, K5_puppet };

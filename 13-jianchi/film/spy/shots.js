@@ -24,7 +24,8 @@ export function render(cv, els, o) {
   g.save(); g.beginPath(); g.rect(0, Y0, 1920, 804); g.clip(); g.translate(0, Y0);
   // 配色：底是墨黑时条纹用骨白/河青，底是红时用墨黑/骨白
   const onRed = bgc === PAL.red;
-  const stripe = onRed ? [PAL.ink, PAL.ink, PAL.boneD] : [PAL.bone, PAL.teal, PAL.teal];
+  const land = els.some(e => e.t === 'ground');   // 有骨白的地：条纹改成墨黑/河青，人物描一圈墨黑切缝
+  const stripe = onRed ? [PAL.ink, PAL.ink, PAL.boneD] : land ? [PAL.ink, PAL.tealD, PAL.teal] : [PAL.bone, PAL.teal, PAL.teal];
   for (const e of els) {
     if (e.t === 'focus' || e.t === 'speed') e.polys.forEach((Q, i) => tri(Q, stripe[i % stripe.length]));
     if (e.t === 'rings') e.lines.forEach((Ln, i) => {   // 锯齿圈剪成一条有宽度的纸带
@@ -41,12 +42,34 @@ export function render(cv, els, o) {
       if (e.reflect) { const [x, w] = e.reflect, r = mulberry(7); for (let y = e.hz + 150; y < 804; y += 12 + r() * 8) { const ww = w * (.4 + r() * .8) * (y - e.hz) / (804 - e.hz) + 20; P.piece(P.rectP(x - ww / 2 + (r() - .5) * 30, y, ww, 4 + r() * 3), PAL.teal, { gap: 0, shadow: false }); } }
     }
     if (e.t === 'cloud') { const [cx, cy] = e.at, w = e.w, cl = []; for (let j = 0; j <= 20; j++) { const u = j / 20; cl.push([cx - w / 2 + w * u, cy + 2 - Math.abs(Math.sin(u * Math.PI * 3)) * w * .1]); } cl.push([cx + w * .42, cy + w * .08], [cx - w * .42, cy + w * .08]); P.piece(cl, PAL.boneD); }
+    // 草原：一整张骨白纸，远处一条深骨色带（同 K1）
+    if (e.t === 'ground') { P.S.bg = PAL.bone; P.piece([[-10, e.hz], [1930, e.hz], [1930, 814], [-10, 814]], PAL.bone, { gap: 0, shadow: false }); P.piece([[-10, e.hz], [1930, e.hz], [1930, e.hz + 22], [-10, e.hz + 28]], PAL.boneD, { gap: 0, shadow: false }); }
+    // 河：河青纸带；下游贴深青月牙 + 骨白浪尖
+    if (e.t === 'river') {
+      P.piece(e.river.fill, PAL.teal);
+      g.save(); g.beginPath(); P.pathPoly(g, e.river.fill); g.clip();
+      const hy = Math.min(...e.river.fill.map(p => p[1])), mid = hy + (804 - hy) * .4;
+      for (let i = 0; i < 4; i++) { g.fillStyle = PAL.tealD; g.fillRect(960 + i * 30, hy + 14 + i * 16, 120 + i * 50, 2.2); }
+      for (let row = 0; row < 7; row++) { const y = mid + row * row * 4 + row * 16, d = y / 804, A = 30 + d * 60; for (let xx = 900 + (row % 2) * A * .5; xx < 1700; xx += A * 1.1) { const cres = []; for (let j = 0; j <= 10; j++) { const u = j / 10; cres.push([xx + A * u, y - Math.sin(u * Math.PI) * A * .32]); } for (let j = 10; j >= 0; j--) { const u = j / 10; cres.push([xx + A * u + A * .08, y - Math.sin(u * Math.PI) * A * .2 + 3]); } P.piece(cres, row % 2 ? PAL.tealD : PAL.bone, { gap: 0, shadow: false }); } }
+      g.restore();
+    }
+    // 天意的巨眼：骨白眼白，警示红的虹膜，墨黑瞳孔，一点骨白高光；睫毛是墨黑细条
+    if (e.t === 'eye') {
+      P.piece(e.lid, PAL.bone, { gap: 0 });
+      g.save(); g.beginPath(); P.pathPoly(g, e.lid); g.clip();
+      const [ix, iy, ir] = e.iris; P.piece(P.circP(ix, iy, ir, 48), PAL.red, { gap: 0, shadow: false });
+      for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; tri([[ix + Math.cos(a) * ir * .5, iy + Math.sin(a) * ir * .5], [ix + Math.cos(a + .06) * ir * .95, iy + Math.sin(a + .06) * ir * .95], [ix + Math.cos(a - .06) * ir * .95, iy + Math.sin(a - .06) * ir * .95]], PAL.ink); }
+      P.piece(P.circP(e.pupil[0], e.pupil[1], e.pupil[2], 32), PAL.ink, { gap: 0, shadow: false }); P.piece(P.circP(ix - ir * .35, iy - ir * .38, ir * .13, 16), PAL.bone, { gap: 0, shadow: false });
+      g.restore();
+      const band = (L, w) => { const n = L.length, A = [], B = []; for (let k = 0; k < n; k++) { const a = L[Math.max(0, k - 1)], b = L[Math.min(n - 1, k + 1)], dx = b[0] - a[0], dy = b[1] - a[1], m = Math.hypot(dx, dy) || 1, ww = w * Math.sin(Math.PI * k / (n - 1)) ** .5 + 1; A.push([L[k][0] - dy / m * ww / 2, L[k][1] + dx / m * ww / 2]); B.push([L[k][0] + dy / m * ww / 2, L[k][1] - dx / m * ww / 2]); } return A.concat(B.reverse()); };
+      P.piece(band(e.up, 16), PAL.teal, { gap: 0 });   // 上眼睑一条河青纸边（墨黑天上看得见）
+    }
     // 光柱：一整条河青纸（爱情仙蛊的湛蓝在四色里落到河青），柱里贴骨白的细长条 = 往上冲的光
     if (e.t === 'beam') { P.piece(e.poly, PAL.teal, { gap: 0 }); e.streaks.forEach(Q => P.piece(Q, PAL.bone, { gap: 0, shadow: false })); }
     if (e.t === 'splash') { e.cols.forEach(Q => P.piece(Q, PAL.bone, { gap: 0, shB: 2 })); e.drops.forEach(([x, y, r]) => P.piece(P.ellP(x, y, r * .7, r, 12), PAL.bone, { gap: 0, shadow: false })); }
     if (e.t === 'fig' && e.lit) {   // 光里的人：墨黑剪影，只有白发是骨白
       P.S.bg = PAL.teal; P.silhouette(() => { for (const op of e.ops) if (op.poly) P.piece(op.poly, op.role === 'hairW' ? PAL.bone : PAL.ink); }, { outline: 0 });
-    } else if (e.t === 'fig') { P.S.bg = bgc; spyFigure(e.ops, { key: o.id + e.key, closeup: e.s > .3, scale: e.s * 2, outline: e.s > .3 ? 5 : 2, outlineCol: bgc === PAL.ink && e.s > .3 ? PAL.tealD : undefined }); }
+    } else if (e.t === 'fig') { P.S.bg = bgc; spyFigure(e.ops, { key: o.id + e.key, closeup: e.s > .3, scale: e.s * 2, outline: e.s > .3 ? 5 : 2.4, outlineCol: land ? PAL.ink : bgc === PAL.ink && e.s > .3 ? PAL.tealD : undefined }); }
     if (e.t === 'sfx') sfx(g, e, onRed ? PAL.bone : PAL.red, PAL.ink);
   }
   g.restore();

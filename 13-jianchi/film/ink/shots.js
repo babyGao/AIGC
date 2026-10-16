@@ -42,6 +42,39 @@ export function render(cv, els, o) {
       e.lines.forEach((Ln, i) => { const d = (Ln[0][1] - e.hz) / (804 - e.hz); I.draw(L.ink, I.mk([Ln[0], [(Ln[0][0] + Ln[1][0]) / 2, Ln[0][1] + .5], Ln[1]], { w: 1 + d * 3.5, tone: I.TONE.dan + d * .15, dry: .7, prof: 'tip', seed: 410 + i })); });
       e.ripples.forEach((Ln, i) => I.draw(L.ink, I.mk(Ln.filter((_, j) => j % 3 === 0), { w: 1.6, tone: I.TONE.dan, dry: .55, rough: .3, seed: 470 + i })));
     }
+    // 草原：淡墨点，远密近疏、远小近大，夹几簇短草（同 K1）
+    if (e.t === 'ground') {
+      const rg = mulberry(7);
+      for (let i = 0; i < 560; i++) { const u = rg() ** 1.8, y = e.hz + 8 + (804 - e.hz - 8) * u, x = rg() * 1920, r = .8 + u * 5.5; I.blot(L.cd, x, y, r, .18 + rg() * .22, rg() * 3, .45, i); }
+      for (let i = 0; i < 80; i++) { const u = .3 + .7 * rg(), y = e.hz + (804 - e.hz) * u, x = rg() * 1920, h = 6 + u * 26; for (let j = -1; j <= 1; j++) I.draw(L.ink, I.mk([[x + j * h * .2, y], [x + j * h * .35 + 2, y - h]], { w: 1 + u * 2.4, tone: I.TONE.dan, dry: .45, prof: 'tip', seed: 600 + i * 7 + j })); }
+      I.draw(L.ink, I.mk([[-20, e.hz], [700, e.hz + 1], [1300, e.hz - 1], [1940, e.hz]], { w: 3, tone: I.TONE.dan, dry: .5, rough: .3, seed: 599 }));
+    }
+    // 河：纸白（擦干净），两岸干笔；河头几笔极淡的横擦（平静），往下游是平行浪线（汹涌）
+    if (e.t === 'river') {
+      const R0 = e.river, pp = c => { c.beginPath(); R0.fill.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); };
+      for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; pp(c); c.fill(); c.restore(); }
+      R0.banks.forEach((b, i) => { for (let s0 = 0; s0 < b.length - 4; s0 += 26) { const seg = b.slice(s0, s0 + 30), d = seg[0][1] / 804; I.draw(L.ink, I.mk(seg, { w: 1.4 + d * 6, tone: I.TONE.dan + d * .2, dry: .55, rough: .3, seed: 620 + i * 40 + s0 })); } });
+      for (const c of [L.cw, L.cd]) { c.save(); pp(c); c.clip(); }
+      const hy = Math.min(...R0.fill.map(p => p[1])), mid = hy + (804 - hy) * .4, rw = mulberry(9);
+      for (let i = 0; i < 40; i++) { const y = hy + 6 + (mid - hy) * rw() ** 1.3, d = y / 804, x = 900 + rw() * 500, l = 30 + d * 100; I.draw(L.ink, I.mk([[x, y], [x + l * .5, y + (rw() - .5) * 2], [x + l, y]], { w: .8 + d * 2, tone: I.TONE.qing, dry: .75, prof: 'tip', seed: 650 + i })); }
+      for (let row = 0; row < 8; row++) { const y = mid + 20 + row * row * 4 + row * 14, d = y / 804, A = 26 + d * 60, H = 6 + d * 22; for (let x = 900 + (row % 2) * A * .5; x < 1700; x += A * 1.05) { const pts = []; for (let j = 0; j <= 8; j++) { const u = j / 8; pts.push([x + A * u, y - Math.sin(u * Math.PI) * H + (u > .65 ? (u - .65) * H * 2 : 0)]); } I.draw(L.ink, I.mk(pts, { w: 1.4 + d * 3.4, tone: I.TONE.zhong, dry: .3, rough: .2, prof: 'brush', seed: 700 + row * 50 + x })); } }
+      for (const c of [L.cw, L.cd]) c.restore();
+    }
+    // 天意的巨眼：上眼睑一道焦墨大笔，下眼睑淡墨；眼白留纸；虹膜一团浓墨，四周放射的干笔；瞳孔焦墨点，留一点高光
+    if (e.t === 'eye') {
+      const lid = c => { c.beginPath(); e.lid.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); };
+      for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; lid(c); c.fill(); c.restore(); }
+      const [ix, iy, ir] = e.iris;
+      for (const c of [L.cw, L.cd]) { c.save(); lid(c); c.clip(); }
+      I.mass(L.cw, Array.from({ length: 40 }, (_, i) => [ix + Math.cos(i / 40 * 6.283) * ir, iy + Math.sin(i / 40 * 6.283) * ir]), .55, 2, 5);
+      for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2; I.draw(L.ink, I.mk([[ix + Math.cos(a) * ir * .98, iy + Math.sin(a) * ir * .98], [ix + Math.cos(a) * ir * .5, iy + Math.sin(a) * ir * .5]], { w: 3.4, tone: I.TONE.nong, dry: .7, prof: 'tip', seed: 760 + i })); }
+      I.blot(L.cw, e.pupil[0], e.pupil[1], e.pupil[2], .95, 0, 1, 3);
+      for (const c of [L.cw, L.cd]) c.restore();
+      for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.beginPath(); c.arc(ix - ir * .35, iy - ir * .38, ir * .12, 0, 7); c.fill(); c.restore(); }
+      I.draw(L.ink, I.mk(e.up.filter((_, i) => i % 2 === 0), { w: 16, tone: I.TONE.jiao, dry: .35, rough: .25, prof: 'brush', seed: 790 }));
+      I.draw(L.ink, I.mk(e.low.filter((_, i) => i % 2 === 0), { w: 6, tone: I.TONE.zhong, dry: .55, rough: .3, prof: 'brush', seed: 791 }));
+      e.lashes.forEach((Ln, i) => I.draw(L.ink, I.mk(Ln, { w: 5, tone: I.TONE.jiao, dry: .4, prof: 'tip', seed: 800 + i })));
+    }
     if (e.t === 'cloud') { const [x, y] = e.at, w = e.w; for (let j = 0; j < 3; j++) { const pts = []; for (let a = 0; a <= 1.7 * Math.PI; a += .25) pts.push([x - w * .4 + j * w * .38 + Math.cos(a) * w * .14 * (1 - a / 9), y + 4 + Math.sin(a) * w * .07]); I.draw(L.ink, I.mk(pts, { w: 2, tone: I.TONE.zhong, dry: .4, seed: 490 + j })); } }
     // 光柱：柱里擦回纸白（光就是留白），柱沿染一层花青（全片水墨唯一的颜色破例，只给爱情仙蛊），柱里的速度线是纸白
     if (e.t === 'beam') {
