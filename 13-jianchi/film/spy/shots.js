@@ -27,7 +27,17 @@ export function render(cv, els, o) {
   const land = els.some(e => e.t === 'ground');   // 有骨白的地：条纹改成墨黑/河青，人物描一圈墨黑切缝
   const stripe = onRed ? [PAL.ink, PAL.ink, PAL.boneD] : land ? [PAL.ink, PAL.tealD, PAL.teal] : [PAL.bone, PAL.teal, PAL.teal];
   for (const e of els) {
-    if (e.t === 'focus' || e.t === 'speed') e.polys.forEach((Q, i) => tri(Q, stripe[i % stripe.length]));
+    if (e.t === 'focus' || e.t === 'speed') e.polys.forEach((Q, i) => tri(Q, e.on === 'pool' ? PAL.bone : stripe[i % stripe.length]));
+    // 浅水：一张河青纸；深青细缝 = 平静；骨白细圈 = 涟漪；往前涨的水线是一条骨白浪沫纸边
+    if (e.t === 'pool') {
+      P.piece(e.poly, PAL.teal);
+      g.save(); g.beginPath(); P.pathPoly(g, e.poly); g.clip();
+      e.lines.forEach(Ln => { const d = Ln[0][1] / 804; g.fillStyle = PAL.tealD; g.fillRect(Ln[0][0], Ln[0][1], Ln[1][0] - Ln[0][0], 1.5 + d * 3.5); });
+      e.ripples.forEach(Ln => { g.save(); g.strokeStyle = PAL.bone; g.lineWidth = 2.5; g.beginPath(); Ln.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke(); g.restore(); });
+      g.restore();
+      const n = e.front.length, A = [], B = []; e.front.forEach((p, k) => { const w = 4 + 10 * (1 - k / n); A.push([p[0] - w * .6, p[1] - w * .3]); B.push([p[0] + w * .6, p[1] + w * .3]); });
+      P.piece(A.concat(B.reverse()), PAL.bone, { gap: 0 });
+    }
     if (e.t === 'rings') e.lines.forEach((Ln, i) => {   // 锯齿圈剪成一条有宽度的纸带
       const n = Ln.length, w = e.w * 1.6, A = [], B = [];
       for (let k = 0; k < n; k++) { const a = Ln[Math.max(0, k - 1)], b = Ln[Math.min(n - 1, k + 1)], dx = b[0] - a[0], dy = b[1] - a[1], m = Math.hypot(dx, dy) || 1; A.push([Ln[k][0] - dy / m * w / 2, Ln[k][1] + dx / m * w / 2]); B.push([Ln[k][0] + dy / m * w / 2, Ln[k][1] - dx / m * w / 2]); }

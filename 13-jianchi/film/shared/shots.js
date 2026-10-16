@@ -1,7 +1,7 @@
 // 关键镜头的语义描述（局部坐标 1920×804，宽银幕）。每个镜头 = 按画的顺序排好的元素：
 //   { t:'bg', tone, accent }         底：dark / light；accent = 情绪色（red 暴怒），各风格自选用不用（间谍片头拿来当底色）
 //   { t:'focus', polys }             集中线（尖楔多边形）
-//   { t:'speed', polys }             速度线
+//   { t:'speed', polys, on }         速度线（on:'pool' = 画在浅水面上，用和水相反的颜色）
 //   { t:'rings', lines, w }          音浪（锯齿弧折线）
 //   { t:'debris', items }            碎屑 { poly, trail }
 //   { t:'fig', ops, key, s }         人物（画面指令，已在局部坐标）
@@ -13,10 +13,12 @@
 //   { t:'cloud', at, w }             托着远处群仙的云头
 //   { t:'ground', hz } / { t:'river', river }   草原（地平线 hz 以下）/ 逆流河（riverBanks 的结果；河头平静，往下游起浪）
 //   { t:'eye', ...FX.eye() }          “天意”的巨眼（天上）
+//   { t:'pool', poly, front, lines, ripples }   一片浅水（河头近景）：poly 是水面范围，front 是正往前涨的水线
 // 各风格的 shots.js 只管怎么画每一类元素。
 import * as XH from './models/xuehu.js';
 import * as MLQ from './models/maoliqiu.js';
 import * as CARRY from './models/carry.js';
+import * as STEP from './models/step.js';
 import { standing, sideStanding } from './models/crowd.js';
 import { flattenLayers } from './models/flatten.js';
 import { placer, rplacer } from './models/profile.js';
@@ -150,4 +152,31 @@ export function K5_puppet() {
     { t: 'cap', who: '', text: '这一刻，他四面楚歌' },
   ];
 }
-export const SHOTS = { K2, K3, K4, K5, K5_puppet };
+
+// K6 · 1:31 一步再一步（贴地大特写）
+// 原文第265节：一步又一步。他早已经走到了最前端，每走一步，逆流河就顺势向前流淌一步，让方源始终置身在河内。……一步再一步。
+// 素材：refs/river/03.jpg（浅水里的一步：前脚抬起、黑鞋、白袍下摆盖住后脚）。脚的造型就量自这张图（models/step.js）。
+// 调度：镜头贴着地面，前脚的黑鞋占满左半、正往下踩（竖向速度线 + “咚”）；后脚踩在浅水里，水线正往前涨、追到前脚底下（向左的水纹速度线）；
+// 地平线上极小的一排看客和像小土丘的毛里球 —— 一只脚比整个世界还大（诺兰）。
+export function K6() {
+  const hz = 300, s = 1.3, xf = mkXf({ s, from: [560, 431], at: [200, 780] });
+  const foot = flatten(STEP.FY_STEP, STEP, xf);
+  const front = [[250, 804], [310, 750], [390, 712], [520, 690], [700, 676], [1000, 640], [1300, 560], [1600, 420], [1800, 330], [1900, 306]];
+  const pool = front.concat([[1920, 306], [1920, 804]]);
+  const tiny = [[1340, 34], [1376, 30], [1408, 36], [1450, 28], [1720, 32], [1756, 36], [1792, 30]].map(([x, H], i) => ({ ops: flattenLayers({ layers: standing({ robe: i < 4 ? 'robeD' : 'robe', hair: i === 1 ? 'hairW' : 'hair', style: 'bun', fur: i === 1 }, placer([x, hz + 2], H)) }, p => p), s: H / 875 }));
+  const mlq = (() => { const M = MLQ.MLQ_SIDE, H = 60, [x0, y0, x1, y1] = M.box, k = H / (y1 - y0); return { ops: flatten(M, MLQ, mkXf({ s: k, from: [x0, y1], at: [1520, hz + 2] })), s: k }; })();
+  return [
+    { t: 'bg', tone: 'dark' },
+    { t: 'sky', hz },
+    { t: 'ground', hz },
+    { t: 'pool', poly: pool, front, lines: FX.calmLines(300, 1920, 300, 804, 14, 61), ripples: FX.ripples(720, 786, 100, 13, 4, 62) },
+    { t: 'speed', polys: FX.speedLines([300, 700, 1000, 800], Math.PI + .12, 24, 63, 9), on: 'pool' },   // 水线往前涨（画在水面上，用跟水相反的颜色）
+    { t: 'fig', ops: mlq.ops, key: 'k6mlq', s: mlq.s },
+    ...tiny.map((f, i) => ({ t: 'fig', ops: f.ops, key: 'k6t' + i, s: f.s })),
+    { t: 'fig', ops: foot, key: 'k6foot', s },
+    { t: 'speed', polys: FX.speedLines([220, 120, 560, 440], Math.PI / 2 + .12, 30, 64, 10) },
+    { t: 'sfx', text: '咚', x: 1260, y: 250, size: 260, rot: .08 },
+    { t: 'cap', who: '', text: '一步再一步' },
+  ];
+}
+export const SHOTS = { K2, K3, K4, K5, K5_puppet, K6 };

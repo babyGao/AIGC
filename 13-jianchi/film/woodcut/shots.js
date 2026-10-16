@@ -101,7 +101,17 @@ export function render(cv, els, o) {
       usedPlate = true;
     }
     if (e.t === 'splash') { e.cols.forEach(P => { m.fillStyle = '#fff'; poly(m, P); m.fill(); m.strokeStyle = '#000'; m.lineWidth = 3; m.stroke(); }); for (const [x, y, r] of e.drops) { m.fillStyle = '#fff'; m.beginPath(); m.ellipse(x, y, r * .7, r, 0, 0, 7); m.fill(); } }
-    if (e.t === 'focus' || e.t === 'speed') WC.drawStrokes(m, e.polys.map((P, i) => wedgeStroke(P, i)), { color: '#fff' });
+    if (e.t === 'focus' || e.t === 'speed') WC.drawStrokes(m, e.polys.map((P, i) => wedgeStroke(P, i)), { color: e.on === 'pool' ? '#000' : '#fff' });
+    // 浅水：刻成白（反着天光），水面横向细长留黑，涟漪是留黑的扁圈，往前涨的水线是一道粗黑边 + 白色浪沫点
+    if (e.t === 'pool') {
+      m.fillStyle = '#fff'; poly(m, e.poly); m.fill();
+      m.save(); poly(m, e.poly); m.clip();
+      e.lines.forEach((Ln, i) => { const d = (Ln[0][1] - 236) / 568; WC.drawStrokes(m, [knife(Ln, [.6, 1 + d * 3.5], 300 + i, 'k')], { color: '#000' }); });
+      e.ripples.forEach((Ln, i) => WC.drawStrokes(m, WC.cutAlong(Ln, { w: 2.2, kind: 'k', seg: [40, 160], gap: [4, 14], seed: 320 + i }), { color: '#000' }));
+      m.restore();
+      WC.drawStrokes(m, [knife(e.front, e.front.map((_, i) => 2 + 7 * (1 - i / e.front.length)), 330, 'k')], { color: '#000' });
+      const r = mulberry(33); for (let i = 0; i < 40; i++) { const k0 = Math.floor(r() * (e.front.length - 1)), u = r(), a = e.front[k0], b = e.front[k0 + 1], x = a[0] + (b[0] - a[0]) * u - 6 - r() * 18, y = a[1] + (b[1] - a[1]) * u; m.fillStyle = '#fff'; m.beginPath(); m.ellipse(x, y, 2 + r() * 4, 1.5 + r() * 2.5, 0, 0, 7); m.fill(); }
+    }
     if (e.t === 'rings') e.lines.forEach((L, i) => WC.drawStrokes(m, WC.cutAlong(L, { w: e.w, kind: 'u', seg: [80, 260], gap: [6, 22], seed: 60 + i }), { color: '#fff' }));
     if (e.t === 'debris') for (const d of e.items) { m.fillStyle = '#000'; m.beginPath(); d.poly.forEach((p, i) => i ? m.lineTo(p[0], p[1]) : m.moveTo(p[0], p[1])); m.closePath(); m.lineWidth = 6; m.strokeStyle = '#000'; m.stroke(); m.fillStyle = '#fff'; m.fill(); WC.drawStrokes(m, [WC.mkStroke(d.trail, [d.s * .5, .5], { kind: 'v', seed: 3 })], { color: '#fff' }); }
     if (e.t === 'fig') {

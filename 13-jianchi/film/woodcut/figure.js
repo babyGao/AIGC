@@ -18,6 +18,8 @@ export function carveFigure(g, ops, o = {}) {
     C = { shapes: new Map(), cuts: [], strands: [] };
     // 白衣：每块是一个“白色实体”，阴影侧留黑刀痕，刀痕顺着形体
     ops.forEach((op, i) => {
+      if (op.role === 'ink' && op.key === 'shoe')   // 特写的黑鞋：受光一侧刻几道白高光（皮面的反光），不然黑鞋落在黑地上就没了
+        C.shapes.set(i, WC.shape([op.poly], { light: L, sp: Math.max(3.4, 5 * sc), R: 40 * sc, lo: .74, hi: .99, kind: 'v', seed: 17 + i, wmax: Math.max(1.4, 2.6 * sc) }));
       if (op.role === 'robeD')
         C.shapes.set(i, WC.shape([op.poly], { light: L, sp: Math.max(3.6, 6 * sc), R: 50 * sc, lo: .55, hi: .98, kind: 'v', seed: 13 + i, wmax: Math.max(1.4, 2.6 * sc) }));
       if (op.role === 'purple' || op.role === 'purpleD')   // 兽毛：黑木上顺毛刻白（受光一侧多）
@@ -55,7 +57,16 @@ export function carveFigure(g, ops, o = {}) {
       case 'robe': case 'robeIn': case 'shade': case 'robeD': case 'fur': case 'purple': case 'purpleD': case 'furL': C.shapes.get(i).draw(g, o.t ?? 1e9); break;
       case 'tooth': case 'pink': fillP(g, op.poly, '#fff'); break;
       case 'collar': case 'skin': case 'hairW': fillP(g, op.poly, '#fff'); if (op.role === 'hairW') { g.lineWidth = Math.max(1, 1.6 * sc); g.strokeStyle = '#000'; g.beginPath(); op.poly.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath(); g.stroke(); } break;
-      case 'ink': case 'dark': case 'gold': case 'red': case 'green': case 'blue': fillP(g, op.poly, '#000'); break;
+      case 'ink': if (C.shapes.has(i)) {
+        fillP(g, op.poly, '#000'); C.shapes.get(i).draw(g, o.t ?? 1e9);
+        // 鞋面高光：沿鞋面（鞋尖 → 脚踝那一段轮廓）往里收几道白刀，鞋尖一点亮
+        const P = op.poly, n = P.length, up = P.slice(0, Math.max(4, Math.floor(n * .3)));
+        const st = [6, 13, 21].map((d, j) => { const pts = up.map((p, k) => { const a = up[Math.max(0, k - 1)], b = up[Math.min(up.length - 1, k + 1)], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return [p[0] - dy / l * d * sc * .5, p[1] + dx / l * d * sc * .5]; }).slice(0, up.length - j); return WC.mkStroke(pts, pts.map((_, k) => Math.max(.6, (3 - j * .8) * sc * .5 * Math.sin(Math.PI * (k + .5) / pts.length))), { kind: 'v', seed: 70 + j }); });
+        WC.drawStrokes(g, st, { color: '#fff' });
+        g.fillStyle = '#fff'; g.beginPath(); g.ellipse(P[1][0] + 6 * sc, P[1][1] + 5 * sc, 4 * sc, 2 * sc, -.3, 0, 7); g.fill();
+        break;
+      }   // fallthrough
+      case 'dark': case 'gold': case 'red': case 'green': case 'blue': fillP(g, op.poly, '#000'); break;
       case 'eye': {
         fillP(g, op.open, '#fff');
         g.save(); g.beginPath(); op.open.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath(); g.clip();

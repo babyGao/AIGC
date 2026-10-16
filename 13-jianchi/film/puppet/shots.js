@@ -75,6 +75,7 @@ export function render(cv, els, o) {
     lay(gg => { for (const e of sfx) { const done = glyphPath(gg, e); gg.fillStyle = bg.accent === 'red' ? '#e9a32a' : '#c4261a'; gg.fillText(e.text, 0, 0); done(); } }, 62);
   }
   for (const e of els) {
+    if (e.t === 'speed' && !dark) lay(gg => e.polys.forEach(Q => K.cut(gg, path(Q.map(X)))), 80);   // 没有景片时速度线就剪在已经画好的皮上（这里只剪透这一层，等于在幕上留几道亮缝）
     if (e.t === 'rings') lay(gg => e.lines.forEach(Ln => {
       const n = Ln.length, w = e.w * 1.5 * k, A = [], B = [];
       for (let i = 0; i < n; i++) { const a = Ln[Math.max(0, i - 1)], b = Ln[Math.min(n - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], m = Math.hypot(dx, dy) || 1; A.push([Ln[i][0] - dy / m * w / 2 / k, Ln[i][1] + dx / m * w / 2 / k]); B.push([Ln[i][0] + dy / m * w / 2 / k, Ln[i][1] - dx / m * w / 2 / k]); }
@@ -93,6 +94,13 @@ export function render(cv, els, o) {
       lay(gg => { gg.filter = 'blur(3.5px)'; const [bx0, bx1, by] = e.bar, a = X([bx0, by - 11]), b = X([bx1, by + 11]); gg.fillStyle = 'rgb(34,20,12)'; gg.fillRect(a[0], a[1], b[0] - a[0], b[1] - a[1]); K.fill(gg, 'rgb(34,20,12)', path(e.poly.map(X))); K.fill(gg, 'rgb(34,20,12)', path(e.thumb.map(X))); gg.filter = 'none'; gg.globalCompositeOperation = 'destination-out'; gg.strokeStyle = 'rgba(0,0,0,.55)'; gg.lineWidth = 3; gg.beginPath(); path(e.thumb.map(X))(gg); gg.stroke(); gg.globalCompositeOperation = 'source-over'; }, 77);   // 拇指边上留一道亮缝，跟手指分开
       lay(gg => { gg.filter = 'blur(1.5px)'; gg.strokeStyle = 'rgba(50,32,18,.75)'; gg.lineWidth = 3; e.rods.forEach(([x0, y0, x1, y1]) => { const a = X([x0, y0]), b = X([x1, y1]); gg.beginPath(); gg.moveTo(a[0], a[1]); gg.lineTo(b[0], b[1]); gg.stroke(); gg.fillStyle = 'rgba(50,32,18,.85)'; gg.beginPath(); gg.arc(b[0], b[1], 5, 0, 7); gg.fill(); }); gg.filter = 'none'; }, 78);
     }
+    // 浅水：一块靛青水纹皮；横缝 = 平静，涟漪剪成扁圈缝；往前涨的水线描一道墨边，前沿剪一排小水点
+    if (e.t === 'pool') lay(gg => {
+      const P = e.poly.map(X); K.fill(gg, '#28507e', path(P));
+      K.within(gg, path(P), () => { e.lines.forEach(Ln => { const d = Ln[0][1] / 804; K.cutLine(gg, 1.2 + d * 2.4, q => { const a = X(Ln[0]), b = X(Ln[1]); q.moveTo(a[0], a[1]); q.lineTo(b[0], b[1]); }); }); e.ripples.forEach(Ln => K.cutLine(gg, 1.6, q => { Ln.map(X).forEach((p, i) => i ? q.lineTo(p[0], p[1]) : q.moveTo(p[0], p[1])); })); });
+      K.ink(gg, 3, q => { e.front.map(X).forEach((p, i) => i ? q.lineTo(p[0], p[1]) : q.moveTo(p[0], p[1])); });
+      const r = mulberry(17); K.cut(gg, q => { for (let i = 0; i < 26; i++) { const k0 = Math.floor(r() * (e.front.length - 1)), p = X(e.front[k0]), x = p[0] + 10 + r() * 16, y = p[1] + 6 + r() * 10, rr = 1.6 + r() * 2.4; q.moveTo(x + rr, y); q.arc(x, y, rr, 0, 7); } });
+    }, 79);
     // 水面：一条靛青水纹皮，横缝 = 平静的水纹，涟漪剪成扁圈缝
     if (e.t === 'water') lay(gg => {
       const top = X([0, e.hz])[1], P = [[CLOTH[0] - 10, top], [CLOTH[2] + 10, top], [CLOTH[2] + 10, CLOTH[3] + 10], [CLOTH[0] - 10, CLOTH[3] + 10]];

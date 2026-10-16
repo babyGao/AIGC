@@ -75,6 +75,17 @@ export function render(cv, els, o) {
       I.draw(L.ink, I.mk(e.low.filter((_, i) => i % 2 === 0), { w: 6, tone: I.TONE.zhong, dry: .55, rough: .3, prof: 'brush', seed: 791 }));
       e.lashes.forEach((Ln, i) => I.draw(L.ink, I.mk(Ln, { w: 5, tone: I.TONE.jiao, dry: .4, prof: 'tip', seed: 800 + i })));
     }
+    // 浅水：擦回纸白；横向几笔极淡的擦；涟漪淡墨圈；往前涨的水线一道浓墨干笔，前沿甩几点水
+    if (e.t === 'pool') {
+      const pp = c => { c.beginPath(); e.poly.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); };
+      for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; pp(c); c.fill(); c.restore(); }
+      for (const c of [L.cw, L.cd]) { c.save(); pp(c); c.clip(); }
+      e.lines.forEach((Ln, i) => { const d = Ln[0][1] / 804; I.draw(L.ink, I.mk([Ln[0], [(Ln[0][0] + Ln[1][0]) / 2, Ln[0][1] + .5], Ln[1]], { w: 1 + d * 3, tone: I.TONE.qing + d * .12, dry: .7, prof: 'tip', seed: 820 + i })); });
+      e.ripples.forEach((Ln, i) => I.draw(L.ink, I.mk(Ln.filter((_, j) => j % 3 === 0), { w: 1.8, tone: I.TONE.dan, dry: .5, rough: .3, seed: 850 + i })));
+      for (const c of [L.cw, L.cd]) c.restore();
+      I.draw(L.ink, I.mk(e.front, { w: 7, tone: I.TONE.nong, dry: .55, rough: .35, prof: 'brush', seed: 870 }));
+      const r = mulberry(13); for (let i = 0; i < 18; i++) { const k0 = Math.floor(r() * (e.front.length - 1)), p = e.front[k0]; I.blot(L.cw, p[0] - 8 - r() * 20, p[1] + (r() - .5) * 10, 1.5 + r() * 3, .7, 0, 1, i); }
+    }
     if (e.t === 'cloud') { const [x, y] = e.at, w = e.w; for (let j = 0; j < 3; j++) { const pts = []; for (let a = 0; a <= 1.7 * Math.PI; a += .25) pts.push([x - w * .4 + j * w * .38 + Math.cos(a) * w * .14 * (1 - a / 9), y + 4 + Math.sin(a) * w * .07]); I.draw(L.ink, I.mk(pts, { w: 2, tone: I.TONE.zhong, dry: .4, seed: 490 + j })); } }
     // 光柱：柱里擦回纸白（光就是留白），柱沿染一层花青（全片水墨唯一的颜色破例，只给爱情仙蛊），柱里的速度线是纸白
     if (e.t === 'beam') {
