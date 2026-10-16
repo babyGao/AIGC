@@ -14,7 +14,7 @@ const R = {};
 export const CLOTH = [150, 120, 1770, 880];     // 幕布 x0,y0,x1,y1（2.13:1，加上台框后近宽银幕）
 const GY = 812;                                 // 地面条上沿
 const path = P => q => { q.moveTo(P[0][0], P[0][1]); for (let i = 1; i < P.length; i++) q.lineTo(P[i][0], P[i][1]); q.closePath(); };
-function front(W, H) {   // 台框、柱子、观众头（前景层，不受灯透射）
+export function front(W, H, extra) {   // 台框、柱子、观众头（前景层，不受灯透射）；extra(g) 最后画（台口挂的说书牌，挡在观众头前面好读）
   const [c, g] = K.canvas(W, H);
   const [x0, y0, x1, y1] = CLOTH;
   g.fillStyle = '#1d120b'; g.fillRect(0, 0, W, H);
@@ -27,6 +27,7 @@ function front(W, H) {   // 台框、柱子、观众头（前景层，不受灯�
   // 观众头（剪影，背光）
   const r = mulberry(3);
   for (let i = 0; i < 26; i++) { const x = r() * W, y = H - 30 - r() * 60, rx = 46 + r() * 20; g.fillStyle = '#0d0805'; g.beginPath(); g.ellipse(x, y, rx, rx * 1.15, 0, 0, 7); g.fill(); g.fillRect(x - rx * 1.6, y + rx * .6, rx * 3.2, 200); }
+  if (extra) extra(g);
   return c;
 }
 export function render(cv, t, q, S) {
