@@ -43,8 +43,9 @@ export function render(cv, els, o) {
   m.setTransform(k, 0, 0, k, PLATE[0], PLATE[1]); pc.save(); pc.beginPath(); edge.forEach((p, i) => i ? pc.lineTo(p[0], p[1]) : pc.moveTo(p[0], p[1])); pc.closePath(); pc.clip(); pc.setTransform(k, 0, 0, k, PLATE[0], PLATE[1]);   // 色版也只在版面里
   const poly = (c, P) => { c.beginPath(); P.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); };
   const cutLine = (L, w, seed, kind = 'v') => WC.drawStrokes(m, WC.cutAlong(L, { w, kind, seg: [60, 220], gap: [4, 16], seed }), { color: '#fff' });
-  let usedPlate = false;
-  for (const e of els) {
+  let usedPlate = false, tone = bg && bg.tone === 'light' ? 'light' : 'dark';   // tone：当前格的底色（白格里的效果线刻成黑）
+  const drawEls = list => { for (const e of list) {
+    if (e.t === 'panel') { drawPanel(e); continue; }
     // 水面：地平线一道白刀，下面一排排横向的 V 刀（越近越粗），涟漪是细刀刻的扁圈，光柱倒影是一串色版短横
     if (e.t === 'water') {
       cutLine([[0, e.hz], [1920, e.hz]], 2.2, 70);
@@ -90,6 +91,10 @@ export function render(cv, els, o) {
       const lo = []; for (let i = 4; i < e.low.length - 3; i += 3) { const p = e.low[i], a = Math.PI / 2 + (i / e.low.length - .5) * 1.4, L = 18 + (i % 2) * 8; lo.push(knife([p, [p[0] + Math.cos(a) * L, p[1] + Math.sin(a) * L]], [3.5, .6], 240 + i)); }
       WC.drawStrokes(m, lo, { color: '#fff' });
     }
+    // 漫画符号：跟格底相反的颜色（黑格里刻白、白格里留黑），描一圈反色边
+    if (e.t === 'marks') { const fg = tone === 'light' ? '#000' : '#fff', bgc = tone === 'light' ? '#fff' : '#000';
+      e.polys.forEach(P => { m.fillStyle = '#fff'; m.strokeStyle = '#000'; m.lineWidth = 4; poly(m, P); m.fill(); m.stroke(); });   // 泪、汗：白水珠描黑边（漫画的画法）
+      e.lines.forEach((Ln, i) => { m.lineCap = 'round'; m.strokeStyle = bgc; m.lineWidth = 9; m.beginPath(); Ln.forEach((p, k) => k ? m.lineTo(p[0], p[1]) : m.moveTo(p[0], p[1])); m.stroke(); m.strokeStyle = fg; m.lineWidth = 4.5; m.stroke(); }); }
     // 云头：刻白的一朵卷云，底下两道墨线
     if (e.t === 'cloud') { const [cx, cy] = e.at, w = e.w, P = []; for (let j = 0; j <= 36; j++) { const u = j / 36; P.push([cx - w / 2 + w * u, cy - Math.abs(Math.sin(u * Math.PI * 3.5)) * w * .1 - Math.sin(u * Math.PI) * w * .06]); } P.push([cx + w * .42, cy + w * .08], [cx - w * .42, cy + w * .08]); m.fillStyle = '#fff'; poly(m, P); m.fill(); m.strokeStyle = '#000'; m.lineWidth = 2.5; for (let j = 0; j < 2; j++) { m.beginPath(); m.moveTo(cx - w * .3 + j * 20, cy + w * .02 + j * 7); m.quadraticCurveTo(cx, cy - 6 + j * 7, cx + w * .3 - j * 20, cy + w * .02 + j * 7); m.stroke(); } }
     // 光柱：版上刻空，印湛蓝色版（全片木刻唯一的颜色）；柱里的速度线留纸白（色版上挖掉），柱沿一道黑边
@@ -101,7 +106,7 @@ export function render(cv, els, o) {
       usedPlate = true;
     }
     if (e.t === 'splash') { e.cols.forEach(P => { m.fillStyle = '#fff'; poly(m, P); m.fill(); m.strokeStyle = '#000'; m.lineWidth = 3; m.stroke(); }); for (const [x, y, r] of e.drops) { m.fillStyle = '#fff'; m.beginPath(); m.ellipse(x, y, r * .7, r, 0, 0, 7); m.fill(); } }
-    if (e.t === 'focus' || e.t === 'speed') WC.drawStrokes(m, e.polys.map((P, i) => wedgeStroke(P, i)), { color: e.on === 'pool' ? '#000' : '#fff' });
+    if (e.t === 'focus' || e.t === 'speed') WC.drawStrokes(m, e.polys.map((P, i) => wedgeStroke(P, i)), { color: e.on === 'pool' || tone === 'light' ? '#000' : '#fff' });
     // 浅水：刻成白（反着天光），水面横向细长留黑，涟漪是留黑的扁圈，往前涨的水线是一道粗黑边 + 白色浪沫点
     if (e.t === 'pool') {
       m.fillStyle = '#fff'; poly(m, e.poly); m.fill();
@@ -124,7 +129,14 @@ export function render(cv, els, o) {
       } else carveFigure(m, e.ops, { key: o.id + e.key, scale: e.s * 1.6, halo: e.s >= .7 ? 8 : e.s > .3 ? 5 : 3, minLine: e.s >= .7 ? 1 : .15, lineMin: e.s >= .7 ? .9 : 1.9 });   // 特写省掉碎线；中远景的五官、发丝要留，而且刻粗一点
     }
     if (e.t === 'sfx') sfx(m, e);
+  } };
+  // 分格：格里按自己的底色（黑版 / 刻空的白）画；格与格之间是刻空的白缝，格边一道黑框
+  function drawPanel(e) {
+    m.save(); poly(m, e.poly); m.clip(); m.fillStyle = e.tone === 'light' ? '#fff' : '#000'; poly(m, e.poly); m.fill();
+    const t0 = tone; tone = e.tone || 'dark'; drawEls(e.els); tone = t0; m.restore();
+    m.strokeStyle = '#000'; m.lineWidth = 7; m.lineJoin = 'miter'; poly(m, e.poly); m.stroke();
   }
+  drawEls(els);
   m.setTransform(1, 0, 0, 1, 0, 0); pc.restore();
   m.restore();
   m.strokeStyle = '#000'; m.lineWidth = 10; m.lineJoin = 'round'; edgePath(); m.stroke();

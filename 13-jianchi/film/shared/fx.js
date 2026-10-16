@@ -122,3 +122,18 @@ export function eye(cx, cy, w, h, look = .2, seed = 14) {
   const lashes = []; for (let i = 3; i < n - 2; i += 3) { const p = up[i], a = -Math.PI / 2 + (i / n - .5) * 1.6, L = h * (.16 + r() * .1); lashes.push([p, [p[0] + Math.cos(a) * L * .6, p[1] + Math.sin(a) * L * .6 - 4], [p[0] + Math.cos(a) * L, p[1] + Math.sin(a) * L]]); }
   return { lid: up.concat(low.slice().reverse()), up, low, iris, pupil, lashes };
 }
+// ── 航海王的漫画符号（加在脸旁边，脸本身不变形）──
+// 泪流：从眼角往下两道波浪形的泪带（多边形）+ 几颗泪珠
+export function tears(x, y, len, dir = 1, seed = 15) {
+  const r = mulberry(seed), polys = [];
+  for (let k = 0; k < 2; k++) { const A = [], B = [], x0 = x + dir * k * 16; for (let i = 0; i <= 14; i++) { const u = i / 14, w = 9 + u * 12, xx = x0 + dir * (Math.sin(u * 7 + k) * 6 + u * 10), yy = y + u * len; A.push([xx - w / 2, yy]); B.push([xx + w / 2, yy]); } polys.push(A.concat(B.reverse())); }
+  for (let i = 0; i < 4; i++) { const cx = x + dir * (14 + r() * 30), cy = y + len * (.5 + r() * .6), s = 5 + r() * 5; polys.push(drop(cx, cy, s, 0)); }
+  return polys;
+}
+// 汗珠：水滴形
+export function drop(x, y, s, rot = 0) { const pts = []; for (let i = 0; i <= 16; i++) { const a = i / 16 * Math.PI * 2, rr = s * (1 - .55 * Math.max(0, -Math.sin(a))) , px = Math.cos(a) * rr * .8, py = Math.sin(a) * rr - (Math.sin(a) < 0 ? s * .9 * (-Math.sin(a)) ** 3 : 0); pts.push([x + px * Math.cos(rot) - py * Math.sin(rot), y + px * Math.sin(rot) + py * Math.cos(rot)]); } return pts; }
+export function sweat(x, y, n = 3, s = 12, seed = 16) { const r = mulberry(seed), out = []; for (let i = 0; i < n; i++) out.push(drop(x + (r() - .5) * s * 6, y + (r() - .5) * s * 4, s * (.7 + r() * .6), (r() - .5) * .6)); return out; }
+// 青筋（怒）：四段向外弯的短弧，围成一个“井”字形的筋结
+export function vein(x, y, s = 20) { const out = []; for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + Math.PI / 4, c = Math.cos(a), sn = Math.sin(a), pts = []; for (let i = 0; i <= 6; i++) { const u = i / 6 - .5, px = s * .5 + (u * u) * s * 1.6, py = u * s * 1.2; pts.push([x + c * px - sn * py, y + sn * px + c * py]); } out.push(pts); } return out; }
+// 抖动线（疯笑 / 发抖）：头旁边几道短弧
+export function shake(x, y, R, n = 6, seed = 17) { const r = mulberry(seed), out = []; for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (i / (n - 1) - .5) * 2.4, rr = R * (1 + r() * .15), pts = []; for (let j = 0; j <= 5; j++) { const b = a + (j / 5 - .5) * .25; pts.push([x + Math.cos(b) * rr, y + Math.sin(b) * rr]); } out.push(pts); } return out; }

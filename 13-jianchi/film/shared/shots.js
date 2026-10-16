@@ -13,12 +13,16 @@
 //   { t:'cloud', at, w }             托着远处群仙的云头
 //   { t:'ground', hz } / { t:'river', river }   草原（地平线 hz 以下）/ 逆流河（riverBanks 的结果；河头平静，往下游起浪）
 //   { t:'eye', ...FX.eye() }          “天意”的巨眼（天上）
+//   { t:'panel', poly, tone, paper, els }   分格：格里的元素裁进 poly；tone 格底（dark/light），paper 间谍片头的纸色
+//   { t:'marks', polys, lines }       漫画符号（泪、汗、青筋、抖动线）：polys 填色、lines 画线，颜色和所在的格底相反
 //   { t:'pool', poly, front, lines, ripples }   一片浅水（河头近景）：poly 是水面范围，front 是正往前涨的水线
 // 各风格的 shots.js 只管怎么画每一类元素。
 import * as XH from './models/xuehu.js';
 import * as MLQ from './models/maoliqiu.js';
 import * as CARRY from './models/carry.js';
 import * as STEP from './models/step.js';
+import * as FY from './models/fangyuan.js';
+import * as CAST from './models/cast.js';
 import { standing, sideStanding } from './models/crowd.js';
 import { flattenLayers } from './models/flatten.js';
 import { placer, rplacer } from './models/profile.js';
@@ -179,4 +183,32 @@ export function K6() {
     { t: 'cap', who: '', text: '一步再一步' },
   ];
 }
-export const SHOTS = { K2, K3, K4, K5, K5_puppet, K6 };
+
+// K7 · 2:01 为什么方源，他始终面无表情？（斜切多格）
+// 原文第265节：除去方源之外，其他跋涉之人，不是神情扭曲，就是痛苦万分，不是疯狂，就是哭泣。为什么方源，他始终面无表情？
+// 四个反应格用的就是先前在河里跋涉过的人（第261节）：黑楼兰吼（神情扭曲）、影无邪咬牙流绿血（痛苦万分）、
+// 白凝冰狂笑（疯狂）、赵怜云哭（哭泣）。格子斜切、每格都炸着集中线（航海王）；中间一格方源正脸，什么效果都不加，留白 —— 安静本身就是对比（诺兰的克制）。
+export function K7() {
+  const bustAt = (M, at, s, flip) => flatten(M, CAST, mkXf({ s, from: [.2, -.45], at, flip }));
+  // 每格：集中线 + 胸像 + 这个人的漫画符号（放在眼睛 / 额角旁边）
+  const panel = (poly, tone, paper, face, key, s, seed, marks) => { const ops = bustAt(face.M, face.at, s, face.flip), eye = ops.find(o => o.role === 'eye').iris, back = face.flip ? -1 : 1;
+    return { t: 'panel', poly, tone, paper, els: [
+      { t: 'focus', polys: FX.focusLines(face.at[0], face.at[1], s * .5, 900, 150, seed, 24) },
+      { t: 'fig', ops, key, s: s / 300 },
+      { t: 'marks', ...marks(eye, back, s) } ] }; };
+  const tearsM = ([x, y], b, s) => ({ polys: FX.tears(x, y + 8, s * .62, -b, 81), lines: [] });
+  const sweatM = ([x, y], b, s) => ({ polys: FX.sweat(x + b * s * .12, y - s * .3, 3, s * .07, 82), lines: [] });
+  const veinM = ([x, y], b, s) => ({ polys: [], lines: FX.vein(x + b * s * .3, y - s * .3, s * .12) });
+  const shakeM = ([x, y], b, s) => ({ polys: [], lines: [...FX.shake(x + b * s * .25, y - s * .1, s * .62, 7, 83), ...FX.shake(x + b * s * .25, y - s * .1, s * .74, 5, 84)] });
+  const fy = flatten(FY.FULL_FRONT, FY, mkXf({ s: 3, from: [182, 236], at: [905, 380] }));
+  return [
+    { t: 'bg', tone: 'light' },
+    panel([[0, 0], [660, 0], [600, 388], [0, 388]], 'light', 'red', { M: CAST.ZLY_CRY, at: [370, 250], flip: true }, 'k7zly', 320, 71, tearsM),
+    panel([[0, 412], [596, 412], [540, 804], [0, 804]], 'dark', 'teal', { M: CAST.YWX_GRIT, at: [300, 660], flip: true }, 'k7ywx', 320, 72, sweatM),
+    { t: 'panel', poly: [[690, 0], [1250, 0], [1170, 804], [570, 804]], tone: 'light', paper: 'bone', els: [{ t: 'fig', ops: fy, key: 'k7fy', s: 3 / 2.2 }] },
+    panel([[1280, 0], [1920, 0], [1920, 388], [1236, 388]], 'dark', 'ink', { M: CAST.HLL_ROAR, at: [1590, 250] }, 'k7hll', 320, 73, veinM),
+    panel([[1232, 412], [1920, 412], [1920, 804], [1200, 804]], 'light', 'boneD', { M: CAST.BNB_LAUGH, at: [1600, 660] }, 'k7bnb', 320, 74, shakeM),
+    { t: 'cap', who: '', text: '为什么方源，他始终面无表情？' },
+  ];
+}
+export const SHOTS = { K2, K3, K4, K5, K5_puppet, K6, K7 };

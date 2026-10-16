@@ -29,7 +29,8 @@ export function render(cv, els, o) {
     for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.drawImage(M, 0, 0); c.restore(); }
   };
   let cleared = false;
-  for (const e of els) {
+  const drawEls = list => { for (const e of list) {
+    if (e.t === 'panel') { drawPanel(e); continue; }
     if (!cleared && e.t === 'sfx') { keepClear(); cleared = true; }   // 背景、效果线、人物都画完，写大字之前擦出题跋的地方
     // 集中线：每根一支焦墨快笔，从画外扫向中心，笔尖收成飞白（全部画，给到航海王的密度）
     if (e.t === 'focus' || e.t === 'speed') e.polys.forEach((P, i) => { const tip = P[0], m = [(P[1][0] + P[2][0]) / 2, (P[1][1] + P[2][1]) / 2], w = Math.hypot(P[1][0] - P[2][0], P[1][1] - P[2][1]); I.draw(L.ink, I.mk([m, [(m[0] * 2 + tip[0]) / 3, (m[1] * 2 + tip[1]) / 3], tip], { w: Math.max(3, w * (e.t === 'focus' ? 2.2 : 1.4)), tone: I.TONE.jiao, dry: .62, rough: .35, prof: 'tip', seed: 100 + i })); });
@@ -86,6 +87,11 @@ export function render(cv, els, o) {
       I.draw(L.ink, I.mk(e.front, { w: 7, tone: I.TONE.nong, dry: .55, rough: .35, prof: 'brush', seed: 870 }));
       const r = mulberry(13); for (let i = 0; i < 18; i++) { const k0 = Math.floor(r() * (e.front.length - 1)), p = e.front[k0]; I.blot(L.cw, p[0] - 8 - r() * 20, p[1] + (r() - .5) * 10, 1.5 + r() * 3, .7, 0, 1, i); }
     }
+    // 漫画符号：泪、汗 = 留白的水珠勾一圈浓墨细笔；青筋、抖动线 = 焦墨短笔
+    if (e.t === 'marks') {
+      e.polys.forEach((Pp, i) => { for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.beginPath(); Pp.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); c.fill(); c.restore(); } I.draw(L.ink, I.mk(Pp.concat([Pp[0]]), { w: 2.6, tone: I.TONE.jiao, dry: .15, rough: .1, seed: 930 + i })); });
+      e.lines.forEach((Ln, i) => I.draw(L.ink, I.mk(Ln, { w: 6, tone: I.TONE.jiao, dry: .3, rough: .2, prof: 'brush', seed: 950 + i })));
+    }
     if (e.t === 'cloud') { const [x, y] = e.at, w = e.w; for (let j = 0; j < 3; j++) { const pts = []; for (let a = 0; a <= 1.7 * Math.PI; a += .25) pts.push([x - w * .4 + j * w * .38 + Math.cos(a) * w * .14 * (1 - a / 9), y + 4 + Math.sin(a) * w * .07]); I.draw(L.ink, I.mk(pts, { w: 2, tone: I.TONE.zhong, dry: .4, seed: 490 + j })); } }
     // 光柱：柱里擦回纸白（光就是留白），柱沿染一层花青（全片水墨唯一的颜色破例，只给爱情仙蛊），柱里的速度线是纸白
     if (e.t === 'beam') {
@@ -101,7 +107,16 @@ export function render(cv, els, o) {
       for (const op of e.ops) if (op.poly) { if (op.role === 'hairW') { for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.beginPath(); op.poly.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); c.fill(); c.restore(); } } else I.mass(L.cw, op.poly, .9, 1, 3); }
     } else if (e.t === 'fig') inkFigure(L, e.ops, { key: o.id + e.key, scale: Math.max(.25, e.s * 1.4) });
     if (e.t === 'sfx') sfx(L, { ...e, y: e.y - Y0 });
+  } };
+  // 分格：三层都裁进格里；格框是一圈浓墨干笔（四边各一笔，笔与笔之间留气口），格缝是纸白
+  function drawPanel(e) {
+    for (const c of [L.cw, L.cd, L.cc]) { c.save(); c.beginPath(); e.poly.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); c.clip(); }
+    if (e.tone === 'dark') { I.mass(L.cw, e.poly, .62, 0, 3); }
+    drawEls(e.els);
+    for (const c of [L.cw, L.cd, L.cc]) c.restore();
+    const n = e.poly.length; e.poly.forEach((p, k) => { const q = e.poly[(k + 1) % n], a = [p[0] + (q[0] - p[0]) * .02, p[1] + (q[1] - p[1]) * .02], b = [p[0] + (q[0] - p[0]) * .97, p[1] + (q[1] - p[1]) * .97]; I.draw(L.ink, I.mk([a, [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], b], { w: 6, tone: I.TONE.jiao, dry: .35, rough: .3, seed: 900 + k + Math.round(p[0]) })); });
   }
+  drawEls(els);
   if (!cleared) keepClear();
   for (const c of [L.cw, L.cd, L.cc]) c.restore();
   // 题跋：竖写在画面右侧，句首一方小朱印

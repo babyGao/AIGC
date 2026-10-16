@@ -74,7 +74,9 @@ export function render(cv, els, o) {
     // 字里衬一层染色薄皮（红 / 金），灯一照就是发光的字
     lay(gg => { for (const e of sfx) { const done = glyphPath(gg, e); gg.fillStyle = bg.accent === 'red' ? '#e9a32a' : '#c4261a'; gg.fillText(e.text, 0, 0); done(); } }, 62);
   }
-  for (const e of els) {
+  const drawEls = list => { for (const e of list) {
+    if (e.t === 'panel') { drawPanel(e); continue; }
+    if (e.t === 'focus' && !dark) lay(gg => e.polys.forEach(Q => K.fill(gg, 'rgba(42,26,16,.88)', path(Q.map(X)))), 82);   // 没有景片时：集中线是一根根深色皮条
     if (e.t === 'speed' && !dark) lay(gg => e.polys.forEach(Q => K.cut(gg, path(Q.map(X)))), 80);   // 没有景片时速度线就剪在已经画好的皮上（这里只剪透这一层，等于在幕上留几道亮缝）
     if (e.t === 'rings') lay(gg => e.lines.forEach(Ln => {
       const n = Ln.length, w = e.w * 1.5 * k, A = [], B = [];
@@ -94,6 +96,11 @@ export function render(cv, els, o) {
       lay(gg => { gg.filter = 'blur(3.5px)'; const [bx0, bx1, by] = e.bar, a = X([bx0, by - 11]), b = X([bx1, by + 11]); gg.fillStyle = 'rgb(34,20,12)'; gg.fillRect(a[0], a[1], b[0] - a[0], b[1] - a[1]); K.fill(gg, 'rgb(34,20,12)', path(e.poly.map(X))); K.fill(gg, 'rgb(34,20,12)', path(e.thumb.map(X))); gg.filter = 'none'; gg.globalCompositeOperation = 'destination-out'; gg.strokeStyle = 'rgba(0,0,0,.55)'; gg.lineWidth = 3; gg.beginPath(); path(e.thumb.map(X))(gg); gg.stroke(); gg.globalCompositeOperation = 'source-over'; }, 77);   // 拇指边上留一道亮缝，跟手指分开
       lay(gg => { gg.filter = 'blur(1.5px)'; gg.strokeStyle = 'rgba(50,32,18,.75)'; gg.lineWidth = 3; e.rods.forEach(([x0, y0, x1, y1]) => { const a = X([x0, y0]), b = X([x1, y1]); gg.beginPath(); gg.moveTo(a[0], a[1]); gg.lineTo(b[0], b[1]); gg.stroke(); gg.fillStyle = 'rgba(50,32,18,.85)'; gg.beginPath(); gg.arc(b[0], b[1], 5, 0, 7); gg.fill(); }); gg.filter = 'none'; }, 78);
     }
+    // 漫画符号：泪、汗 = 浅色薄皮片描墨；青筋 = 染红皮条；抖动线 = 墨线
+    if (e.t === 'marks') lay(gg => {
+      e.polys.forEach(Q => { const Pp = Q.map(X); K.fill(gg, '#eaf2f6', path(Pp)); K.ink(gg, 1.8, path(Pp)); });
+      e.lines.forEach(Ln => { gg.save(); gg.lineCap = 'round'; gg.strokeStyle = '#1b130d'; gg.lineWidth = 6; gg.beginPath(); Ln.map(X).forEach((p, k) => k ? gg.lineTo(p[0], p[1]) : gg.moveTo(p[0], p[1])); gg.stroke(); gg.strokeStyle = '#b8211a'; gg.lineWidth = 3; gg.stroke(); gg.restore(); });
+    }, 81);
     // 浅水：一块靛青水纹皮；横缝 = 平静，涟漪剪成扁圈缝；往前涨的水线描一道墨边，前沿剪一排小水点
     if (e.t === 'pool') lay(gg => {
       const P = e.poly.map(X); K.fill(gg, '#28507e', path(P));
@@ -114,7 +121,14 @@ export function render(cv, els, o) {
     if (e.t === 'splash') lay(gg => { e.cols.forEach(Q => { const P = Q.map(X); K.fill(gg, '#efe2c0', path(P)); K.ink(gg, 1.4, path(P)); }); e.drops.forEach(([x, y, r]) => { const [a, b] = X([x, y]); K.fill(gg, '#efe2c0', q => q.ellipse(a, b, r * k * .7, r * k, 0, 0, 7)); }); }, 74);
     if (e.t === 'fig' && e.lit) lay(gg => { for (const op of e.ops) if (op.poly) K.fill(gg, op.role === 'hairW' ? '#f2e8d2' : '#2a1a10', path(op.poly.map(X))); }, 75);   // 光里的人：深色皮剪影，只有白发是浅皮
     else if (e.t === 'fig') { tr.save(); tr.beginPath(); tr.rect(OX, OY, 1920 * k, 804 * k); tr.clip(); puppetFigure(tr, xfOps(e.ops), { scale: e.s * 2 * k, seed: 5 }); tr.restore(); }   // 人物只在画格里（下沿被景片压住）
+  } };
+  // 分格：几块小幕并排（各自一块布），格缝是不透光的木条
+  function drawPanel(e) {
+    const Pp = e.poly.map(X);
+    tr.save(); tr.beginPath(); path(Pp)(tr); tr.clip(); drawEls(e.els); tr.restore();
+    tr.save(); tr.strokeStyle = '#120a06'; tr.lineWidth = 18; tr.lineJoin = 'miter'; tr.beginPath(); path(Pp)(tr); tr.stroke(); tr.restore();
   }
+  drawEls(els);
   if (!dark) for (const e of sfx) lay(gg => {   // 没有景片时：拟声字是一块染红的字形皮件，描墨边，字里剪斜缝透光
     let done = glyphPath(gg, e); gg.fillStyle = '#c4261a'; gg.fillText(e.text, 0, 0); gg.lineWidth = 3; gg.strokeStyle = '#1b130d'; gg.strokeText(e.text, 0, 0); done();
     const [c2, g2] = K.canvas(W, H); done = glyphPath(g2, e); g2.fillStyle = '#000'; g2.fillText(e.text, 0, 0); done();

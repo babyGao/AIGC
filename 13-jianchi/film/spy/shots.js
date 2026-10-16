@@ -19,15 +19,22 @@ function tri(P0, col) { P.piece(P0, col, { gap: 0, shadow: false }); }
 export function render(cv, els, o) {
   const g = P.g;
   g.setTransform(1, 0, 0, 1, 0, 0);
-  const bg = els.find(e => e.t === 'bg') || {}, bgc = PAL[BG[bg.accent] || BG[bg.tone] || 'ink'];
+  const bg = els.find(e => e.t === 'bg') || {}, bgc = els.some(e => e.t === 'panel') ? PAL.ink : PAL[BG[bg.accent] || BG[bg.tone] || 'ink'];   // 分格的镜头：格缝是墨黑
   P.clear(bgc); P.S.bg = bgc;
   g.save(); g.beginPath(); g.rect(0, Y0, 1920, 804); g.clip(); g.translate(0, Y0);
   // 配色：底是墨黑时条纹用骨白/河青，底是红时用墨黑/骨白
   const onRed = bgc === PAL.red;
   const land = els.some(e => e.t === 'ground');   // 有骨白的地：条纹改成墨黑/河青，人物描一圈墨黑切缝
   const stripe = onRed ? [PAL.ink, PAL.ink, PAL.boneD] : land ? [PAL.ink, PAL.tealD, PAL.teal] : [PAL.bone, PAL.teal, PAL.teal];
-  for (const e of els) {
-    if (e.t === 'focus' || e.t === 'speed') e.polys.forEach((Q, i) => tri(Q, e.on === 'pool' ? PAL.bone : stripe[i % stripe.length]));
+  let stripeNow = stripe;   // 分格里换成配那一格纸色的条纹
+  const drawEls = list => { for (const e of list) {
+    if (e.t === 'panel') { drawPanel(e); continue; }
+    if (e.t === 'focus' || e.t === 'speed') e.polys.forEach((Q, i) => tri(Q, e.on === 'pool' ? PAL.bone : stripeNow[i % stripeNow.length]));
+    // 漫画符号：泪、汗 = 骨白小纸片描墨边；青筋 = 警示红纸条；抖动线 = 墨黑细条
+    if (e.t === 'marks') {
+      e.polys.forEach(Q => { g.save(); g.strokeStyle = PAL.ink; g.lineWidth = 4; g.beginPath(); P.pathPoly(g, Q); g.stroke(); g.restore(); P.piece(Q, PAL.bone, { gap: 0, shadow: false }); });
+      e.lines.forEach(Ln => { g.save(); g.lineCap = 'round'; g.strokeStyle = P.S.bg === PAL.ink ? PAL.red : PAL.ink; g.lineWidth = 6; g.beginPath(); Ln.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke(); g.restore(); });
+    }
     // 浅水：一张河青纸；深青细缝 = 平静；骨白细圈 = 涟漪；往前涨的水线是一条骨白浪沫纸边
     if (e.t === 'pool') {
       P.piece(e.poly, PAL.teal);
@@ -79,9 +86,17 @@ export function render(cv, els, o) {
     if (e.t === 'splash') { e.cols.forEach(Q => P.piece(Q, PAL.bone, { gap: 0, shB: 2 })); e.drops.forEach(([x, y, r]) => P.piece(P.ellP(x, y, r * .7, r, 12), PAL.bone, { gap: 0, shadow: false })); }
     if (e.t === 'fig' && e.lit) {   // 光里的人：墨黑剪影，只有白发是骨白
       P.S.bg = PAL.teal; P.silhouette(() => { for (const op of e.ops) if (op.poly) P.piece(op.poly, op.role === 'hairW' ? PAL.bone : PAL.ink); }, { outline: 0 });
-    } else if (e.t === 'fig') { P.S.bg = bgc; spyFigure(e.ops, { key: o.id + e.key, closeup: e.s > .3, scale: e.s * 2, outline: e.s > .3 ? 5 : 2.4, outlineCol: land ? PAL.ink : bgc === PAL.ink && e.s > .3 ? PAL.tealD : undefined }); }
+    } else if (e.t === 'fig') { P.S.bg = bgc; spyFigure(e.ops, { key: o.id + e.key, closeup: e.s > .3, scale: e.s * 2, outline: e.s > .3 ? 5 : 2.4, outlineCol: land || P.S.bg === PAL.bone || P.S.bg === PAL.boneD ? PAL.ink : P.S.bg === PAL.ink && e.s > .3 ? PAL.tealD : undefined }); }
     if (e.t === 'sfx') sfx(g, e, onRed ? PAL.bone : PAL.red, PAL.ink);
+  } };
+  // 分格：每格一张不同颜色的纸（e.paper），格缝露出墨黑底；格里的东西裁进格
+  function drawPanel(e) {
+    const col = PAL[e.paper || 'bone'];
+    P.piece(e.poly, col, { gap: 0 });
+    g.save(); g.beginPath(); P.pathPoly(g, e.poly); g.clip(); const b0 = P.S.bg; P.S.bg = col; const s0 = stripeNow; stripeNow = col === PAL.red ? [PAL.ink, PAL.ink, PAL.boneD] : col === PAL.ink ? [PAL.bone, PAL.teal, PAL.teal] : [PAL.ink, PAL.tealD, PAL.teal];
+    drawEls(e.els); stripeNow = s0; P.S.bg = b0; g.restore();
   }
+  drawEls(els);
   g.restore();
   // 遮幅
   g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = PAL.ink; g.fillRect(0, 0, 1920, Y0); g.fillRect(0, Y0 + 804, 1920, 1080 - Y0 - 804);
