@@ -65,3 +65,19 @@ export function modelSVG(M, lib, { overlay = false } = {}) {
   (L.stray || []).forEach(lk => { g += poly(INK, lockPoly(lk)); });
   return `<defs>${defs}</defs>${g}`;
 }
+
+// 通用：画面指令 → SVG（配角母版预览用）
+const OPC = { hair: '#161515', hairW: '#f3f1ec', robe: '#f4f2ec', robeD: '#3b3e46', fur: '#ebe8e1', skin: '#f3e7da', dark: '#2a1715', ink: '#161515', shade: '#d3ccc4', collar: '#e3e0d8', robeIn: '#d8d4cc', purple: '#6b4a8a', blue: '#3d6fa8', gold: '#b88a3a', red: '#a8322a', green: '#5d8f3a', purpleD: '#3d2a55', furL: '#c8b6d8', pink: '#c9707a', tooth: '#f6f2ea' };
+export function opsSVG(ops, { overlay = false } = {}) {
+  const a = overlay ? 0.55 : 1; let g = '', defs = '', uid = 0;
+  const P = pts => 'M' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('L');
+  for (const op of ops) {
+    if (op.poly) {
+      const edge = /^(hairW|robe|fur|skin)$/.test(op.role) ? ` stroke="#2a2826" stroke-width="${op.role === 'fur' ? 1.2 : 1.6}" stroke-opacity="${a}"` : '';
+      g += `<path d="${P(op.poly)}Z" fill="${OPC[op.role] || '#888'}" fill-opacity="${a}"${op.role === 'shade' ? '' : edge}/>`;
+    } else if (op.role === 'strand') g += `<path d="${P(op.pts)}" fill="none" stroke="${op.on === 'hairW' ? '#9a958f' : '#77736f'}" stroke-width="${op.w}" stroke-opacity="${a}" stroke-linecap="round"/>`;
+    else if (op.role === 'line') { const o = strokeOutline(op.pts, u => op.w * Math.min(1, u / 0.15, (1 - u) / 0.2) ** 0.6 + op.w * .1); const v = Math.round(22 + (1 - op.dark) * 150); g += `<path d="${P(o)}Z" fill="rgb(${v},${v - 2},${v - 4})" fill-opacity="${overlay ? .9 : 1}"/>`; }
+    else if (op.role === 'eye') { const id = 'e' + (uid++); defs += `<clipPath id="${id}"><path d="${P(op.open)}Z"/></clipPath>`; g += `<path d="${P(op.open)}Z" fill="#fbfaf6" fill-opacity="${a}"/><g clip-path="url(#${id})"><circle cx="${op.iris[0]}" cy="${op.iris[1]}" r="${op.iris[2]}" fill="${op.red ? '#8e2a22' : op.color === 'purple' ? '#7a4aa8' : '#3a3634'}"/><circle cx="${op.iris[0]}" cy="${op.iris[1]}" r="${op.iris[2] * .5}" fill="#141212"/></g>`; }
+  }
+  return `<defs>${defs}</defs>${g}`;
+}

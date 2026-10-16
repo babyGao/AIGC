@@ -14,6 +14,14 @@ export function carveFigure(g, ops, o = {}) {
     C = { shapes: new Map(), cuts: [], strands: [] };
     // 白衣：每块是一个“白色实体”，阴影侧留黑刀痕，刀痕顺着形体
     ops.forEach((op, i) => {
+      if (op.role === 'robeD')
+        C.shapes.set(i, WC.shape([op.poly], { light: L, sp: Math.max(3.6, 6 * sc), R: 50 * sc, lo: .55, hi: .98, kind: 'v', seed: 13 + i, wmax: Math.max(1.4, 2.6 * sc) }));
+      if (op.role === 'purple' || op.role === 'purpleD')   // 兽毛：黑木上顺毛刻白（受光一侧多）
+        C.shapes.set(i, WC.shape([op.poly], { light: L, sp: Math.max(3.4, (op.role === 'purple' ? 5 : 7) * sc), R: 60 * sc, lo: op.role === 'purple' ? .3 : .6, hi: .97, kind: 'v', seed: 33 + i, wmax: Math.max(1.6, 3.4 * sc), seg: [10 * sc, 40 * sc], gap: [2, 7], dir: 'contour' }));
+      if (op.role === 'furL')
+        C.shapes.set(i, WC.shape([op.poly], { white: true, light: L, sp: Math.max(3.4, 6 * sc), R: 40 * sc, lo: .5, hi: .99, kind: 'k', seed: 43 + i, fill: true, wmax: Math.max(1.2, 2.2 * sc), seg: [10 * sc, 30 * sc], gap: [3, 9] }));
+      if (op.role === 'fur')
+        C.shapes.set(i, WC.shape([op.poly], { white: true, light: L, sp: Math.max(3.4, 6 * sc), R: 45 * sc, lo: .45, hi: .99, kind: 'k', seed: 23 + i, fill: true, wmax: Math.max(1.4, 2.6 * sc), seg: [12 * sc, 40 * sc], gap: [3, 9] }));
       if (op.role === 'robe' || op.role === 'robeIn')
         C.shapes.set(i, WC.shape([op.poly], { white: true, light: L, sp: Math.max(3.6, 6.5 * sc), R: 55 * sc, lo: op.role === 'robeIn' ? .05 : .5, hi: .99, kind: 'k', seed: 3 + i, fill: true, wmax: Math.max(1.6, 3 * sc),
           dir: /^sleeve/.test(op.part || '') ? (op.part === 'sleeve0' ? Math.PI / 2 + .28 : Math.PI / 2 - .28) : Math.PI / 2, seg: [60 * sc, 220 * sc], gap: [2, 7] }));
@@ -40,9 +48,10 @@ export function carveFigure(g, ops, o = {}) {
     if (op.clipY != null) { g.beginPath(); g.rect(-1e4, -1e4, 3e4, 1e4 + op.clipY); g.clip(); }
     switch (op.role) {
       case 'hair': fillP(g, op.poly, '#000'); break;
-      case 'robe': case 'robeIn': case 'shade': C.shapes.get(i).draw(g, o.t ?? 1e9); break;
-      case 'collar': case 'skin': fillP(g, op.poly, '#fff'); break;
-      case 'ink': fillP(g, op.poly, '#000'); break;
+      case 'robe': case 'robeIn': case 'shade': case 'robeD': case 'fur': case 'purple': case 'purpleD': case 'furL': C.shapes.get(i).draw(g, o.t ?? 1e9); break;
+      case 'tooth': case 'pink': fillP(g, op.poly, '#fff'); break;
+      case 'collar': case 'skin': case 'hairW': fillP(g, op.poly, '#fff'); if (op.role === 'hairW') { g.lineWidth = Math.max(1, 1.6 * sc); g.strokeStyle = '#000'; g.beginPath(); op.poly.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath(); g.stroke(); } break;
+      case 'ink': case 'dark': case 'gold': case 'red': case 'green': case 'blue': fillP(g, op.poly, '#000'); break;
       case 'eye': {
         fillP(g, op.open, '#fff');
         g.save(); g.beginPath(); op.open.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath(); g.clip();
@@ -55,6 +64,11 @@ export function carveFigure(g, ops, o = {}) {
         break;
       }
       case 'strand': {
+        if (op.on === 'hairW') {   // 白发：留黑的细木线
+          const n = op.pts.length, w = Math.max(.8, op.w * 1.1);
+          WC.drawStrokes(g, [WC.mkStroke(op.pts, op.pts.map((_, k) => { const u = k / (n - 1); return w * Math.min(1, u / .15, (1 - u) / .3) ** .6 + .2; }), { kind: 'k', seed: i, chip: .1 })], { color: '#000' });
+          break;
+        }
         const s = C.strands.find(x => x.op === op); if (!s) break;
         const n = op.pts.length, w = Math.max(.9, 1.5 * sc);
         WC.drawStrokes(g, [WC.mkStroke(op.pts, op.pts.map((_, k) => { const u = k / (n - 1); return w * Math.min(1, u / .2, (1 - u) / .35) ** .6; }), { kind: 'v', seed: i, chip: .2 })], { color: '#fff' });

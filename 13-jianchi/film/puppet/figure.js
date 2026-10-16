@@ -3,7 +3,7 @@
 // 正面人物开脸：脸部镂空，只留一圈细皮当轮廓，五官是墨线；关节打铆钉。
 import * as K from './carve.js';
 
-const DY = { robe: '#efe2c0', robeIn: '#d7c193', collar: '#e9d7a9', skin: '#f0d9a8', hair: '#1b130d', ink: '#1b130d', shade: '#c9a571' };
+const DY = { robe: '#efe2c0', robeIn: '#d7c193', collar: '#e9d7a9', skin: '#f0d9a8', hair: '#1b130d', ink: '#1b130d', shade: '#c9a571', hairW: '#f2e8d2', fur: '#eadcc0', robeD: '#2c3a5c', dark: '#1b130d', gold: '#c98a26', red: '#b8211a', purple: '#6a3a92', purpleD: '#3c2058', furL: '#d6c0e2', pink: '#cf7a7a', tooth: '#f6eedc', green: '#2f7a3a', blue: '#2b4f86' };
 const path = P => q => { q.moveTo(P[0][0], P[0][1]); for (let i = 1; i < P.length; i++) q.lineTo(P[i][0], P[i][1]); q.closePath(); };
 const open = P => q => { q.moveTo(P[0][0], P[0][1]); for (let i = 1; i < P.length; i++) q.lineTo(P[i][0], P[i][1]); };
 let LAY = null;
@@ -45,12 +45,28 @@ export function puppetFigure(tr, ops, o = {}) {
         K.ink(g, Math.max(1.3, 1.9 * sc), path(P));
         break;
       }
+      case 'hairW': case 'fur': {
+        const P = op.poly; K.fill(g, DY[op.role], path(P)); K.ink(g, Math.max(1.2, 1.7 * sc), path(P));
+        if (op.role === 'fur') K.within(g, path(P), () => { const [x0, y0, x1, y1] = bbox(P); for (let y = y0 + 8; y < y1; y += 12 * Math.max(.6, sc)) for (let x = x0 + ((y / 12) % 2) * 7; x < x1; x += 14 * Math.max(.6, sc)) K.cutTaper(g, [[x, y], [x + 4 * sc, y + 9 * sc]], Math.max(1.2, 2 * sc)); });
+        break;
+      }
+      case 'purple': case 'purpleD': case 'furL': case 'pink': case 'tooth': case 'green': case 'blue': {
+        const P = op.poly; K.fill(g, DY[op.role], path(P)); K.ink(g, Math.max(1.2, 1.8 * sc), path(P));
+        if (op.role === 'purple' || op.role === 'purpleD') K.within(g, path(P), () => { const [x0, y0, x1, y1] = bbox(P), st = Math.max(9, 16 * sc); for (let y = y0 + st * .6, r = 0; y < y1; y += st, r++) for (let x = x0 + (r % 2) * st * .5; x < x1; x += st) K.cutTaper(g, [[x, y], [x + st * .15, y + st * .55]], Math.max(1.4, 2.6 * sc)); });
+        break;
+      }
+      case 'robeD': case 'dark': case 'gold': case 'red': {
+        const P = op.poly; K.fill(g, DY[op.role], path(P)); K.ink(g, Math.max(1.2, 1.8 * sc), path(P));
+        if (op.role === 'robeD') K.within(g, path(P), () => { const [x0, y0, x1, y1] = bbox(P); K.lattice(g, x0, y0, x1, y1, Math.max(10, 16 * sc), Math.max(2, 3 * sc)); });
+        break;
+      }
       case 'hair': case 'ink': {
         const P = op.poly; K.fill(g, DY[op.role], path(P));
         if (op.role === 'ink') K.within(g, path(P), () => { const [x0, y0, x1, y1] = bbox(P); K.meander(g, x0 + 4, (y0 + y1) / 2, x1 - 4, Math.max(3, 5 * sc), 1.2); });
         break;
       }
-      case 'strand': {   // 发丝缝：灯光从发间透出
+      case 'strand': if (op.on === 'hairW') { tr.save(); tr.globalCompositeOperation = 'multiply'; tr.strokeStyle = 'rgba(90,60,30,.6)'; tr.lineWidth = Math.max(.8, op.w); tr.beginPath(); open(op.pts)(tr); tr.stroke(); tr.restore(); used = false; break; }
+      { // 发丝缝：灯光从发间透出
         const [cc, gg] = LAY; gg.save(); gg.globalCompositeOperation = 'destination-out';
         K.cutTaper(gg, op.pts, Math.max(1, 1.6 * sc)); gg.restore(); used = false;
         // 直接在透射率画布上提亮：把这道缝“刻”在前一层头发上——用 screen 把白线叠上
@@ -60,7 +76,7 @@ export function puppetFigure(tr, ops, o = {}) {
       case 'eye': {
         const [cc, gg] = LAY; gg.fillStyle = DY.ink; gg.beginPath(); path(op.open)(gg); gg.fill();
         gg.save(); gg.globalCompositeOperation = 'destination-out'; gg.beginPath(); path(op.open)(gg); gg.lineWidth = 0; gg.fill(); gg.restore();
-        gg.fillStyle = DY.ink; gg.beginPath(); gg.arc(op.iris[0], op.iris[1], op.iris[2] * .9, 0, 7); gg.fill();
+        gg.fillStyle = op.red ? DY.red : op.color === 'purple' ? DY.purple : DY.ink; gg.beginPath(); gg.arc(op.iris[0], op.iris[1], op.iris[2] * .9, 0, 7); gg.fill();
         K.ink(gg, Math.max(1, 1.2 * sc), path(op.open));
         break;
       }
@@ -76,6 +92,9 @@ export function puppetFigure(tr, ops, o = {}) {
     if (op.clipY != null) g.restore();
     if (op.role !== 'strand' && op.role !== 'shade' && op.role !== 'line' || (op.role === 'line' && used)) {
       K.hideTexture(c, g, seed + i);
+      // 后画的皮片挡住前面的（先把自己那块透射率还原成白，再乘自己的颜色）；只有发绺之间保留重叠变深
+      const Pp = op.poly || op.open;
+      if (Pp && op.role !== 'hair' && op.role !== 'hairW') { tr.save(); tr.fillStyle = '#fff'; tr.beginPath(); path(Pp)(tr); tr.fill(); tr.restore(); }
       tr.save(); tr.globalCompositeOperation = 'multiply'; tr.drawImage(c, 0, 0); tr.restore();
     } else if (op.role === 'line' && !used) {
       // 刻缝：在透射率画布上直接提亮

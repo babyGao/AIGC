@@ -4,7 +4,7 @@
 import * as P from './paper.js';
 
 export const PAL = { ink: '#191b20', bone: '#ece6d6', teal: '#1f6f78', red: '#d8432a', boneD: '#cfc6b2', tealD: '#17545b' };
-const COL = { hair: 'ink', ink: 'ink', robe: 'bone', robeIn: 'boneD', collar: 'bone', skin: 'bone' };
+const COL = { hair: 'ink', ink: 'ink', robe: 'bone', robeIn: 'boneD', collar: 'bone', skin: 'bone', hairW: 'bone', fur: 'bone', robeD: 'ink', dark: 'ink', gold: 'boneD', red: 'red', purple: 'ink', purpleD: 'ink', furL: 'bone', pink: 'red', tooth: 'bone', green: 'teal', blue: 'teal' };
 
 export function spyFigure(ops, o = {}) {
   const key = o.key || 'f', closeup = !!o.closeup, sc = o.scale || 1;
@@ -15,8 +15,10 @@ export function spyFigure(ops, o = {}) {
       if (op.poly && COL[op.role]) {
         const amp = Math.max(.8, Math.min(2.2, Math.sqrt(op.poly.length) * .12));
         P.piece(P.roughC(`${key}:${i}`, () => op.poly, 7 + i, amp, 9), PAL[COL[op.role]]);
+        // 近景：浅色纸片之间沿边剪一道细缝（发际、须、毛皮与脸分开）
+        if (closeup && /^(hairW|fur|robe|collar)$/.test(op.role)) { g.save(); g.globalCompositeOperation = 'destination-out'; g.lineWidth = Math.max(1.4, 1.8 * sc); g.lineJoin = 'round'; g.beginPath(); op.poly.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath(); g.stroke(); g.restore(); }
       } else if (op.role === 'line') {
-        if (closeup && /^(brow|lid)/.test(op.key)) {             // 眉、眼缝：墨黑纸条
+        if (closeup && /^(brow|lid|furrow|mouth$|lipTop|noseTip)/.test(op.key)) {             // 眉、眼缝：墨黑纸条
           const n = op.pts.length, w = op.w * 1.3;
           const L = op.pts.map((p, k) => { const a = op.pts[Math.max(0, k - 1)], b = op.pts[Math.min(n - 1, k + 1)], dx = b[0] - a[0], dy = b[1] - a[1], m = Math.hypot(dx, dy) || 1, u = k / (n - 1), hw = w / 2 * Math.min(1, u / .2, (1 - u) / .3) ** .5 + .4; return [p[0] - dy / m * hw, p[1] + dx / m * hw, p[0] + dy / m * hw, p[1] - dx / m * hw]; });
           P.piece(L.map(q => [q[0], q[1]]).concat(L.map(q => [q[2], q[3]]).reverse()), PAL.ink);
@@ -28,7 +30,7 @@ export function spyFigure(ops, o = {}) {
           P.piece(L.map(q => [q[0], q[1]]).concat(L.map(q => [q[2], q[3]]).reverse()), PAL.ink);
         }
       } else if (op.role === 'eye' && closeup) {
-        P.piece(P.roughC(`${key}:e${i}`, () => op.open, 3 + i, .5, 4), PAL.ink);
+        P.piece(P.roughC(`${key}:e${i}`, () => op.open, 3 + i, .5, 4), op.red || op.color === 'purple' ? PAL.red : PAL.ink);
       }
       g.restore();
     });

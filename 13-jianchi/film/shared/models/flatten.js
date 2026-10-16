@@ -14,6 +14,8 @@ export const mkXf = ({ s = 1, rot = 0, at = [0, 0], from = [0, 0], flip = false 
 const T = (xf, pts) => pts.map(xf);
 
 export function flatten(M, lib, xf, o = {}) {
+  if (M.parts) return M.parts.flatMap(P => flatten(P, lib, xf, o));
+  if (M.layers) return flattenLayers(M, xf, o);
   const ops = [], S = (pts, closed) => sample(pts, closed, o.step ?? 1.5);
   const scale = Math.hypot(...((a, b) => [b[0] - a[0], b[1] - a[1]])(xf([0, 0]), xf([1, 0])));
   const fillOp = (role, pts, extra = {}) => ops.push({ role, poly: T(xf, S(pts, true)), ...extra });
@@ -66,3 +68,23 @@ export function flatten(M, lib, xf, o = {}) {
 
 // 整个人的外轮廓（所有填色区的并集用于光晕/投影时，直接拿这些多边形一起画即可）
 export const silhouette = ops => ops.filter(o => o.poly && o.role !== 'shade').map(o => o.poly);
+
+// 配角用的通用写法：layers 按画的顺序列出每一层
+//   { fill: role, pts }               填色区（role: hair 黑发 | hairW 白发 | robe 白衣 | robeD 深色衣 | fur 毛皮 | skin | dark 深色（张开的嘴、鼻孔）| ink | shade）
+//   { lock: {a,b}, role, strands }    发绺（hair / hairW），strands = 绺内发丝数
+//   { line: pts, w, dark, key }       线（dark 0–1）
+//   { eye: { up, low, iris } }        眼睛
+//   { ref: 'NAME', ... }              （留作以后引用别的母版）
+export function flattenLayers(M, xf, o = {}) {
+  const ops = [], S = (pts, closed) => sample(pts, closed, o.step ?? 1.5);
+  const scale = Math.hypot(...((a, b) => [b[0] - a[0], b[1] - a[1]])(xf([0, 0]), xf([1, 0])));
+  M.layers.forEach((L, i) => {
+    if (L.fill) ops.push({ role: L.fill, poly: S(L.pts, true).map(xf), part: L.part, key: L.key });
+    else if (L.lock) {
+      ops.push({ role: L.role || 'hair', poly: lockPoly(L.lock).map(xf), lock: true, axis: lockAxis(L.lock).map(p => [...xf(p), p[2] * scale]) });
+      for (const st of lockStrands(L.lock, L.strands ?? 5, 100 + i)) ops.push({ role: 'strand', pts: st.map(xf), w: (L.sw ?? 0.6) * scale, on: L.role || 'hair' });
+    } else if (L.line) ops.push({ role: 'line', key: L.key || 'l' + i, pts: S(L.line, !!L.closed).map(xf), w: L.w * scale, dark: L.dark ?? 1 });
+    else if (L.eye) { const e = L.eye; ops.push({ role: 'eye', open: S(e.up.concat(e.low.slice().reverse()), true).map(xf), iris: [...xf([e.iris[0], e.iris[1]]), e.iris[2] * scale], red: e.red, color: e.color }); }
+  });
+  return ops;
+}

@@ -39,10 +39,29 @@ export function inkFigure(L, ops, o = {}) {
           if (op.role === 'robeIn') S.push({ kind: 'mass', poly: op.poly, a: .12, layer: 'wet', clipY });
           break;
         }
-        case 'ink': S.push({ kind: 'mass', poly: op.poly, a: .85, layer: 'wet', clipY }); break;
+        case 'ink': case 'dark': case 'red': S.push({ kind: 'mass', poly: op.poly, a: .85, layer: 'wet', clipY }); break;
+        case 'gold': case 'blue': S.push({ kind: 'mass', poly: op.poly, a: .35, layer: 'wet', clipY }); break;
+        case 'green': S.push({ kind: 'mass', poly: op.poly, a: .6, layer: 'wet', clipY }); break;
+        case 'pink': S.push({ kind: 'erase', poly: op.poly, clipY }); S.push({ kind: 'mass', poly: op.poly, a: .28, layer: 'wet', clipY }); break;
+        case 'tooth': S.push({ kind: 'erase', poly: op.poly, clipY }); for (const pts of contourStrokes(op.poly, { segs: 1, gap: .05 })) S.push({ kind: 'stroke', s: I.mk(pts, { w: Math.max(.8, 1.4 * sc), tone: I.TONE.nong, dry: .2 }), clipY }); break;
+        case 'furL': S.push({ kind: 'erase', poly: op.poly, clipY }); S.push({ kind: 'mass', poly: op.poly, a: .1, layer: 'wet', clipY }); break;
+        case 'purple': case 'purpleD': {   // 兽毛：一团湿墨 + 沿外缘的干笔毛
+          S.push({ kind: 'erase', poly: op.poly, clipY });
+          S.push({ kind: 'mass', poly: op.poly, a: op.role === 'purple' ? .42 : .7, layer: 'wet', clipY });
+          for (const pts of contourStrokes(op.poly, { segs: 6, gap: .06, phase: (i * .17) % 1 })) S.push({ kind: 'stroke', s: I.mk(pts, { w: Math.max(2.4, 5 * sc), tone: I.TONE.nong, dry: .7, rough: .4 }), clipY });
+          break;
+        }
+        case 'robeD': S.push({ kind: 'erase', poly: op.poly, clipY }); S.push({ kind: 'mass', poly: op.poly, a: .55, layer: 'wet', clipY }); break;
+        case 'hairW': case 'fur': {
+          S.push({ kind: 'erase', poly: op.poly, clipY });
+          for (const pts of contourStrokes(op.poly, { segs: op.role === 'fur' ? 5 : 3, gap: .08, phase: (i * .21) % 1 }))
+            S.push({ kind: 'stroke', s: I.mk(pts, { w: Math.max(1.2, 2.2 * sc), tone: I.TONE.zhong, dry: .55, rough: .3 }), clipY });
+          break;
+        }
+        case 'strand': if (op.on === 'hairW') S.push({ kind: 'stroke', s: I.mk(op.pts, { w: Math.max(.9, op.w * 1.2), tone: I.TONE.dan, dry: .5, rough: .25 }), clipY }); break;
         case 'shade': S.push({ kind: 'mass', poly: op.poly, a: .1, layer: 'wet', clipY }); break;
         case 'collar': S.push({ kind: 'erase', poly: op.poly, clipY }); break;
-        case 'eye': S.push({ kind: 'erase', poly: op.open, clipY }); S.push({ kind: 'iris', x: op.iris[0], y: op.iris[1], r: op.iris[2], open: op.open, clipY }); break;
+        case 'eye': S.push({ kind: 'erase', poly: op.open, clipY }); if (op.color === 'purple') S.push({ kind: 'mass', poly: op.open, a: .06, layer: 'wet', clipY }); S.push({ kind: 'iris', x: op.iris[0], y: op.iris[1], r: op.iris[2], open: op.open, clipY }); break;
         case 'line': {
           if (op.key === 'tail') { S.push({ kind: 'stroke', s: I.mk(op.pts, { w: op.w, tone: I.TONE.jiao, dry: .3 }), clipY }); break; }
           const face = /^(brow|lid|mouth|noseTip|nose|jaw|chin|crease|low|lip)/.test(op.key);
