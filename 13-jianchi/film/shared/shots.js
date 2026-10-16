@@ -6,7 +6,7 @@
 //   { t:'debris', items }            碎屑 { poly, trail }
 //   { t:'fig', ops, key, s }         人物（画面指令，已在局部坐标）
 //   { t:'sfx', text, x, y, size, rot, font }   拟声字（巨大，斜穿画格）
-//   { t:'cap', who, text }           字幕（各风格按自己的规矩放；who 为空 = 旁白）
+//   { t:'cap', who, text, side }     字幕（各风格按自己的规矩放；who 为空 = 旁白；side:'left' = 水墨题跋改写在左边）
 //   { t:'sky', hz } / { t:'water', hz, lines, ripples, reflect:[x,w] }   远景的天和水面（平静：横线 + 涟漪 + 光柱倒影）
 //   { t:'beam', poly, streaks, color }   光柱（color:'blue' = 爱情仙蛊的湛蓝，木刻唯一的色版、水墨唯一的花青）
 //   { t:'splash', cols, drops }      水花皇冠
@@ -15,6 +15,7 @@
 //   { t:'eye', ...FX.eye() }          “天意”的巨眼（天上）
 //   { t:'panel', poly, tone, paper, els }   分格：格里的元素裁进 poly；tone 格底（dark/light），paper 间谍片头的纸色
 //   { t:'marks', polys, lines }       漫画符号（泪、汗、青筋、抖动线）：polys 填色、lines 画线，颜色和所在的格底相反
+//   { t:'aura', polys, bolts }        霸气：黑焰舌（polys）+ 黑闪电（bolts 折线）
 //   { t:'pool', poly, front, lines, ripples }   一片浅水（河头近景）：poly 是水面范围，front 是正往前涨的水线
 // 各风格的 shots.js 只管怎么画每一类元素。
 import * as XH from './models/xuehu.js';
@@ -211,4 +212,35 @@ export function K7() {
     { t: 'cap', who: '', text: '为什么方源，他始终面无表情？' },
   ];
 }
-export const SHOTS = { K2, K3, K4, K5, K5_puppet, K6, K7 };
+
+// 凸包（给霸气黑焰找一个外轮廓）
+function hull(P) { P = P.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]); const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lo = [], up = [];
+  for (const p of P) { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
+  for (const p of P.slice().reverse()) { while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); }
+  return lo.slice(0, -1).concat(up.slice(0, -1)); }
+// 沿凸包按弧长重采样（火舌要均匀地长出来）
+function resampleClosed(P, step) { const out = []; for (let i = 0; i < P.length; i++) { const a = P[i], b = P[(i + 1) % P.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.round(L / step)); for (let j = 0; j < n; j++) out.push([a[0] + (b[0] - a[0]) * j / n, a[1] + (b[1] - a[1]) * j / n]); } return out; }
+
+// K8 · 2:32 一个人的坚持会有多难？……有的因为责任，有的因为仇恨，有的因为精彩，有的因为爱情（四联）
+// 原文第265节：在场的所有蛊仙，都能回答这个问题。因为他们当中，有的因为责任而坚持，有的因为仇恨而坚持，有的因为精彩而坚持，有的因为爱情而坚持……
+// 四个人按第261节：影无邪（“我就是影宗唯一的希望”——责任，头上趴着紫山真君）、黑楼兰（“娘亲，你的血仇我还没有报！”“吼！”——仇恨）、
+// 白凝冰（“精彩！”）、赵怜云（爱情，望着马鸿运的尸体落泪）。四格竖条并排、同一个朝向 —— 四条并行的线（诺兰的交叉剪辑）；
+// 每格一个大字词；仇恨那格是航海王的霸气：黑焰从人身上烧起来，带黑闪电。字幕在 2:32 正读到“仇恨”。
+export function K8() {
+  const W = 480, sl = 44, g = 12;
+  const box = i => [[i * W + g - (i ? 0 : 80), 0], [(i + 1) * W - g + (i === 3 ? 80 : 0), 0], [(i + 1) * W - g - sl + (i === 3 ? 80 : 0), 804], [i * W + g - sl - (i ? 0 : 80), 804]];
+  const bust = (M, i, s = 330) => flatten(M, CAST, mkXf({ s, from: [.2, -.45], at: [i * W + W * .44, 440] }));
+  const word = (t, i, tone) => [...t].map((ch, k) => ({ t: 'sfx', text: ch, x: (i + 1) * W - 200, y: 250 + k * 200, size: 190, rot: 0 }));
+  const P = [
+    { M: CAST.YWX_GRIT, w: '责任', tone: 'dark', paper: 'teal', fx: i => [{ t: 'speed', polys: FX.speedLines([i * W - 40, -60, (i + 1) * W, 860], Math.PI / 2, 46, 91, 12) }] },
+    { M: CAST.HLL_ROAR, w: '仇恨', tone: 'light', paper: 'red', fx: (i, ops) => { const pts = ops.filter(o => o.poly).flatMap(o => o.poly), H = resampleClosed(hull(pts), 14); return [{ t: 'aura', polys: FX.flameAura(H, 120, 92, 2), bolts: [...FX.lightning(i * W + 60, 40, i * W + 200, 360, 93, 22, 2), ...FX.lightning((i + 1) * W - 60, 500, (i + 1) * W - 140, 780, 94, 20, 1)] }]; } },
+    { M: CAST.BNB_LAUGH, w: '精彩', tone: 'dark', paper: 'ink', fx: (i, ops) => { const eye = ops.find(o => o.role === 'eye').iris; return [{ t: 'focus', polys: FX.focusLines(eye[0], eye[1], 200, 900, 120, 95, 20) }, { t: 'marks', polys: [], lines: [...FX.shake(eye[0] + 70, eye[1] - 30, 230, 7, 96), ...FX.shake(eye[0] + 70, eye[1] - 30, 270, 5, 97)] }]; } },
+    { M: CAST.ZLY_CRY, w: '爱情', tone: 'light', paper: 'bone', fx: (i, ops) => { const eye = ops.find(o => o.role === 'eye').iris; return [{ t: 'marks', polys: FX.tears(eye[0], eye[1] + 8, 210, -1, 98), lines: [] }]; } },
+  ];
+  const els = [{ t: 'bg', tone: 'light' }];
+  P.forEach((p, i) => { const ops = bust(p.M, i), f = p.fx(i, ops), pre = f.filter(e => e.t !== 'marks'), post = f.filter(e => e.t === 'marks');
+    els.push({ t: 'panel', poly: box(i), tone: p.tone, paper: p.paper, els: [...pre, { t: 'fig', ops, key: 'k8_' + i, s: 1.1 }, ...post, ...word(p.w, i, p.tone)] }); });
+  els.push({ t: 'cap', who: '', text: '有的因为仇恨而坚持', side: 'left' });
+  return els;
+}
+export const SHOTS = { K2, K3, K4, K5, K5_puppet, K6, K7, K8 };

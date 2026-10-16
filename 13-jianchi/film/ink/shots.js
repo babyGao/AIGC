@@ -7,6 +7,8 @@ import { mulberry } from '/core/lib.js';
 const R = {};
 const Y0 = 138;
 function sfx(L, e) {
+  // 字边先擦出一圈纸白（落在浓墨上也认得出；书家在画上题字也是先留出地方）
+  for (const c of [L.cw, L.cd]) { c.save(); c.translate(e.x, e.y + Y0); c.rotate(e.rot || 0); c.font = `${e.size}px MSZ`; c.textBaseline = 'alphabetic'; c.globalCompositeOperation = 'destination-out'; c.lineJoin = 'round'; c.lineWidth = e.size * .09; c.strokeText(e.text, 0, 0); c.restore(); }
   for (const [c, a] of [[L.cw, .9], [L.cd, .55]]) { c.save(); c.translate(e.x, e.y + Y0); c.rotate(e.rot || 0); c.font = `${e.size}px MSZ`; c.fillStyle = `rgba(0,0,0,${a})`; c.textBaseline = 'alphabetic'; c.fillText(e.text, 0, 0); c.restore(); }
   const r = mulberry(e.size); const w = e.size * e.text.length;
   for (let i = 0; i < 26; i++) I.blot(L.cw, e.x + r() * w * 1.1, e.y + Y0 - e.size * (r() * 1.1), 2 + r() * e.size * .03, .8, r() * 6, .7 + r() * .5, i);
@@ -20,7 +22,7 @@ export function render(cv, els, o) {
   if (bg && bg.tone === 'dark') {   // 黑底爆发格的水墨写法：四周一圈淡墨烘染（干层，不晕成色块），浓墨大笔从画外扫进来
     const c = L.cd, gr = c.createRadialGradient(960, 400, 300, 960, 400, 1150); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(.5, 'rgba(0,0,0,.12)'); gr.addColorStop(1, 'rgba(0,0,0,.6)'); c.fillStyle = gr; c.fillRect(-20, -20, 1960, 844);
   }
-  const cap = els.find(e => e.t === 'cap'), CX = 1850, CY = 70, CS = 38;
+  const cap = els.find(e => e.t === 'cap'), CX = cap && cap.side === 'left' ? 70 : 1850, CY = 70, CS = 38;   // side:'left' = 右边有大字时题跋改写在左边
   // 留白：题跋处在画人物和大字之前擦淡（画家落墨时就给题字留了地方），边缘用模糊蒙版，不留硬边
   const keepClear = () => {
     if (!cap) return; const n = [...cap.text].length, h = CY + n * CS * 1.05 + 40;
@@ -87,6 +89,8 @@ export function render(cv, els, o) {
       I.draw(L.ink, I.mk(e.front, { w: 7, tone: I.TONE.nong, dry: .55, rough: .35, prof: 'brush', seed: 870 }));
       const r = mulberry(13); for (let i = 0; i < 18; i++) { const k0 = Math.floor(r() * (e.front.length - 1)), p = e.front[k0]; I.blot(L.cw, p[0] - 8 - r() * 20, p[1] + (r() - .5) * 10, 1.5 + r() * 3, .7, 0, 1, i); }
     }
+    // 霸气：黑焰是一团团焦墨（湿层，边缘晕开），黑闪电是焦墨干笔折线
+    if (e.t === 'aura') { e.polys.forEach((Pp, i) => I.mass(L.cw, Pp, .92, 2, i)); e.bolts.forEach((Ln, i) => I.draw(L.ink, I.mk(Ln, { w: 9, tone: I.TONE.jiao, dry: .45, rough: .3, per: 2, seed: 960 + i }))); }
     // 漫画符号：泪、汗 = 留白的水珠勾一圈浓墨细笔；青筋、抖动线 = 焦墨短笔
     if (e.t === 'marks') {
       e.polys.forEach((Pp, i) => { for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.beginPath(); Pp.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); c.fill(); c.restore(); } I.draw(L.ink, I.mk(Pp.concat([Pp[0]]), { w: 2.6, tone: I.TONE.jiao, dry: .15, rough: .1, seed: 930 + i })); });
@@ -125,7 +129,7 @@ export function render(cv, els, o) {
     const x = CX, y = Y0 + CY, sz = CS; cc.fillStyle = '#b02e22'; cc.fillRect(x - 13, y - 34, 26, 26);
     cc.fillStyle = 'rgba(28,24,22,.92)'; cc.font = `${sz}px MSZ`; cc.textAlign = 'center'; cc.textBaseline = 'alphabetic';
     [...cap.text].forEach((ch, i) => cc.fillText(ch, x, y + 18 + i * sz * 1.02));
-    if (cap.who) cc.font = '22px MSZ', [...cap.who].forEach((ch, i) => cc.fillText(ch, x - 46, y + 18 + i * 24));
+    if (cap.who) cc.font = '22px MSZ', [...cap.who].forEach((ch, i) => cc.fillText(ch, x + (cap.side === 'left' ? 46 : -46), y + 18 + i * 24));
   }
   // 裱绫
   cc.fillStyle = '#4a4740'; cc.fillRect(0, 0, 1920, Y0); cc.fillRect(0, Y0 + 804, 1920, 1080 - Y0 - 804);

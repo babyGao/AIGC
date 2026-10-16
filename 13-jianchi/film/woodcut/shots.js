@@ -91,6 +91,10 @@ export function render(cv, els, o) {
       const lo = []; for (let i = 4; i < e.low.length - 3; i += 3) { const p = e.low[i], a = Math.PI / 2 + (i / e.low.length - .5) * 1.4, L = 18 + (i % 2) * 8; lo.push(knife([p, [p[0] + Math.cos(a) * L, p[1] + Math.sin(a) * L]], [3.5, .6], 240 + i)); }
       WC.drawStrokes(m, lo, { color: '#fff' });
     }
+    // 霸气：黑焰舌在白格里留黑（描一圈白边跟人分开），黑闪电是粗黑折线
+    if (e.t === 'aura') { const fg = tone === 'light' ? '#000' : '#fff';
+      e.polys.forEach(Pp => { m.fillStyle = fg; poly(m, Pp); m.fill(); });
+      e.bolts.forEach(Ln => { m.lineJoin = 'miter'; m.strokeStyle = fg; m.lineWidth = 9; m.beginPath(); Ln.forEach((p, k) => k ? m.lineTo(p[0], p[1]) : m.moveTo(p[0], p[1])); m.stroke(); }); }
     // 漫画符号：跟格底相反的颜色（黑格里刻白、白格里留黑），描一圈反色边
     if (e.t === 'marks') { const fg = tone === 'light' ? '#000' : '#fff', bgc = tone === 'light' ? '#fff' : '#000';
       e.polys.forEach(P => { m.fillStyle = '#fff'; m.strokeStyle = '#000'; m.lineWidth = 4; poly(m, P); m.fill(); m.stroke(); });   // 泪、汗：白水珠描黑边（漫画的画法）
