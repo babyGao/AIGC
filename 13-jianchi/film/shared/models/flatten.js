@@ -54,8 +54,10 @@ export function flatten(M, lib, xf, o = {}) {
     ((F.locks || {}).front || []).forEach((l, i) => lk(l, 3, 31 + i));
   };
   if (M.head) {
-    const { src, from, at, s, clipY, withBack } = M.head, F = lib[src];
-    const X = p => xf([at[0] + (p[0] - from[0]) * s, at[1] + (p[1] - from[1]) * s]);
+    const { src, from, at, s, clipY, withBack, rot = 0, pivot = at } = M.head, F = lib[src];
+    // rot：头绕颈（pivot，母版坐标）转一点（抬头 / 低头），身子不动
+    const rc = Math.cos(rot), rs = Math.sin(rot), R = q => rot ? [pivot[0] + (q[0] - pivot[0]) * rc - (q[1] - pivot[1]) * rs, pivot[1] + (q[0] - pivot[0]) * rs + (q[1] - pivot[1]) * rc] : q;
+    const X = p => xf(R([at[0] + (p[0] - from[0]) * s, at[1] + (p[1] - from[1]) * s]));
     const n0 = ops.length;
     face(F, X, scale * s, FACE_KEYS, withBack);
     if (clipY != null) { const cy = xf([0, clipY])[1]; for (let i = n0; i < ops.length; i++) ops[i].clipY = cy; }

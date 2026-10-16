@@ -59,11 +59,11 @@ export function carveFigure(g, ops, o = {}) {
       case 'eye': {
         fillP(g, op.open, '#fff');
         g.save(); g.beginPath(); op.open.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath(); g.clip();
-        g.fillStyle = '#000'; g.beginPath(); g.arc(op.iris[0], op.iris[1], op.iris[2], 0, 7); g.fill(); g.restore(); break;
+        g.fillStyle = '#000'; g.beginPath(); g.arc(op.iris[0], op.iris[1], Math.max(op.iris[2], (o.lineMin ?? 0) * .9), 0, 7); g.fill(); g.restore(); break;
       }
       case 'line': {
         if (op.w < (o.minLine ?? .22)) break;          // 太小的线刻不出来，省掉
-        const n = op.pts.length, w = Math.max(.9, op.w * (op.dark < .45 ? .8 : 1.15));
+        const n = op.pts.length, w = Math.max(o.lineMin ?? .9, op.w * (op.dark < .45 ? .8 : 1.15));   // lineMin：中景人物的线要刻够粗，不然印的时候吃掉
         const ws = op.pts.map((_, k) => { const u = k / (n - 1); return w * Math.min(1, u / .15, (1 - u) / .25) ** .55 + .35; });
         WC.drawStrokes(g, [WC.mkStroke(op.pts, ws, { kind: 'k', seed: i * 7 + 1, chip: .08 })], { color: '#000' });
         break;

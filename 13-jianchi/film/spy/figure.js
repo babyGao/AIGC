@@ -34,5 +34,5 @@ export function spyFigure(ops, o = {}) {
       }
       g.restore();
     });
-  }, { outline: o.outline ?? 2.4 });
+  }, { outline: o.outline ?? 2.4, outlineCol: o.outlineCol });   // outlineCol：墨黑底上给深色衣一圈河青轮廓光，不然人没了
 }

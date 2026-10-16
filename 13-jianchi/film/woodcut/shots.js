@@ -23,21 +23,50 @@ function sfx(m, e) {
 }
 export function render(cv, els, o) {
   const g = cv.getContext('2d');
-  const [mask, m] = WC.canvas(1920, 1080), [plate] = WC.canvas(1920, 1080), PR = R.P || (R.P = WC.makePrinter(1920, 1080));
+  const [mask, m] = WC.canvas(1920, 1080), [plate, pc] = WC.canvas(1920, 1080), PR = R.P || (R.P = WC.makePrinter(1920, 1080));
   m.fillStyle = '#fff'; m.fillRect(0, 0, 1920, 1080);
   const edge = plateEdge(); const edgePath = () => { m.beginPath(); edge.forEach((p, i) => i ? m.lineTo(p[0], p[1]) : m.moveTo(p[0], p[1])); m.closePath(); };
   const bg = els.find(e => e.t === 'bg');
   m.fillStyle = bg && bg.tone === 'light' ? '#fff' : '#000'; edgePath(); m.fill();
   m.save(); edgePath(); m.clip();
-  m.setTransform(k, 0, 0, k, PLATE[0], PLATE[1]);
+  m.setTransform(k, 0, 0, k, PLATE[0], PLATE[1]); pc.save(); pc.beginPath(); edge.forEach((p, i) => i ? pc.lineTo(p[0], p[1]) : pc.moveTo(p[0], p[1])); pc.closePath(); pc.clip(); pc.setTransform(k, 0, 0, k, PLATE[0], PLATE[1]);   // 色版也只在版面里
+  const poly = (c, P) => { c.beginPath(); P.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); };
+  const cutLine = (L, w, seed, kind = 'v') => WC.drawStrokes(m, WC.cutAlong(L, { w, kind, seg: [60, 220], gap: [4, 16], seed }), { color: '#fff' });
+  let usedPlate = false;
   for (const e of els) {
+    // 水面：地平线一道白刀，下面一排排横向的 V 刀（越近越粗），涟漪是细刀刻的扁圈，光柱倒影是一串色版短横
+    if (e.t === 'water') {
+      cutLine([[0, e.hz], [1920, e.hz]], 2.2, 70);
+      e.lines.forEach((L, i) => { const d = (L[0][1] - e.hz) / (804 - e.hz); WC.drawStrokes(m, [WC.mkStroke(L, [1 + d * 5, 1 + d * 6, .6], { kind: 'v', seed: 80 + i })], { color: '#fff' }); });
+      e.ripples.forEach((L, i) => cutLine(L, 1.6, 90 + i));
+      if (e.reflect) { const [x, w] = e.reflect, r = mulberry(7); for (let y = e.hz + 150; y < 804; y += 9 + r() * 6) { const ww = w * (.4 + r() * .8) * (y - e.hz) / (804 - e.hz) + 20; m.fillStyle = '#fff'; m.fillRect(x - ww / 2 + (r() - .5) * 30, y, ww, 3 + r() * 3); pc.fillStyle = '#000'; pc.fillRect(x - ww / 2 + (r() - .5) * 30, y, ww, 3 + r() * 3); } usedPlate = true; }
+    }
+    // 云头：刻白的一朵卷云，底下两道墨线
+    if (e.t === 'cloud') { const [cx, cy] = e.at, w = e.w, P = []; for (let j = 0; j <= 36; j++) { const u = j / 36; P.push([cx - w / 2 + w * u, cy - Math.abs(Math.sin(u * Math.PI * 3.5)) * w * .1 - Math.sin(u * Math.PI) * w * .06]); } P.push([cx + w * .42, cy + w * .08], [cx - w * .42, cy + w * .08]); m.fillStyle = '#fff'; poly(m, P); m.fill(); m.strokeStyle = '#000'; m.lineWidth = 2.5; for (let j = 0; j < 2; j++) { m.beginPath(); m.moveTo(cx - w * .3 + j * 20, cy + w * .02 + j * 7); m.quadraticCurveTo(cx, cy - 6 + j * 7, cx + w * .3 - j * 20, cy + w * .02 + j * 7); m.stroke(); } }
+    // 光柱：版上刻空，印湛蓝色版（全片木刻唯一的颜色）；柱里的速度线留纸白（色版上挖掉），柱沿一道黑边
+    if (e.t === 'beam') {
+      m.fillStyle = '#fff'; poly(m, e.poly); m.fill();
+      pc.fillStyle = '#000'; poly(pc, e.poly); pc.fill();
+      pc.save(); pc.globalCompositeOperation = 'destination-out'; e.streaks.forEach(P => { poly(pc, P); pc.fill(); }); pc.restore();
+      m.strokeStyle = '#000'; m.lineWidth = 7; m.lineJoin = 'round'; poly(m, e.poly); m.stroke();
+      usedPlate = true;
+    }
+    if (e.t === 'splash') { e.cols.forEach(P => { m.fillStyle = '#fff'; poly(m, P); m.fill(); m.strokeStyle = '#000'; m.lineWidth = 3; m.stroke(); }); for (const [x, y, r] of e.drops) { m.fillStyle = '#fff'; m.beginPath(); m.ellipse(x, y, r * .7, r, 0, 0, 7); m.fill(); } }
     if (e.t === 'focus' || e.t === 'speed') WC.drawStrokes(m, e.polys.map((P, i) => wedgeStroke(P, i)), { color: '#fff' });
     if (e.t === 'rings') e.lines.forEach((L, i) => WC.drawStrokes(m, WC.cutAlong(L, { w: e.w, kind: 'u', seg: [80, 260], gap: [6, 22], seed: 60 + i }), { color: '#fff' }));
     if (e.t === 'debris') for (const d of e.items) { m.fillStyle = '#000'; m.beginPath(); d.poly.forEach((p, i) => i ? m.lineTo(p[0], p[1]) : m.moveTo(p[0], p[1])); m.closePath(); m.lineWidth = 6; m.strokeStyle = '#000'; m.stroke(); m.fillStyle = '#fff'; m.fill(); WC.drawStrokes(m, [WC.mkStroke(d.trail, [d.s * .5, .5], { kind: 'v', seed: 3 })], { color: '#fff' }); }
-    if (e.t === 'fig') carveFigure(m, e.ops, { key: o.id + e.key, scale: e.s * 1.6, halo: 8, minLine: 1 });
+    if (e.t === 'fig') {
+      if (e.lit) {   // 光里的人：逆光剪影留黑，只有白发刻白
+        carveFigure(m, e.ops, { silhouette: true });
+        for (const op of e.ops) if (op.role === 'hairW') { m.fillStyle = '#fff'; poly(m, op.poly); m.fill(); pc.save(); pc.globalCompositeOperation = 'destination-out'; poly(pc, op.poly); pc.fill(); pc.restore(); }   // 白发是纸白，不压色版
+      } else if (e.s < .12) {   // 远处的小人：黑剪影描一圈白边（白衣刻成白团会看成钟）
+        m.save(); m.strokeStyle = '#fff'; m.lineWidth = 5; m.lineJoin = 'round'; for (const op of e.ops) if (op.poly) { poly(m, op.poly); m.stroke(); } m.restore();
+        carveFigure(m, e.ops, { silhouette: true });
+      } else carveFigure(m, e.ops, { key: o.id + e.key, scale: e.s * 1.6, halo: e.s >= .7 ? 8 : e.s > .3 ? 5 : 3, minLine: e.s >= .7 ? 1 : .15, lineMin: e.s >= .7 ? .9 : 1.9 });   // 特写省掉碎线；中远景的五官、发丝要留，而且刻粗一点
+    }
     if (e.t === 'sfx') sfx(m, e);
   }
-  m.setTransform(1, 0, 0, 1, 0, 0);
+  m.setTransform(1, 0, 0, 1, 0, 0); pc.restore();
   m.restore();
   m.strokeStyle = '#000'; m.lineWidth = 10; m.lineJoin = 'round'; edgePath(); m.stroke();
   // 字幕：版面下方纸边上的铅字（黑）
@@ -46,7 +75,7 @@ export function render(cv, els, o) {
     const y = PLATE[1] + PLATE[3] + 92;
     m.fillStyle = '#000'; m.textBaseline = 'alphabetic'; m.textAlign = 'center';
     m.font = '46px WK'; m.fillText(cap.text, 960, y);
-    m.font = '28px WK'; m.fillText(`— ${cap.who} —`, 960, y + 48);
+    if (cap.who) { m.font = '28px WK'; m.fillText(`— ${cap.who} —`, 960, y + 48); }
   }
-  g.drawImage(PR.render(mask, plate, { mode: 'print', seed: 5 }), 0, 0);
+  g.drawImage(PR.render(mask, usedPlate ? plate : null, { mode: 'print', seed: 5, plate: '#1f64ad' }), 0, 0);
 }

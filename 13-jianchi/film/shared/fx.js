@@ -85,3 +85,32 @@ export function lightning(x0, y0, x1, y1, seed = 9, jag = 26, branches = 2) {
   for (let b = 0; b < branches; b++) { const k = 2 + Math.floor(r() * (n - 4)), p = main[k], br = [p]; for (let j = 1; j < 4; j++) br.push([p[0] + (x1 - x0) * .12 * j + (r() - .5) * jag * 2, p[1] + (y1 - y0) * .12 * j + (r() - .5) * jag * 2]); out.push(br); }
   return out;
 }
+// 光柱：从 p0（底，窄）到 p1（顶，宽）的长条，边缘有一点起伏。返回多边形
+export function beam(p0, p1, w0, w1, seed = 10, n = 24) {
+  const r = mulberry(seed), dx = p1[0] - p0[0], dy = p1[1] - p0[1], L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, nx = -uy, ny = ux, A = [], B = [];
+  for (let i = 0; i <= n; i++) { const u = i / n, w = (w0 + (w1 - w0) * u ** .8) / 2, x = p0[0] + dx * u, y = p0[1] + dy * u, j1 = (r() - .5) * w * .12, j2 = (r() - .5) * w * .12; A.push([x + nx * (w + j1), y + ny * (w + j1)]); B.push([x - nx * (w + j2), y - ny * (w + j2)]); }
+  return A.concat(B.reverse());
+}
+// 光柱里顺着轴的速度线（细长尖楔，尖朝下 = 往上冲）
+export function streaks(p0, p1, w0, w1, n = 40, seed = 11, wMax = 10) {
+  const r = mulberry(seed), dx = p1[0] - p0[0], dy = p1[1] - p0[1], L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, nx = -uy, ny = ux, out = [];
+  for (let i = 0; i < n; i++) {
+    const u0 = r() * .9, len = (.12 + r() * .4), u1 = Math.min(1.05, u0 + len), off = (r() - .5) * .9, w = (.3 + r() * .7) * wMax;
+    const at = u => { const ww = (w0 + (w1 - w0) * u) / 2; return [p0[0] + dx * u + nx * off * ww, p0[1] + dy * u + ny * off * ww]; };
+    const a = at(u0), b = at(u1);
+    out.push([a, [b[0] + nx * w / 2, b[1] + ny * w / 2], [b[0] - nx * w / 2, b[1] - ny * w / 2]]);
+  }
+  return out;
+}
+// 水面涟漪：以 (cx,cy) 为心的一圈圈扁椭圆（透视压扁），返回折线
+export function ripples(cx, cy, rx, ry, n = 4, seed = 12, gap = 1.45) {
+  const r = mulberry(seed), out = [];
+  for (let k = 0; k < n; k++) { const s = gap ** k, pts = []; const a0 = r() * .6; for (let i = 0; i <= 48; i++) { const a = a0 + i / 48 * Math.PI * 2; pts.push([cx + Math.cos(a) * rx * s, cy + Math.sin(a) * ry * s]); } out.push(pts); }
+  return out;
+}
+// 平静的水面：横向短线，近大远疏（hz 地平线，y1 画面底）
+export function calmLines(x0, x1, hz, y1, rows = 16, seed = 13) {
+  const r = mulberry(seed), out = [];
+  for (let i = 0; i < rows; i++) { const u = (i + .5) / rows, y = hz + (y1 - hz) * u ** 1.7, k = 2 + Math.floor(u * 5); for (let j = 0; j < k; j++) { const x = x0 + r() * (x1 - x0), l = 20 + u * 160 * (.4 + r()); out.push([[x, y], [x + l, y + (r() - .5) * 2]]); } }
+  return out;
+}

@@ -97,3 +97,6 @@ function zhao() {
   return L;
 }
 export const FY_CARRY2 = { box: [100, 110, 820, 985], parts: [{ layers: zhao() }, FY_WALK, { layers: corpse() }, { layers: arm() }] };
+
+// ── K4：赵怜云被爱情仙蛊带走以后，方源一手把着马鸿运的尸体，抬头看那道湛蓝光柱（头绕颈后仰一点，身子不动）──
+export const FY_CARRY_UP = { box: FY_CARRY.box, parts: [{ ...FY_WALK, head: { ...FY_WALK.head, rot: 0.2, pivot: [446, 258] } }, { layers: corpse() }, { layers: arm() }] };

@@ -33,7 +33,20 @@ export function render(cv, els, o) {
       P.piece(A.concat(B.reverse()), onRed ? PAL.bone : PAL.red, { gap: 0 });
     });
     if (e.t === 'debris') e.items.forEach((d, i) => P.piece(d.poly, i % 3 ? PAL.bone : (onRed ? PAL.ink : PAL.red), { gap: 0, shB: 2, shX: 1.5, shY: 2 }));
-    if (e.t === 'fig') { P.S.bg = bgc; spyFigure(e.ops, { key: o.id + e.key, closeup: true, scale: e.s * 2, outline: 5 }); }
+    // 水面：墨黑的水上几道河青细缝（平静），涟漪是河青细纸圈，光柱的倒影是一串骨白短条
+    if (e.t === 'water') {
+      g.fillStyle = PAL.tealD; g.fillRect(0, e.hz - 1.5, 1920, 3);
+      e.lines.forEach(Ln => { const d = (Ln[0][1] - e.hz) / (804 - e.hz); g.fillStyle = PAL.tealD; g.fillRect(Ln[0][0], Ln[0][1], Ln[1][0] - Ln[0][0], 1.5 + d * 4); });
+      e.ripples.forEach(Ln => { g.save(); g.strokeStyle = PAL.teal; g.lineWidth = 2.5; g.beginPath(); Ln.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke(); g.restore(); });
+      if (e.reflect) { const [x, w] = e.reflect, r = mulberry(7); for (let y = e.hz + 150; y < 804; y += 12 + r() * 8) { const ww = w * (.4 + r() * .8) * (y - e.hz) / (804 - e.hz) + 20; P.piece(P.rectP(x - ww / 2 + (r() - .5) * 30, y, ww, 4 + r() * 3), PAL.teal, { gap: 0, shadow: false }); } }
+    }
+    if (e.t === 'cloud') { const [cx, cy] = e.at, w = e.w, cl = []; for (let j = 0; j <= 20; j++) { const u = j / 20; cl.push([cx - w / 2 + w * u, cy + 2 - Math.abs(Math.sin(u * Math.PI * 3)) * w * .1]); } cl.push([cx + w * .42, cy + w * .08], [cx - w * .42, cy + w * .08]); P.piece(cl, PAL.boneD); }
+    // 光柱：一整条河青纸（爱情仙蛊的湛蓝在四色里落到河青），柱里贴骨白的细长条 = 往上冲的光
+    if (e.t === 'beam') { P.piece(e.poly, PAL.teal, { gap: 0 }); e.streaks.forEach(Q => P.piece(Q, PAL.bone, { gap: 0, shadow: false })); }
+    if (e.t === 'splash') { e.cols.forEach(Q => P.piece(Q, PAL.bone, { gap: 0, shB: 2 })); e.drops.forEach(([x, y, r]) => P.piece(P.ellP(x, y, r * .7, r, 12), PAL.bone, { gap: 0, shadow: false })); }
+    if (e.t === 'fig' && e.lit) {   // 光里的人：墨黑剪影，只有白发是骨白
+      P.S.bg = PAL.teal; P.silhouette(() => { for (const op of e.ops) if (op.poly) P.piece(op.poly, op.role === 'hairW' ? PAL.bone : PAL.ink); }, { outline: 0 });
+    } else if (e.t === 'fig') { P.S.bg = bgc; spyFigure(e.ops, { key: o.id + e.key, closeup: e.s > .3, scale: e.s * 2, outline: e.s > .3 ? 5 : 2, outlineCol: bgc === PAL.ink && e.s > .3 ? PAL.tealD : undefined }); }
     if (e.t === 'sfx') sfx(g, e, onRed ? PAL.bone : PAL.red, PAL.ink);
   }
   g.restore();
@@ -44,8 +57,8 @@ export function render(cv, els, o) {
   if (cap) {
     g.save(); g.translate(96, Y0 + 804 + 6); g.rotate(-.025);
     g.font = '900 40px NS'; const tw = g.measureText(cap.text).width; g.font = '900 24px NS'; const ww = g.measureText(cap.who).width;
-    P.piece([[0, -34], [ww + 34, -36], [ww + 32, 18], [-2, 20]], bgc === PAL.red ? PAL.ink : PAL.red, { gap: 0 });
-    g.fillStyle = PAL.bone; g.textBaseline = 'alphabetic'; g.fillText(cap.who, 16, -1);
+    if (cap.who) { P.piece([[0, -34], [ww + 34, -36], [ww + 32, 18], [-2, 20]], bgc === PAL.red ? PAL.ink : PAL.red, { gap: 0 });
+      g.fillStyle = PAL.bone; g.textBaseline = 'alphabetic'; g.fillText(cap.who, 16, -1); } else g.translate(-ww - 40, 0);
     P.piece([[ww + 40, -54], [ww + 40 + tw + 52, -58], [ww + 40 + tw + 50, 22], [ww + 38, 26]], PAL.bone, { gap: 0 });
     g.font = '900 40px NS'; g.fillStyle = PAL.ink; g.fillText(cap.text, ww + 64, 2);
     g.restore();
