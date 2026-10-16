@@ -83,6 +83,13 @@ export function render(cv, els, o) {
       g2.globalCompositeOperation = 'source-in'; g2.strokeStyle = '#000'; g2.lineWidth = Math.max(2, e.size * k * .012); const st = e.size * k * .16; g2.beginPath(); for (let y = -W; y < W + H; y += st) { g2.moveTo(0, y); g2.lineTo(W, y - W * .35); } g2.stroke();
       gg.save(); gg.globalCompositeOperation = 'destination-out'; gg.drawImage(c2, 0, 0); gg.restore();
       }, 76);
+    if (e.t === 'rays' && !dark) lay(gg => {   // 全景里的光芒：天上挂一张染深的皮（只到地平线），剪出放射的长缝和人身后一大团光
+      const hz = els.find(x => x.t === 'sky' || x.t === 'ground'), yb = X([0, hz ? hz.hz : 600])[1], C0 = e.polys[0][0];
+      gg.fillStyle = '#3b2414'; gg.fillRect(CL[0], CL[1], CL[2] - CL[0], yb - CL[1]);
+      e.polys.forEach(Q => K.cut(gg, path(Q.map(X))));
+      let cx = 0, cy = 0; e.polys.forEach(Q => { cx += Q[0][0] / e.polys.length; cy += Q[0][1] / e.polys.length; }); const [a, b] = X([cx, cy]);
+      gg.save(); gg.globalCompositeOperation = 'destination-out'; const gr = gg.createRadialGradient(a, b, 60, a, b, 360 * k); gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); gg.fillStyle = gr; gg.fillRect(a - 400, b - 400, 800, 800); gg.restore();
+    }, 85);
     if (e.t === 'focus' && !dark) lay(gg => e.polys.forEach(Q => K.fill(gg, 'rgba(42,26,16,.88)', path(Q.map(X)))), 82);   // 没有景片时：集中线是一根根深色皮条
     if (e.t === 'speed' && !dark) lay(gg => e.polys.forEach(Q => K.cut(gg, path(Q.map(X)))), 80);   // 没有景片时速度线就剪在已经画好的皮上（这里只剪透这一层，等于在幕上留几道亮缝）
     if (e.t === 'rings') lay(gg => e.lines.forEach(Ln => {

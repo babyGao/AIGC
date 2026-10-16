@@ -1,11 +1,11 @@
 // 方源夹着马鸿运的尸体走（本段原文第264节：“被方源夹在腋下……一手夹着一个俘虏，继续朝前走”；
 // 赵怜云被爱情仙蛊带走后，只剩马鸿运的尸体在一侧腋下）。同人参照：雕真人第76集、蓝兔Ai（方源白衣臂下夹尸）。
 // 坐标与 FULL_SIDE 相同（量自用户参考图左二），面朝左。马鸿运：黑发少年，北原深色袍、金色腰带（同人共识），已死。
-import { FULL_SIDE, FACE_SIDE } from './fangyuan.js';
+import { FULL_SIDE, FACE_SIDE, FULL_FRONT, FACE_FRONT } from './fangyuan.js';
 import { profileHead, rplacer } from './profile.js';
 import { strokeOutline } from './curve.js';
 import { tufts } from './util.js';
-export { FACE_SIDE };
+export { FACE_SIDE, FACE_FRONT };
 
 // ── 方源走路（侧身）：前脚伸出、后脚跟抬起，下摆前后分开 ──
 export const FY_WALK = {
@@ -100,3 +100,22 @@ export const FY_CARRY2 = { box: [100, 110, 820, 985], parts: [{ layers: zhao() }
 
 // ── K4：赵怜云被爱情仙蛊带走以后，方源一手把着马鸿运的尸体，抬头看那道湛蓝光柱（头绕颈后仰一点，身子不动）──
 export const FY_CARRY_UP = { box: FY_CARRY.box, parts: [{ ...FY_WALK, head: { ...FY_WALK.head, rot: 0.2, pivot: [446, 258] } }, { layers: corpse() }, { layers: arm() }] };
+
+// ── K11：正面，方源朝镜头走来，左臂下仍夹着马鸿运（参考 refs/river/16.jpg 漫画格：尸体横在他左胯边、朝着镜头，
+// 看得见垂下的头顶和两只垂下的手，腿在他身后看不见）。坐标同 FULL_FRONT（量自用户参考图），尸体在画面右侧（他的左边）。
+function corpseBack() { return [{ fill: 'robeD', pts: [[196, 556], [276, 548], [292, 580], [282, 612], [212, 620], [192, 596]], part: 'cTorso' }]; }   // 肩背：压在他的袖子底下
+function corpseFront() {
+  const L = [];
+  L.push({ fill: 'robeD', pts: tube([[208, 606], [204, 680], [200, 752]], taperW(24, 20)), part: 'cArmL' });
+  L.push({ fill: 'robeD', pts: tube([[262, 606], [266, 684], [270, 760]], taperW(24, 20)), part: 'cArmR' });
+  L.push({ fill: 'gold', pts: tube([[200, 742], [200, 754]], 22), key: 'cuffTrim' }); L.push({ fill: 'gold', pts: tube([[270, 750], [270, 762]], 22), key: 'cuffTrim' });
+  L.push({ fill: 'skin', pts: [[190, 754], [210, 754], [212, 776], [204, 792], [194, 788], [189, 772]], key: 'hand' });
+  L.push({ fill: 'skin', pts: [[260, 762], [280, 762], [282, 784], [274, 800], [264, 796], [259, 780]], key: 'hand' });
+  // 垂下的头：朝着镜头的是头顶（黑发、发髻），脸朝地看不见
+  const hair = []; for (let i = 0; i < 28; i++) { const a = i / 28 * Math.PI * 2; hair.push([236 + Math.cos(a) * 30, 640 + Math.sin(a) * 36 * (Math.sin(a) > 0 ? 1.1 : .9)]); }
+  L.push({ fill: 'hair', pts: hair, key: 'cHead' });
+  L.push({ fill: 'hair', pts: [[226, 600], [232, 590], [244, 590], [250, 600], [240, 606]], key: 'cBun' });
+  for (const [x0, x1] of [[222, 214], [236, 236], [250, 258]]) L.push({ line: [[236 + (x0 - 236) * .3, 612], [x0, 650], [x1, 676]], w: .9, dark: .3, key: 'strand' });
+  return L;
+}
+export const FY_FRONT_CARRY = { box: FULL_FRONT.box, parts: [{ layers: corpseBack() }, FULL_FRONT, { layers: corpseFront() }] };

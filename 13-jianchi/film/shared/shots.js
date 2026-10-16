@@ -292,4 +292,34 @@ export function K10() {
     { t: 'cap', who: '', text: '光芒骤放，不可逼视' },
   ];
 }
-export const SHOTS = { K2, K3, K4, K5, K5_puppet, K6, K7, K8, K9, K10 };
+
+// K11 · 3:32 坚持仙蛊，在这一刻，炼成！！！（IMAX 满画幅、低位正面）
+// 原文第265节：坚持仙蛊，在这一刻，炼成！！！ 前文毛里球：“他就要炼成坚持仙蛊，成为逆流河的第二代主人了！”
+// 素材：refs/river/16.jpg（漫画格：正面的方源周身白光、左臂下仍夹着马鸿运，身后天上是群仙的黑影）、
+// refs/river/10、11.jpg（河道一直伸到天边、尽头一团光）。
+// 调度：镜头低、在上游迎着他；他正面朝我们走来，面无表情；河从他脚下一直退到地平线；他身后放射的白光；
+// 天上两边是群仙的黑影，右岸远处伏着毛里球的黑影。航海王的收尾：“坚”“持”两个大字一左一右砸在他头两边（片名落版），字幕“炼成！！！”。
+export function K11() {
+  const hz = 600, feet = [960, 1010], s = 760 / 850;
+  const fy = flatten(CARRY.FY_FRONT_CARRY, CARRY, mkXf({ s, from: [175, 960], at: feet }));
+  const capA = []; for (let i = 0; i <= 24; i++) { const a = Math.PI - i / 24 * Math.PI; capA.push([960 + Math.cos(a) * 430, 968 + Math.sin(a) * 72]); }
+  const left = [[930, hz], [880, 690], [760, 800], [620, 900], [532, 960]], right = [[1388, 960], [1300, 900], [1160, 800], [1040, 690], [990, hz]];
+  const pool = left.concat(capA, right);
+  const shade = (x, y, H, flip, o) => ({ ops: flattenLayers({ layers: sideStanding(o, placer([x, y], H, flip)) }, p => p), s: H / 875 });
+  const sky = [[260, 360, 130, true], [400, 330, 140, true], [540, 372, 120, true], [1380, 372, 120, false], [1520, 330, 140, false], [1660, 360, 130, false]].map(([x, y, H, f], i) => shade(x, y, H, f, { robe: 'robe', hair: 'hair', style: i % 2 ? 'crown' : 'bun' }));
+  const mlq = (() => { const M = MLQ.MLQ_SIDE, H = 150, [x0, y0, x1, y1] = M.box, k = H / (y1 - y0); return { ops: flatten(M, MLQ, mkXf({ s: k, from: [x0, y1], at: [1460, hz + 26] })), s: k }; })();
+  return [
+    { t: 'bg', tone: 'dark', imax: true },
+    { t: 'sky', hz },
+    { t: 'ground', hz },
+    { t: 'rays', polys: FX.focusLines(960, 470, 260, 2400, 110, 121, 90) },
+    ...sky.map((f, i) => ({ t: 'fig', ops: f.ops, key: 'k11s' + i, s: f.s, lit: true })),
+    { t: 'fig', ops: mlq.ops, key: 'k11mlq', s: mlq.s, lit: true },
+    { t: 'pool', poly: pool, front: capA, lines: FX.calmLines(560, 1380, 610, 1000, 14, 122), ripples: FX.ripples(960, 990, 150, 22, 4, 123) },
+    { t: 'fig', ops: fy, key: 'k11fy', s },
+    { t: 'sfx', text: '坚', x: 150, y: 560, size: 380, rot: -.08 },
+    { t: 'sfx', text: '持', x: 1390, y: 540, size: 380, rot: .08 },
+    { t: 'cap', who: '', text: '炼成！！！' },
+  ];
+}
+export const SHOTS = { K2, K3, K4, K5, K5_puppet, K6, K7, K8, K9, K10, K11 };
