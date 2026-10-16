@@ -13,7 +13,7 @@ const [rw, rh] = (process.env.REFSIZE || '1536x1024').split('x').map(Number);
 const ref = 'data:image/' + (refPath.endsWith('.webp') ? 'webp' : 'jpeg') + ';base64,' + fs.readFileSync(refPath).toString('base64');
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="${x0} ${y0} ${x1 - x0} ${y1 - y0}">
 <rect x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}" fill="#fbfaf7"/>
-${overlay ? `<image href="${ref}" x="0" y="0" width="${rw}" height="${rh}" opacity="0.9"/>` : ''}${M.layers ? opsSVG(flattenLayers(M, p => p), { overlay }) : modelSVG(M, lib, { overlay })}</svg>`;
+${overlay ? `<image href="${ref}" x="0" y="0" width="${rw}" height="${rh}" opacity="0.9"/>` : ''}${M.parts ? M.parts.map(P => P.layers ? opsSVG(flattenLayers(P, p => p), { overlay }) : modelSVG(P, lib, { overlay })).join('') : M.layers ? opsSVG(flattenLayers(M, p => p), { overlay }) : modelSVG(M, lib, { overlay })}</svg>`;
 fs.writeFileSync(out.replace(/\.png$/, '.svg'), svg);
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-sandbox'] });
 const p = await b.newPage({ viewport: { width: W, height: H } });
