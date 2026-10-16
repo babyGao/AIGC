@@ -9,7 +9,7 @@ import { CLOTH, front } from './k1.js';
 import { mulberry } from '/core/lib.js';
 const R = {};
 const W = 1920, H = 1080;
-const k = (CLOTH[2] - CLOTH[0]) / 1920, OX = CLOTH[0], OY = (CLOTH[1] + CLOTH[3]) / 2 - 402 * k;   // 宽银幕整幅放进幕布（上下各留一条，黑底格被景片盖住）
+let CL = CLOTH, k = (CLOTH[2] - CLOTH[0]) / 1920, OX = CLOTH[0], OY = (CLOTH[1] + CLOTH[3]) / 2 - 402 * k;   // 宽银幕整幅放进幕布（上下各留一条，黑底格被景片盖住）；IMAX 时贴近幕布，布占满整个画面
 const X = ([x, y]) => [x * k + OX, y * k + OY];
 const path = P => q => { q.moveTo(P[0][0], P[0][1]); for (let i = 1; i < P.length; i++) q.lineTo(P[i][0], P[i][1]); q.closePath(); };
 // 画面指令从局部坐标搬到幕布坐标
@@ -29,11 +29,11 @@ function glyphPath(g, e) {   // 拟声字的字形（幕布坐标）
   return () => g.restore();
 }
 function placard(cap) {
-  return g => {
+  return g => {   // CL[3]：IMAX 时牌子挂在布的下沿以内
     g.save(); g.font = '44px WK'; const tw = g.measureText(cap.text).width; g.font = '26px WK'; const ww = cap.who ? g.measureText(cap.who).width : -36;   // 旁白：不挂说话人
-    const bw = tw + ww + 120, x0 = 960 - bw / 2, y0 = CLOTH[3] + 14, bh = 74;
+    const bw = tw + ww + 120, x0 = 960 - bw / 2, bh = 74, y0 = CL[3] >= 1080 ? 1080 - bh - 26 : CL[3] + 14;
     // 两根挂绳
-    g.strokeStyle = '#8a5a2a'; g.lineWidth = 3; for (const x of [x0 + 30, x0 + bw - 30]) { g.beginPath(); g.moveTo(x, CLOTH[3] + 2); g.lineTo(x, y0 + 4); g.stroke(); }
+    g.strokeStyle = '#8a5a2a'; g.lineWidth = 3; for (const x of [x0 + 30, x0 + bw - 30]) { g.beginPath(); g.moveTo(x, CL[3] + 2); g.lineTo(x, y0 + 4); g.stroke(); }
     g.fillStyle = '#5e1810'; g.fillRect(x0, y0, bw, bh);
     g.strokeStyle = '#c9963a'; g.lineWidth = 3; g.strokeRect(x0 + 6, y0 + 6, bw - 12, bh - 12);
     g.fillStyle = '#e8c27a'; g.textBaseline = 'middle'; g.textAlign = 'left';
@@ -44,25 +44,26 @@ function placard(cap) {
 }
 export function render(cv, els, o) {
   const g = cv.getContext('2d');
+  { const bg0 = els.find(e => e.t === 'bg'); const imax = !!(bg0 && bg0.imax); CL = imax ? [0, 0, 1920, 1080] : CLOTH; k = (CL[2] - CL[0]) / 1920; OX = CL[0]; OY = imax ? 0 : (CL[1] + CL[3]) / 2 - 402 * k; }
   const [trc, tr] = K.canvas(W, H); tr.fillStyle = '#fff'; tr.fillRect(0, 0, W, H);
   const lay = (fn, seed) => { const [c, gg] = K.canvas(W, H); gg.lineJoin = 'round'; gg.lineCap = 'round'; fn(gg); K.hideTexture(c, gg, seed); tr.save(); tr.globalCompositeOperation = 'multiply'; tr.drawImage(c, 0, 0); tr.restore(); };
   const bg = els.find(e => e.t === 'bg') || {}, wide = els.some(e => e.t === 'water' || e.t === 'sky');
   const dark = bg.tone === 'dark' && !wide;   // 近景爆发格才挂景片；全景靠灯（灯只打在光柱上，幕布四周暗下去）
-  const focus = els.filter(e => e.t === 'focus' || e.t === 'speed'), sfx = els.filter(e => e.t === 'sfx');
+  const focus = els.filter(e => e.t === 'focus' || e.t === 'speed' || e.t === 'rays'), sfx = els.filter(e => e.t === 'sfx');
   // 集中线的圆心 = 楔尖的平均；口子半径 = 最近的楔尖
-  const f0 = els.find(e => e.t === 'focus'); let C = [960, 400], rIn = 400;
+  const f0 = els.find(e => e.t === 'focus' || e.t === 'rays'); let C = [960, 400], rIn = 400;
   if (f0) { C = [0, 0]; f0.polys.forEach(P => { C[0] += P[0][0] / f0.polys.length; C[1] += P[0][1] / f0.polys.length; }); rIn = Math.min(...f0.polys.map(P => Math.hypot(P[0][0] - C[0], P[0][1] - C[1]))); }
   if (dark) {
     // 景片：染深的整张皮，挖星形口子 + 放射缝 + 拟声字
     lay(gg => {
-      gg.fillStyle = '#3b2414'; gg.fillRect(CLOTH[0] - 20, CLOTH[1] - 20, CLOTH[2] - CLOTH[0] + 40, CLOTH[3] - CLOTH[1] + 40);
+      gg.fillStyle = '#3b2414'; gg.fillRect(CL[0] - 20, CL[1] - 20, CL[2] - CL[0] + 40, CL[3] - CL[1] + 40);
       const r = mulberry(13), star = []; for (let i = 0; i < 44; i++) { const a = i / 44 * Math.PI * 2, rr = rIn * (i % 2 ? .78 + r() * .12 : .98 + r() * .2); star.push(X([C[0] + Math.cos(a) * rr * 1.25, C[1] + Math.sin(a) * rr])); }
       K.ink(gg, 3, path(star));   // 口沿一圈墨线（先描后剪，剪到的地方自然断开）
       K.cut(gg, path(star));
       for (const e of focus) e.polys.forEach(P => K.cut(gg, path(P.map(X))));
       for (const e of sfx) { const done = glyphPath(gg, e); gg.globalCompositeOperation = 'destination-out'; gg.fillStyle = '#000'; gg.fillText(e.text, 0, 0); gg.globalCompositeOperation = 'source-over'; done(); }
       // 画格上下两条（宽银幕之外）补回整皮，口子不漏到格外
-      gg.fillStyle = '#3b2414'; gg.fillRect(CLOTH[0] - 20, CLOTH[1] - 20, CLOTH[2] - CLOTH[0] + 40, OY - CLOTH[1] + 20); gg.fillRect(CLOTH[0] - 20, OY + 804 * k, CLOTH[2] - CLOTH[0] + 40, CLOTH[3] - OY - 804 * k + 20);
+      gg.fillStyle = '#3b2414'; gg.fillRect(CL[0] - 20, CL[1] - 20, CL[2] - CL[0] + 40, OY - CL[1] + 20); gg.fillRect(CL[0] - 20, OY + 804 * k, CL[2] - CL[0] + 40, CL[3] - OY - 804 * k + 20);
       // 字里的皮筋：斜向细条（同色皮），只留在字形范围内
       for (const e of sfx) {
         const [c2, g2] = K.canvas(W, H), done = glyphPath(g2, e); g2.fillStyle = '#000'; g2.fillText(e.text, 0, 0); done();
@@ -92,7 +93,7 @@ export function render(cv, els, o) {
     if (e.t === 'debris') lay(gg => e.items.forEach((d, i) => { const P = d.poly.map(X); K.fill(gg, i % 2 ? '#c98a26' : '#b8211a', path(P)); K.ink(gg, 1.4, path(P)); }), 64);
     // 地面条：草原（染赭的皮条，刻细缝当草，同 K1）
     if (e.t === 'ground') lay(gg => {
-      const y0 = X([0, e.hz])[1], [x0, , x1, y1] = CLOTH, top = []; for (let x = x0 - 10; x <= x1 + 10; x += 14) top.push([x, y0 + 6 * Math.sin(x / 210) + 3 * Math.sin(x / 63)]);
+      const y0 = X([0, e.hz])[1], [x0, , x1, y1] = CL, top = []; for (let x = x0 - 10; x <= x1 + 10; x += 14) top.push([x, y0 + 6 * Math.sin(x / 210) + 3 * Math.sin(x / 63)]);
       const P = top.concat([[x1 + 10, y1 + 10], [x0 - 10, y1 + 10]]);
       K.fill(gg, '#a8742e', path(P)); K.within(gg, path(P), () => { const r = mulberry(5); for (let i = 0; i < 260; i++) { const x = x0 + r() * (x1 - x0), y = y0 + 14 + r() * (y1 - y0 - 14), h = 7 + r() * 9; K.cutTaper(gg, [[x, y], [x + (r() - .5) * 5, y - h]], 2.2); } K.strata(gg, x0, x1, x => y0 + 46 + 4 * Math.sin(x / 90), 2, 22, 3); });
       K.ink(gg, 2.2, q => { q.moveTo(top[0][0], top[0][1]); for (const p of top) q.lineTo(p[0], p[1]); });
@@ -118,7 +119,7 @@ export function render(cv, els, o) {
     }, 79);
     // 水面：一条靛青水纹皮，横缝 = 平静的水纹，涟漪剪成扁圈缝
     if (e.t === 'water') lay(gg => {
-      const top = X([0, e.hz])[1], P = [[CLOTH[0] - 10, top], [CLOTH[2] + 10, top], [CLOTH[2] + 10, CLOTH[3] + 10], [CLOTH[0] - 10, CLOTH[3] + 10]];
+      const top = X([0, e.hz])[1], P = [[CL[0] - 10, top], [CL[2] + 10, top], [CL[2] + 10, CL[3] + 10], [CL[0] - 10, CL[3] + 10]];
       K.fill(gg, '#28507e', path(P));
       K.within(gg, path(P), () => { e.lines.forEach(Ln => { const d = (Ln[0][1] - e.hz) / (804 - e.hz); K.cutLine(gg, 1.2 + d * 2.4, q => { const a = X(Ln[0]), b = X(Ln[1]); q.moveTo(a[0], a[1]); q.lineTo(b[0], b[1]); }); }); e.ripples.forEach(Ln => K.cutLine(gg, 1.6, q => { Ln.map(X).forEach((p, i) => i ? q.lineTo(p[0], p[1]) : q.moveTo(p[0], p[1])); })); });
       K.ink(gg, 2.2, q => { q.moveTo(P[0][0], P[0][1]); q.lineTo(P[1][0], P[1][1]); });
@@ -127,7 +128,10 @@ export function render(cv, els, o) {
     // 光柱：一长条染湛蓝的薄皮，柱里剪出一道道细长缝（灯从缝里直透 = 往上冲的光）
     if (e.t === 'beam') lay(gg => { const P = e.poly.map(X); K.fill(gg, '#3f86d0', path(P)); e.streaks.forEach(Q => K.cut(gg, path(Q.map(X)))); K.ink(gg, 2.4, path(P)); }, 73);
     if (e.t === 'splash') lay(gg => { e.cols.forEach(Q => { const P = Q.map(X); K.fill(gg, '#efe2c0', path(P)); K.ink(gg, 1.4, path(P)); }); e.drops.forEach(([x, y, r]) => { const [a, b] = X([x, y]); K.fill(gg, '#efe2c0', q => q.ellipse(a, b, r * k * .7, r * k, 0, 0, 7)); }); }, 74);
-    if (e.t === 'fig' && e.lit) lay(gg => { for (const op of e.ops) if (op.poly) K.fill(gg, op.role === 'hairW' ? '#f2e8d2' : '#2a1a10', path(op.poly.map(X))); }, 75);   // 光里的人：深色皮剪影，只有白发是浅皮
+    if (e.t === 'fig' && e.glow) {   // 他自己成了灯：整个人从皮上剪空（透射率回到全白），只留一圈细墨边
+      tr.save(); tr.fillStyle = '#fff'; for (const op of e.ops) if (op.poly) { tr.beginPath(); path(op.poly.map(X))(tr); tr.fill(); } tr.restore();
+      lay(gg => { for (const op of e.ops) if (op.poly && /^(robe|hair)$/.test(op.role)) K.ink(gg, 2, path(op.poly.map(X)), 'rgba(60,40,20,.55)'); }, 84);
+    } else if (e.t === 'fig' && e.lit) lay(gg => { for (const op of e.ops) if (op.poly) K.fill(gg, op.role === 'hairW' ? '#f2e8d2' : '#2a1a10', path(op.poly.map(X))); }, 75);   // 光里的人：深色皮剪影，只有白发是浅皮
     else if (e.t === 'fig') { tr.save(); tr.beginPath(); tr.rect(OX, OY, 1920 * k, 804 * k); tr.clip(); puppetFigure(tr, xfOps(e.ops), { scale: e.s * 2 * k, seed: 5 }); tr.restore(); }   // 人物只在画格里（下沿被景片压住）
   } };
   // 分格：几块小幕并排（各自一块布），格缝是不透光的木条
@@ -140,12 +144,15 @@ export function render(cv, els, o) {
   // 灯：一盏打在集中线圆心（暴怒的镜头灯色发红）
   const Cs = X(C), red = bg.accent === 'red';
   const key = o.id + (els.find(e => e.t === 'cap') || {}).text;
-  if (R.fkey !== key) { const cap = els.find(e => e.t === 'cap'); R.front = front(W, H, cap ? placard(cap) : null); R.fkey = key; }
+  if (R.fkey !== key) { const cap = els.find(e => e.t === 'cap');
+    if (CL[3] >= 1080) { const [c, gg] = K.canvas(W, H); if (cap) placard(cap)(gg); R.front = c; }   // IMAX：镜头贴到布上，看不见台框和观众，只剩说书牌
+    else R.front = front(W, H, cap ? placard(cap) : null);
+    R.fkey = key; }
   const glc = R.glc || (R.glc = Object.assign(document.createElement('canvas'), { width: W, height: H }));
   const GL = R.GL || (R.GL = makeGL(glc));
-  const beam = els.find(e => e.t === 'beam'), Bc = beam ? X(beam.poly[Math.floor(beam.poly.length / 4)]) : null;
-  const lamps = Bc ? [[Bc[0], Bc[1], 1.1, 1], [Cs[0] + 500, Cs[1] + 200, .45, .6]] : [[Cs[0], Cs[1], .8, .6], [Cs[0] - 600, Cs[1] + 80, .55, 1], [Cs[0] + 600, Cs[1] + 80, .55, 1]];
-  GL.render(trc, R.front, { lamps, expo: 1.0, amb: wide ? .14 : .3, time: 1.3, bloom: .3, vign: .45, rect: CLOTH, sigB: 560,
+  const beam = els.find(e => e.t === 'beam'), Bc = beam ? X(beam.poly[Math.floor(beam.poly.length / 4)]) : null, glow = els.some(e => e.glow);
+  const lamps = glow ? [[Cs[0], Cs[1], 2.2, 2.4], [Cs[0], Cs[1] + 200, 1, 1]] : Bc ? [[Bc[0], Bc[1], 1.1, 1], [Cs[0] + 500, Cs[1] + 200, .45, .6]] : [[Cs[0], Cs[1], .8, .6], [Cs[0] - 600, Cs[1] + 80, .55, 1], [Cs[0] + 600, Cs[1] + 80, .55, 1]];
+  GL.render(trc, R.front, { lamps, expo: 1.0, amb: wide ? .14 : .3, time: 1.3, bloom: .3, vign: .45, rect: CL, sigB: 560,
     lcol: red ? [1, .52, .32] : [1, .77, .46], hotcol: red ? [1, .62, .4] : [1, .9, .62] });
   g.drawImage(glc, 0, 0);
 }

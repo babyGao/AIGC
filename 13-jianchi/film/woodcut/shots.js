@@ -5,7 +5,6 @@ import { carveFigure } from './figure.js';
 import { PLATE, plateEdge } from './k1.js';
 import { mulberry } from '/core/lib.js';
 const R = {};
-const k = PLATE[2] / 1920;
 const wedgeStroke = (P, i, kind = 'u') => { const tip = P[0], m = [(P[1][0] + P[2][0]) / 2, (P[1][1] + P[2][1]) / 2], w = Math.hypot(P[1][0] - P[2][0], P[1][1] - P[2][1]), pts = [], ws = []; for (let j = 0; j <= 12; j++) { const u = j / 12; pts.push([m[0] + (tip[0] - m[0]) * u, m[1] + (tip[1] - m[1]) * u]); ws.push(Math.max(.6, w * (1 - u) ** 1.1)); } return WC.mkStroke(pts, ws, { kind, seed: i * 13 + 1, chip: .18 }); };
 // 两点之间一刀：点要够密，刀的宽度按点给（两点的刀刻不出来）
 const knife = (pts, ws, seed, kind = 'v') => { const out = [], wo = []; for (let i = 0; i < pts.length - 1; i++) for (let j = 0; j < 8; j++) { const u = j / 8; out.push([pts[i][0] + (pts[i + 1][0] - pts[i][0]) * u, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * u]); wo.push(ws[i] + (ws[i + 1] - ws[i]) * u); } out.push(pts[pts.length - 1]); wo.push(ws[ws.length - 1]); return WC.mkStroke(out, wo, { kind, seed }); };
@@ -36,11 +35,13 @@ export function render(cv, els, o) {
   const g = cv.getContext('2d');
   const [mask, m] = WC.canvas(1920, 1080), [plate, pc] = WC.canvas(1920, 1080), PR = R.P || (R.P = WC.makePrinter(1920, 1080));
   m.fillStyle = '#fff'; m.fillRect(0, 0, 1920, 1080);
-  const edge = plateEdge(); const edgePath = () => { m.beginPath(); edge.forEach((p, i) => i ? m.lineTo(p[0], p[1]) : m.moveTo(p[0], p[1])); m.closePath(); };
-  const bg = els.find(e => e.t === 'bg');
+  const bg = els.find(e => e.t === 'bg'), imax = !!(bg && bg.imax);
+  // IMAX：版面撑满整张纸（局部坐标变成 1920×1080），字幕刻在版面底上
+  const PL = imax ? [24, 14, 1872, 1053] : PLATE, kk = PL[2] / 1920;
+  const edge = plateEdge(3, PL); const edgePath = () => { m.beginPath(); edge.forEach((p, i) => i ? m.lineTo(p[0], p[1]) : m.moveTo(p[0], p[1])); m.closePath(); };
   m.fillStyle = bg && bg.tone === 'light' ? '#fff' : '#000'; edgePath(); m.fill();
   m.save(); edgePath(); m.clip();
-  m.setTransform(k, 0, 0, k, PLATE[0], PLATE[1]); pc.save(); pc.beginPath(); edge.forEach((p, i) => i ? pc.lineTo(p[0], p[1]) : pc.moveTo(p[0], p[1])); pc.closePath(); pc.clip(); pc.setTransform(k, 0, 0, k, PLATE[0], PLATE[1]);   // 色版也只在版面里
+  m.setTransform(kk, 0, 0, kk, PL[0], PL[1]); pc.save(); pc.beginPath(); edge.forEach((p, i) => i ? pc.lineTo(p[0], p[1]) : pc.moveTo(p[0], p[1])); pc.closePath(); pc.clip(); pc.setTransform(kk, 0, 0, kk, PL[0], PL[1]);   // 色版也只在版面里
   const poly = (c, P) => { c.beginPath(); P.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); };
   const cutLine = (L, w, seed, kind = 'v') => WC.drawStrokes(m, WC.cutAlong(L, { w, kind, seg: [60, 220], gap: [4, 16], seed }), { color: '#fff' });
   let usedPlate = false, tone = bg && bg.tone === 'light' ? 'light' : 'dark';   // tone：当前格的底色（白格里的效果线刻成黑）
@@ -94,7 +95,7 @@ export function render(cv, els, o) {
     // 霸气：黑焰舌在白格里留黑（描一圈白边跟人分开），黑闪电是粗黑折线
     if (e.t === 'aura') { const fg = tone === 'light' ? '#000' : '#fff';
       e.polys.forEach(Pp => { m.fillStyle = fg; poly(m, Pp); m.fill(); });
-      e.bolts.forEach(Ln => { m.lineJoin = 'miter'; m.strokeStyle = fg; m.lineWidth = 9; m.beginPath(); Ln.forEach((p, k) => k ? m.lineTo(p[0], p[1]) : m.moveTo(p[0], p[1])); m.stroke(); }); }
+      e.bolts.forEach(Ln => { m.lineJoin = 'miter'; m.beginPath(); Ln.forEach((p, k) => k ? m.lineTo(p[0], p[1]) : m.moveTo(p[0], p[1])); m.strokeStyle = fg === '#000' ? '#fff' : '#000'; m.lineWidth = 22; m.stroke(); m.strokeStyle = fg; m.lineWidth = 11; m.stroke(); }); }   // 闪电描一圈反色边，落在明暗相间的光芒上也看得清
     // 漫画符号：跟格底相反的颜色（黑格里刻白、白格里留黑），描一圈反色边
     if (e.t === 'marks') { const fg = tone === 'light' ? '#000' : '#fff', bgc = tone === 'light' ? '#fff' : '#000';
       e.polys.forEach(P => { m.fillStyle = '#fff'; m.strokeStyle = '#000'; m.lineWidth = 6.5; poly(m, P); m.fill(); m.stroke(); });   // 泪、汗：白水珠描黑边（漫画的画法）
@@ -110,6 +111,7 @@ export function render(cv, els, o) {
       usedPlate = true;
     }
     if (e.t === 'splash') { e.cols.forEach(P => { m.fillStyle = '#fff'; poly(m, P); m.fill(); m.strokeStyle = '#000'; m.lineWidth = 3; m.stroke(); }); for (const [x, y, r] of e.drops) { m.fillStyle = '#fff'; m.beginPath(); m.ellipse(x, y, r * .7, r, 0, 0, 7); m.fill(); } }
+    if (e.t === 'rays') WC.drawStrokes(m, e.polys.map((P, i) => wedgeStroke(P, i, 'u')), { color: '#fff' });   // 光芒：U 刀放射刻白
     if (e.t === 'focus' || e.t === 'speed') WC.drawStrokes(m, e.polys.map((P, i) => wedgeStroke(P, i)), { color: e.on === 'pool' || tone === 'light' ? '#000' : '#fff' });
     // 浅水：刻成白（反着天光），水面横向细长留黑，涟漪是留黑的扁圈，往前涨的水线是一道粗黑边 + 白色浪沫点
     if (e.t === 'pool') {
@@ -124,7 +126,10 @@ export function render(cv, els, o) {
     if (e.t === 'rings') e.lines.forEach((L, i) => WC.drawStrokes(m, WC.cutAlong(L, { w: e.w, kind: 'u', seg: [80, 260], gap: [6, 22], seed: 60 + i }), { color: '#fff' }));
     if (e.t === 'debris') for (const d of e.items) { m.fillStyle = '#000'; m.beginPath(); d.poly.forEach((p, i) => i ? m.lineTo(p[0], p[1]) : m.moveTo(p[0], p[1])); m.closePath(); m.lineWidth = 6; m.strokeStyle = '#000'; m.stroke(); m.fillStyle = '#fff'; m.fill(); WC.drawStrokes(m, [WC.mkStroke(d.trail, [d.s * .5, .5], { kind: 'v', seed: 3 })], { color: '#fff' }); }
     if (e.t === 'fig') {
-      if (e.lit) {   // 光里的人：逆光剪影留黑，只有白发刻白
+      if (e.glow) {   // 人自己在发光：整个人刻空成白，只留一圈细黑边和几道最要紧的线（眉眼、袖口）
+        for (const op of e.ops) if (op.poly) { m.fillStyle = '#fff'; poly(m, op.poly); m.fill(); }
+        m.save(); m.strokeStyle = '#000'; m.lineWidth = 3; m.lineJoin = 'round'; const out = e.ops.filter(op => op.poly && /^(robe|hair|skin)$/.test(op.role)); for (const op of out) { poly(m, op.poly); m.stroke(); } m.restore();
+      } else if (e.lit) {   // 光里的人：逆光剪影留黑，只有白发刻白
         carveFigure(m, e.ops, { silhouette: true });
         for (const op of e.ops) if (op.role === 'hairW') { m.fillStyle = '#fff'; poly(m, op.poly); m.fill(); pc.save(); pc.globalCompositeOperation = 'destination-out'; poly(pc, op.poly); pc.fill(); pc.restore(); }   // 白发是纸白，不压色版
       } else if (e.s < .12) {   // 远处的小人：黑剪影描一圈白边（白衣刻成白团会看成钟）
@@ -146,7 +151,10 @@ export function render(cv, els, o) {
   m.strokeStyle = '#000'; m.lineWidth = 10; m.lineJoin = 'round'; edgePath(); m.stroke();
   // 字幕：版面下方纸边上的铅字（黑）
   const cap = els.find(e => e.t === 'cap');
-  if (cap) {
+  if (cap && imax) {   // IMAX：没有纸边了，字刻在版上（白字黑边）
+    const y = PL[1] + PL[3] - 64; m.textBaseline = 'alphabetic'; m.textAlign = 'center'; m.lineJoin = 'round';
+    m.font = '52px WK'; m.strokeStyle = '#000'; m.lineWidth = 12; m.strokeText(cap.text, 960, y); m.fillStyle = '#fff'; m.fillText(cap.text, 960, y);
+  } else if (cap) {
     const y = PLATE[1] + PLATE[3] + 92;
     m.fillStyle = '#000'; m.textBaseline = 'alphabetic'; m.textAlign = 'center';
     m.font = '46px WK'; m.fillText(cap.text, 960, y);

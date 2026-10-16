@@ -5,7 +5,7 @@ import { makeComp, layerSet } from './comp.js';
 import { inkFigure } from './figure.js';
 import { mulberry } from '/core/lib.js';
 const R = {};
-const Y0 = 138;
+let Y0 = 138, FH = 804;   // 画心：上下裱绫之间；IMAX 镜头撑满（Y0 = 0，FH = 1080）
 function sfx(L, e) {
   // 字边先擦出一圈纸白（落在浓墨上也认得出；书家在画上题字也是先留出地方）
   for (const c of [L.cw, L.cd]) { c.save(); c.translate(e.x, e.y + Y0); c.rotate(e.rot || 0); c.font = `${e.size}px MSZ`; c.textBaseline = 'alphabetic'; c.globalCompositeOperation = 'destination-out'; c.lineJoin = 'round'; c.lineWidth = e.size * .09; c.strokeText(e.text, 0, 0); c.restore(); }
@@ -15,9 +15,10 @@ function sfx(L, e) {
 }
 export function render(cv, els, o) {
   const g = cv.getContext('2d');
+  { const bg0 = els.find(e => e.t === 'bg'); const imax = !!(bg0 && bg0.imax); Y0 = imax ? 0 : 138; FH = imax ? 1080 : 804; }   // IMAX：裱绫撤掉，画撑满
   const L = R.L || (R.L = layerSet(1920, 1080)); L.clear(); I.reseed(17);
   // 只在画心里落墨（裱绫上不许有墨）
-  for (const c of [L.cw, L.cd, L.cc]) { c.save(); c.setTransform(1, 0, 0, 1, 0, Y0); c.beginPath(); c.rect(0, 0, 1920, 804); c.clip(); }
+  for (const c of [L.cw, L.cd, L.cc]) { c.save(); c.setTransform(1, 0, 0, 1, 0, Y0); c.beginPath(); c.rect(0, 0, 1920, FH); c.clip(); }
   const bg = els.find(e => e.t === 'bg');
   if (bg && bg.tone === 'dark') {   // 黑底爆发格的水墨写法：四周一圈淡墨烘染（干层，不晕成色块），浓墨大笔从画外扫进来
     const c = L.cd, gr = c.createRadialGradient(960, 400, 300, 960, 400, 1150); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(.5, 'rgba(0,0,0,.12)'); gr.addColorStop(1, 'rgba(0,0,0,.6)'); c.fillStyle = gr; c.fillRect(-20, -20, 1960, 844);
@@ -26,8 +27,8 @@ export function render(cv, els, o) {
   // 留白：题跋处在画人物和大字之前擦淡（画家落墨时就给题字留了地方），边缘用模糊蒙版，不留硬边
   const keepClear = () => {
     if (!cap) return; const n = [...cap.text].length, h = CY + n * CS * 1.05 + 40;
-    const M = R.M || (R.M = Object.assign(document.createElement('canvas'), { width: 1920, height: 804 })), m = M.getContext('2d');
-    m.clearRect(0, 0, 1920, 804); m.filter = 'blur(28px)'; m.fillStyle = '#000'; m.fillRect(CX - 95, -60, 170, h + 60); m.filter = 'none';
+    const M = R.M || (R.M = Object.assign(document.createElement('canvas'), { width: 1920, height: 1080 })), m = M.getContext('2d');
+    m.clearRect(0, 0, 1920, 1080); m.filter = 'blur(28px)'; m.fillStyle = '#000'; m.fillRect(CX - 95, -60, 170, h + 60); m.filter = 'none';
     for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.drawImage(M, 0, 0); c.restore(); }
   };
   let cleared = false;
@@ -42,25 +43,25 @@ export function render(cv, els, o) {
     // 水面：地平线一道淡墨，下面几排横擦（平静），涟漪是淡墨圈，光柱的倒影在水里留白
     if (e.t === 'water') {
       I.draw(L.ink, I.mk([[-20, e.hz], [700, e.hz + 1], [1300, e.hz - 1], [1940, e.hz]], { w: 2.4, tone: I.TONE.dan, dry: .5, rough: .3, seed: 401 }));
-      e.lines.forEach((Ln, i) => { const d = (Ln[0][1] - e.hz) / (804 - e.hz); I.draw(L.ink, I.mk([Ln[0], [(Ln[0][0] + Ln[1][0]) / 2, Ln[0][1] + .5], Ln[1]], { w: 1 + d * 3.5, tone: I.TONE.dan + d * .15, dry: .7, prof: 'tip', seed: 410 + i })); });
+      e.lines.forEach((Ln, i) => { const d = (Ln[0][1] - e.hz) / (FH - e.hz); I.draw(L.ink, I.mk([Ln[0], [(Ln[0][0] + Ln[1][0]) / 2, Ln[0][1] + .5], Ln[1]], { w: 1 + d * 3.5, tone: I.TONE.dan + d * .15, dry: .7, prof: 'tip', seed: 410 + i })); });
       e.ripples.forEach((Ln, i) => I.draw(L.ink, I.mk(Ln.filter((_, j) => j % 3 === 0), { w: 1.6, tone: I.TONE.dan, dry: .55, rough: .3, seed: 470 + i })));
     }
     // 草原：淡墨点，远密近疏、远小近大，夹几簇短草（同 K1）
     if (e.t === 'ground') {
       const rg = mulberry(7);
-      for (let i = 0; i < 560; i++) { const u = rg() ** 1.8, y = e.hz + 8 + (804 - e.hz - 8) * u, x = rg() * 1920, r = .8 + u * 5.5; I.blot(L.cd, x, y, r, .18 + rg() * .22, rg() * 3, .45, i); }
-      for (let i = 0; i < 80; i++) { const u = .3 + .7 * rg(), y = e.hz + (804 - e.hz) * u, x = rg() * 1920, h = 6 + u * 26; for (let j = -1; j <= 1; j++) I.draw(L.ink, I.mk([[x + j * h * .2, y], [x + j * h * .35 + 2, y - h]], { w: 1 + u * 2.4, tone: I.TONE.dan, dry: .45, prof: 'tip', seed: 600 + i * 7 + j })); }
+      for (let i = 0; i < 560; i++) { const u = rg() ** 1.8, y = e.hz + 8 + (FH - e.hz - 8) * u, x = rg() * 1920, r = .8 + u * 5.5; I.blot(L.cd, x, y, r, .18 + rg() * .22, rg() * 3, .45, i); }
+      for (let i = 0; i < 80; i++) { const u = .3 + .7 * rg(), y = e.hz + (FH - e.hz) * u, x = rg() * 1920, h = 6 + u * 26; for (let j = -1; j <= 1; j++) I.draw(L.ink, I.mk([[x + j * h * .2, y], [x + j * h * .35 + 2, y - h]], { w: 1 + u * 2.4, tone: I.TONE.dan, dry: .45, prof: 'tip', seed: 600 + i * 7 + j })); }
       I.draw(L.ink, I.mk([[-20, e.hz], [700, e.hz + 1], [1300, e.hz - 1], [1940, e.hz]], { w: 3, tone: I.TONE.dan, dry: .5, rough: .3, seed: 599 }));
     }
     // 河：纸白（擦干净），两岸干笔；河头几笔极淡的横擦（平静），往下游是平行浪线（汹涌）
     if (e.t === 'river') {
       const R0 = e.river, pp = c => { c.beginPath(); R0.fill.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); };
       for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; pp(c); c.fill(); c.restore(); }
-      R0.banks.forEach((b, i) => { for (let s0 = 0; s0 < b.length - 4; s0 += 26) { const seg = b.slice(s0, s0 + 30), d = seg[0][1] / 804; I.draw(L.ink, I.mk(seg, { w: 1.4 + d * 6, tone: I.TONE.dan + d * .2, dry: .55, rough: .3, seed: 620 + i * 40 + s0 })); } });
+      R0.banks.forEach((b, i) => { for (let s0 = 0; s0 < b.length - 4; s0 += 26) { const seg = b.slice(s0, s0 + 30), d = seg[0][1] / FH; I.draw(L.ink, I.mk(seg, { w: 1.4 + d * 6, tone: I.TONE.dan + d * .2, dry: .55, rough: .3, seed: 620 + i * 40 + s0 })); } });
       for (const c of [L.cw, L.cd]) { c.save(); pp(c); c.clip(); }
-      const hy = Math.min(...R0.fill.map(p => p[1])), mid = hy + (804 - hy) * .4, rw = mulberry(9);
-      for (let i = 0; i < 40; i++) { const y = hy + 6 + (mid - hy) * rw() ** 1.3, d = y / 804, x = 900 + rw() * 500, l = 30 + d * 100; I.draw(L.ink, I.mk([[x, y], [x + l * .5, y + (rw() - .5) * 2], [x + l, y]], { w: .8 + d * 2, tone: I.TONE.qing, dry: .75, prof: 'tip', seed: 650 + i })); }
-      for (let row = 0; row < 8; row++) { const y = mid + 20 + row * row * 4 + row * 14, d = y / 804, A = 26 + d * 60, H = 6 + d * 22; for (let x = 900 + (row % 2) * A * .5; x < 1700; x += A * 1.05) { const pts = []; for (let j = 0; j <= 8; j++) { const u = j / 8; pts.push([x + A * u, y - Math.sin(u * Math.PI) * H + (u > .65 ? (u - .65) * H * 2 : 0)]); } I.draw(L.ink, I.mk(pts, { w: 1.4 + d * 3.4, tone: I.TONE.zhong, dry: .3, rough: .2, prof: 'brush', seed: 700 + row * 50 + x })); } }
+      const hy = Math.min(...R0.fill.map(p => p[1])), mid = hy + (FH - hy) * .4, rw = mulberry(9);
+      for (let i = 0; i < 40; i++) { const y = hy + 6 + (mid - hy) * rw() ** 1.3, d = y / FH, x = 900 + rw() * 500, l = 30 + d * 100; I.draw(L.ink, I.mk([[x, y], [x + l * .5, y + (rw() - .5) * 2], [x + l, y]], { w: .8 + d * 2, tone: I.TONE.qing, dry: .75, prof: 'tip', seed: 650 + i })); }
+      for (let row = 0; row < 8; row++) { const y = mid + 20 + row * row * 4 + row * 14, d = y / FH, A = 26 + d * 60, H = 6 + d * 22; for (let x = 900 + (row % 2) * A * .5; x < 1700; x += A * 1.05) { const pts = []; for (let j = 0; j <= 8; j++) { const u = j / 8; pts.push([x + A * u, y - Math.sin(u * Math.PI) * H + (u > .65 ? (u - .65) * H * 2 : 0)]); } I.draw(L.ink, I.mk(pts, { w: 1.4 + d * 3.4, tone: I.TONE.zhong, dry: .3, rough: .2, prof: 'brush', seed: 700 + row * 50 + x })); } }
       for (const c of [L.cw, L.cd]) c.restore();
     }
     // 天意的巨眼：上眼睑一道焦墨大笔，下眼睑淡墨；眼白留纸；虹膜一团浓墨，四周放射的干笔；瞳孔焦墨点，留一点高光
@@ -83,14 +84,19 @@ export function render(cv, els, o) {
       const pp = c => { c.beginPath(); e.poly.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); };
       for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; pp(c); c.fill(); c.restore(); }
       for (const c of [L.cw, L.cd]) { c.save(); pp(c); c.clip(); }
-      e.lines.forEach((Ln, i) => { const d = Ln[0][1] / 804; I.draw(L.ink, I.mk([Ln[0], [(Ln[0][0] + Ln[1][0]) / 2, Ln[0][1] + .5], Ln[1]], { w: 1 + d * 3, tone: I.TONE.qing + d * .12, dry: .7, prof: 'tip', seed: 820 + i })); });
+      e.lines.forEach((Ln, i) => { const d = Ln[0][1] / FH; I.draw(L.ink, I.mk([Ln[0], [(Ln[0][0] + Ln[1][0]) / 2, Ln[0][1] + .5], Ln[1]], { w: 1 + d * 3, tone: I.TONE.qing + d * .12, dry: .7, prof: 'tip', seed: 820 + i })); });
       e.ripples.forEach((Ln, i) => I.draw(L.ink, I.mk(Ln.filter((_, j) => j % 3 === 0), { w: 1.8, tone: I.TONE.dan, dry: .5, rough: .3, seed: 850 + i })));
       for (const c of [L.cw, L.cd]) c.restore();
       I.draw(L.ink, I.mk(e.front, { w: 7, tone: I.TONE.nong, dry: .55, rough: .35, prof: 'brush', seed: 870 }));
       const r = mulberry(13); for (let i = 0; i < 18; i++) { const k0 = Math.floor(r() * (e.front.length - 1)), p = e.front[k0]; I.blot(L.cw, p[0] - 8 - r() * 20, p[1] + (r() - .5) * 10, 1.5 + r() * 3, .7, 0, 1, i); }
     }
+    // 光芒：先压一层淡墨，再把一道道放射的光擦回纸白（光就是留白）
+    if (e.t === 'rays') {
+      I.mass(L.cd, [[-20, -20], [1940, -20], [1940, FH + 20], [-20, FH + 20]], .38, 0, 1);
+      for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.filter = 'blur(2px)'; c.fillStyle = '#000'; e.polys.forEach(P => { c.beginPath(); P.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); c.fill(); }); c.filter = 'none'; c.restore(); }
+    }
     // 霸气：黑焰是一团团焦墨（湿层，边缘晕开），黑闪电是焦墨干笔折线
-    if (e.t === 'aura') { e.polys.forEach((Pp, i) => I.mass(L.cw, Pp, .92, 2, i)); e.bolts.forEach((Ln, i) => I.draw(L.ink, I.mk(Ln, { w: 9, tone: I.TONE.jiao, dry: .45, rough: .3, per: 2, seed: 960 + i }))); }
+    if (e.t === 'aura') { e.polys.forEach((Pp, i) => I.mass(L.cw, Pp, .92, 2, i)); e.bolts.forEach((Ln, i) => { for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.lineWidth = 20; c.lineJoin = 'miter'; c.beginPath(); Ln.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.stroke(); c.restore(); } I.draw(L.ink, I.mk(Ln, { w: 10, tone: I.TONE.jiao, dry: .4, rough: .3, per: 2, seed: 960 + i })); }); }   // 闪电两边先擦出纸白再写
     // 漫画符号：泪、汗 = 留白的水珠勾一圈浓墨细笔；青筋、抖动线 = 焦墨短笔
     if (e.t === 'marks') {
       e.polys.forEach((Pp, i) => { for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.beginPath(); Pp.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); c.fill(); c.restore(); } I.draw(L.ink, I.mk(Pp.concat([Pp[0]]), { w: 3.8, tone: I.TONE.jiao, dry: .15, rough: .1, seed: 930 + i })); });
@@ -107,7 +113,10 @@ export function render(cv, els, o) {
       const n = e.poly.length / 2; for (const side of [e.poly.slice(0, n), e.poly.slice(n)]) I.draw(L.ink, I.mk(side, { w: 7, tone: .7, dry: .6, rough: .35, color: [52, 96, 132], seed: 520 + side.length }));
     }
     if (e.t === 'splash') { const r = mulberry(9); e.cols.forEach((P, i) => I.draw(L.ink, I.mk([P[0], P[2]], { w: 5 + r() * 4, tone: I.TONE.zhong, dry: .7, prof: 'tip', seed: 540 + i }))); for (const [x, y, rr] of e.drops) I.blot(L.cw, x, y, rr * .6, .7, r() * 6, .8, x); }
-    if (e.t === 'fig' && e.lit) {   // 光里的人：一团浓墨剪影，只有白发留纸白
+    if (e.t === 'fig' && e.glow) {   // 人自己在发光：整个人擦回纸白，只剩外轮廓几笔极淡的墨
+      for (const op of e.ops) if (op.poly) for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.beginPath(); op.poly.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); c.lineWidth = 6; c.fill(); c.stroke(); c.restore(); }
+      e.ops.filter(op => op.poly && /^(robe|hair)$/.test(op.role)).forEach((op, i) => I.draw(L.ink, I.mk(op.poly.filter((_, j) => j % 4 === 0), { w: 2.2, tone: I.TONE.qing, dry: .5, rough: .3, seed: 980 + i })));
+    } else if (e.t === 'fig' && e.lit) {   // 光里的人：一团浓墨剪影，只有白发留纸白
       for (const op of e.ops) if (op.poly) { if (op.role === 'hairW') { for (const c of [L.cw, L.cd]) { c.save(); c.globalCompositeOperation = 'destination-out'; c.beginPath(); op.poly.forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); c.fill(); c.restore(); } } else I.mass(L.cw, op.poly, .9, 1, 3); }
     } else if (e.t === 'fig') inkFigure(L, e.ops, { key: o.id + e.key, scale: Math.max(.25, e.s * 1.4) });
     if (e.t === 'sfx') sfx(L, { ...e, y: e.y - Y0 });
@@ -132,7 +141,7 @@ export function render(cv, els, o) {
     if (cap.who) cc.font = '22px MSZ', [...cap.who].forEach((ch, i) => cc.fillText(ch, x + (cap.side === 'left' ? 46 : -46), y + 18 + i * 24));
   }
   // 裱绫
-  cc.fillStyle = '#4a4740'; cc.fillRect(0, 0, 1920, Y0); cc.fillRect(0, Y0 + 804, 1920, 1080 - Y0 - 804);
+  cc.fillStyle = '#4a4740'; cc.fillRect(0, 0, 1920, Y0); cc.fillRect(0, Y0 + FH, 1920, 1080 - Y0 - FH);
   cc.fillStyle = '#6a665c'; cc.fillRect(0, Y0 - 6, 1920, 3); cc.fillRect(0, Y0 + 807, 1920, 3);
   const glc = R.glc || (R.glc = Object.assign(document.createElement('canvas'), { width: 1920, height: 1080 }));
   const comp = R.CP || (R.CP = makeComp(glc));

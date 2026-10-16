@@ -7,8 +7,8 @@ import { riverPath } from '../shared/scene.js';
 const R = {};
 export const PLATE = [60, 92, 1800, 753];   // x, y, w, h（2.39:1）
 const k = PLATE[2] / 1920, P = p => [PLATE[0] + p[0] * k, PLATE[1] + p[1] * k];
-export function plateEdge(seed = 3) {   // 毛糙的版边
-  const r = mulberry(seed), [x, y, w, h] = PLATE, pts = [];
+export function plateEdge(seed = 3, plate = PLATE) {   // 毛糙的版边
+  const r = mulberry(seed), [x, y, w, h] = plate, pts = [];
   const side = (ax, ay, bx, by, n) => { for (let i = 0; i < n; i++) { const u = i / n, j = (r() - .5) * 2.4; pts.push([ax + (bx - ax) * u + (ay === by ? 0 : j), ay + (by - ay) * u + (ax === bx ? 0 : j)]); } };
   side(x, y, x + w, y, 120); side(x + w, y, x + w, y + h, 60); side(x + w, y + h, x, y + h, 120); side(x, y + h, x, y, 60);
   return pts;

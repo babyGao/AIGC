@@ -16,6 +16,8 @@
 //   { t:'panel', poly, tone, paper, els }   分格：格里的元素裁进 poly；tone 格底（dark/light），paper 间谍片头的纸色
 //   { t:'marks', polys, lines }       漫画符号（泪、汗、青筋、抖动线）：polys 填色、lines 画线，颜色和所在的格底相反
 //   { t:'aura', polys, bolts }        霸气：黑焰舌（polys）+ 黑闪电（bolts 折线）
+//   { t:'rays', polys }              光芒（从一点往外放射的楔形光，各风格都画成“亮”）
+//   bg.imax = true                   IMAX：遮幅撑开，局部坐标变成 1920×1080；fig.glow = 人自己在发光
 //   { t:'pool', poly, front, lines, ripples }   一片浅水（河头近景）：poly 是水面范围，front 是正往前涨的水线
 // 各风格的 shots.js 只管怎么画每一类元素。
 import * as XH from './models/xuehu.js';
@@ -263,4 +265,31 @@ export function K9() {
     { t: 'cap', who: '方源', text: '我曾经哭泣过，渐渐的我不再流泪' },
   ];
 }
-export const SHOTS = { K2, K3, K4, K5, K5_puppet, K6, K7, K8, K9 };
+
+// K10 · 3:26 光芒骤放，不可逼视（IMAX 满画幅、仰拍）
+// 原文第265节：很快，方源的身上，从内而外，开始散发出一种洁白的光辉。……光芒骤放，不可逼视。
+// 诺兰：全片唯一一次遮幅撑开（宽银幕 → IMAX），地平线压到最低，方源顶天立地；他仍夹着马鸿运的尸体。
+// 光从他身上由内而外放出来，整个人化成光（皮影里他自己就成了灯）；四周是黑闪电（航海王的霸气黑电），
+// 天上的中洲群仙、地上的北原和长生天一方都被光逼得背过脸、抬袖挡眼。
+export function K10() {
+  const hz = 930, s = 780 / 875, feet = [900, 1000];
+  const fy = flatten(CARRY.FY_CARRY, CARRY, mkXf({ s, from: [445, 955], at: feet }));
+  const C = [feet[0] - 10, feet[1] - 520 * s];   // 光心：胸口
+  const away = (x, y, H, o, flip) => ({ ops: flattenLayers({ layers: sideStanding({ sleeve: 'raise', ...o }, placer([x, y], H, flip)) }, p => p), s: H / 875 });
+  const sky = [[230, 250, 150, false], [360, 236, 160, false], [1530, 236, 160, true], [1660, 250, 150, true]].map(([x, y, H, f], i) => away(x, y, H, { robe: 'robe', hair: 'hair', style: i % 2 ? 'crown' : 'bun', belt: 'blue' }, f));
+  const land = [[120, 1060, 300, false, { robe: 'robeD', hair: 'hairW', style: 'bun', fur: true, beard: true }], [300, 1080, 260, false, { robe: 'robeD', hair: 'hair', style: 'long' }], [1640, 1080, 280, true, { robe: 'robeD', hair: 'hair', style: 'crown' }], [1820, 1060, 300, true, { robe: 'robeD', hair: 'hair', style: 'bun' }]].map(([x, y, H, f, o]) => away(x, y, H, o, f));
+  const bolts = [[-.9, -1], [-.4, -1.3], [.5, -1.25], [1, -.8], [-1.2, .1], [1.25, .2]].flatMap(([dx, dy], i) => FX.lightning(C[0] + dx * 160, C[1] + dy * 160, C[0] + dx * 620, C[1] + dy * 520, 110 + i, 30, 2));
+  return [
+    { t: 'bg', tone: 'dark', imax: true },
+    { t: 'ground', hz },
+    { t: 'rays', polys: FX.focusLines(C[0], C[1], 60, 2400, 120, 111, 120) },
+    { t: 'cloud', at: [300, 262], w: 340 }, { t: 'cloud', at: [1600, 262], w: 340 },
+    ...sky.map((f, i) => ({ t: 'fig', ops: f.ops, key: 'k10s' + i, s: f.s })),
+    { t: 'aura', polys: [], bolts },
+    { t: 'fig', ops: fy, key: 'k10fy', s, glow: true },
+    ...land.map((f, i) => ({ t: 'fig', ops: f.ops, key: 'k10l' + i, s: f.s, lit: true })),
+    { t: 'sfx', text: '轰', x: 1300, y: 520, size: 300, rot: .1 },
+    { t: 'cap', who: '', text: '光芒骤放，不可逼视' },
+  ];
+}
+export const SHOTS = { K2, K3, K4, K5, K5_puppet, K6, K7, K8, K9, K10 };
