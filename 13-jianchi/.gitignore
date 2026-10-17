@@ -1,4 +1,8 @@
 # 第三方同人图只作内部参考，不进仓库；出处与下载地址见 refs/sources.json
 refs/*/
 !refs/onepiece/
+# 扒下的视频、关键帧、高清素材图、模型（体积大 / 第三方）
+sucai/
 node_modules
+out/
+__pycache__/

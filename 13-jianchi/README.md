@@ -1,29 +1,39 @@
 # 13 · 坚持（逆流河 · 坚持仙蛊炼成）
 
-现阶段：**收集素材，等用户确认。** 第一版四块风格板里的人物和场景是凭空建模的，已被否定；按原文和已有同人图收齐素材（`docs/素材库.md`，线上页面 https://claude.ai/artifact/NhMCrYa4UB8w1XKshnLvhK ）之后，再重做风格板。成片尚未渲染。
+现阶段：**航海王黑白漫画画风的成片第一版**（1920×1080，30 帧，216.29 秒，时间轴按用户音频）。之前的木刻 / 皮影 / 水墨 / 间谍片头 / 油画厚涂风格板和绘制代码都已删除（在 git 历史里）。
 
-| 文件 | 内容 |
+做法：人物形象 90% 取自已有同人视频（方源、雪胡老祖、毛里球、赵怜云、白凝冰、黑楼兰、群仙），逐帧重绘成《航海王》式黑白漫画（墨线 + 实黑 + 45° 网点）；剩下的 10% 是自己加的：运镜（诺兰式）、冲击帧、集中线、拟声字、音浪、黑色闪电、光爆、漫画分格。导演阐述见 `TREATMENT.md`。
+
+| 路径 | 内容 |
 |---|---|
-| `docs/素材库.md` | 场景与人物素材：原文描写、同人视频截图与插画、真实紫貂、航海王手法拆解、诺兰要点，每张图标出处与是否符合原文 |
-| `refs/sources.json` | 素材图清单（出处、视频时间点、原图地址）；第三方图片不进仓库 |
-| `refs/onepiece/` | 从用户给的航海王页裁出的九种打斗手法 |
-| `boards/风格板_woodcut.jpg` | （第一版，已否定）木刻版画 × 航海王 × 诺兰 |
-| `boards/风格板_puppet.jpg` | （第一版，已否定）皮影戏 × 航海王 × 诺兰 |
-| `boards/风格板_ink.jpg` | （第一版，已否定）中国水墨 × 航海王 × 诺兰 |
-| `boards/风格板_spy.jpg` | （第一版，已否定）60s 间谍片头 × 航海王 × 诺兰 |
-| `boards/四风格对比.jpg` | 同一组镜头（K2/K6/K7/K10）四种风格并排 |
-| `boards/frames/<风格>/` | 每块板的单帧（1280×720） |
-| `TREATMENT.md` | 导演阐述：结构、诺兰化与航海王化、四种风格的改造、关键镜头表、全片分场 |
-| `docs/字幕校对.md` | 音频转写与按原文纠错的记录 |
-| `docs/角色与场景.md` | 宏观 / 中观 / 微观场景，人物站位与外貌设定 |
-| `data/cues.json` · `data/字幕草稿.srt` | 68 条字幕时间轴（音频为准） |
-| `film/` | 绘制源码：`shared/`（角色几何、时间轴）+ 四种风格各一个文件夹 |
+| `assets/原文.txt` | 用户给的文案（不改） |
+| `assets/audio/narration.m4s` | 用户给的配音成品（只用来对时间；正式配音用户自己做） |
+| `assets/ref/onepiece_*.jpg` | 用户给的航海王画风参考页 |
+| `assets/ref/fangyuan.webp` | 用户给的方源参考图 |
+| `assets/fonts/` | 拟声字（马善政）、字幕（霞鹜文楷），均 OFL |
+| `data/cues.json` · `data/字幕草稿.srt` | 68 条字幕时间轴（以音频为准） |
+| `docs/素材库.md` · `refs/sources.json` | 检索到的素材图与出处 |
+| `refs/` | 检索到的素材图（第三方，不进仓库；`refs/onepiece/` 除外） |
+| `sucai/videos/` | 扒下来的五部同人视频（不进仓库） |
+| `sucai/keyframes/` | 从视频里截的关键帧（不进仓库） |
+| `sucai/refs_hi/` | 素材图高清版（不进仓库） |
+| `sucai/shots/` | 视频镜头切分索引页（`tools/shot_index.py` 生成，不进仓库） |
+| `sucai/models/` | 人物抠像模型 u2net_human_seg / isnetis（不进仓库） |
+| `film/shots.py` | **分镜表**：每个镜头的素材入出点、运镜、特效、拟声字 |
+| `film/render.py` | 逐帧渲染器（运镜、分格、遮幅、字幕） |
+| `film/manga.py` | 漫画化滤镜（XDoG 墨线 + 实黑 + 网点 + 专色） |
+| `film/fx.py` | 集中线、速度线、音浪、黑色闪电、光爆、粒子、拟声字 |
+| `film/seg.py` | 人物抠像（冲击帧、希区柯克变焦用） |
+| `out/` | 渲染产物（不进仓库） |
 
-重出风格板（需要 `~/lemo-opuscar` 库，已装 npm 依赖与 `.venv`）：
+## 出片
 
 ```sh
-sh tools/render_boards.sh              # 全部四种
-STYLES=spy sh tools/render_boards.sh   # 只重出一种
+python3 film/render.py --jobs 4        # 逐镜头渲染到 out/segs/
+sh film/assemble.sh                    # → out/坚持.mp4（带原音轨）、out/坚持_无声.mp4
+python3 film/render.py --still 12.0,90.5   # 单帧样张 → out/stills/
+python3 film/render.py --shots 4,5         # 只重渲某几个镜头（编号见 shots.py 顺序）
+sh tools/stills_all.sh                 # 每个镜头一张样张，拼成 out/review_*.jpg
 ```
 
-单帧预览：`cd ~/lemo-opuscar && node core/render/still.mjs <本目录>/film 121 --q style=woodcut`（`style=woodcut|puppet|ink|spy`，`sheet=1` 出造型板，`nosub=1` 去字幕）。
+依赖：Python 3（opencv-python-headless、numpy、Pillow、onnxruntime）、ffmpeg。

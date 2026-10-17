@@ -1,28 +1,19 @@
-坚持 · 风格板 —— 第三方素材与工具
-
-画面全部由代码绘制（Canvas 2D + WebGL），没有用图像生成，没有用图库画面。
+坚持 · 航海王漫画版 —— 素材与工具
 
 用户提供
-- 音频 assets/audio/narration.m4s（时间轴以它为准；含配乐与朗读，授权由用户负责）
-- 原文 assets/原文.txt；主角参考图 assets/ref/fangyuan.webp；《航海王》打斗页 assets/ref/onepiece_*.jpg（只学分镜语法，画面中不出现任何《航海王》角色或画格）
+- 文案 assets/原文.txt；配音 assets/audio/narration.m4s（只用来对时间，正式配音用户自己做）
+- 航海王画风参考 assets/ref/onepiece_*.jpg（只学画法，片中不出现航海王角色或画格）；方源参考图 assets/ref/fangyuan.webp
 
-引擎（MIT，Lemo-Opuscar，github.com/lemomo-ai/lemo-opuscar）
-- 木刻：film/woodcut/engine/*（刻刀、流线排线、印刷合成器、图像转木刻滤镜）
-- 皮影：film/puppet/carve.js、gl.js（刻皮工具、灯光 × 透射 × 布纹合成器）
-- 水墨：film/ink/ink.js、comp.js、land.js（笔触引擎、宣纸合成器、山水）
-- 间谍片头：film/spy/paper.js（四色剪纸、剪刀毛边、纸影、剪影图层）
-- 渲染：core/render/still.mjs（无头 Chrome 逐帧截图）
+人物与场景画面来源（同人视频，逐帧重绘为黑白漫画；授权由使用者负责确认）
+- 松楠剧制《大爱仙尊：逆流河上万仙退【蛊真人】》 https://www.bilibili.com/video/BV1zLNd6ME7B （主线）
+- 蓝兔Ai https://www.bilibili.com/video/BV1PGp26cExn （雪胡老祖、毛里球、方源夹尸 / 仰头 / 光中的脸）
+- 轮回画室 https://www.bilibili.com/video/BV19pC9BEE4j （黑河长卷）
+- 只作参考未入片：雕真人 BV1vYZtB2EpA、BV1MzXLB4Ede；素材图出处见 refs/sources.json
+
+模型与工具
+- u2net_human_seg（rembg，Apache-2.0）人物抠像；isnetis（skytnt/anime-seg，Apache-2.0）备用
+- OpenCV、NumPy、Pillow、onnxruntime、ffmpeg
 
 字体（SIL Open Font License 1.1）
-- Ma Shan Zheng（马善政）· 拟声字、刻字、皮影牌 · film/fonts/OFL-MaShanZheng.txt
-- LXGW WenKai（霞鹜文楷）· 字幕、风格板注释 · film/fonts/OFL-LXGWWenKai.txt
-- ZCOOL QingKe HuangYou（站酷庆科黄油体）· 间谍片头的剪字 · 经 fonts.googleapis.com 按片中用字子集化
-- Noto Sans SC Black · 间谍片头字幕纸条 · 经 fonts.googleapis.com 按片中用字子集化
-
-识别校对
-- faster-whisper（MIT）+ Whisper medium 模型（MIT）
-
-人物外貌参考
-- 《蛊真人》第256–265节原文；白凝冰“银发深蓝眸、白衣”的设定参考百度百科词条与同人描写。片中造型为按原文重新设计，不取自任何现成画作。
-
-片中所用素材由使用者负责确认授权。
+- Ma Shan Zheng（马善政）· 拟声字 · assets/fonts/OFL-MaShanZheng.txt
+- LXGW WenKai（霞鹜文楷）· 字幕 · assets/fonts/OFL-LXGWWenKai.txt
