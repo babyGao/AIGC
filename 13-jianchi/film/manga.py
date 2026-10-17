@@ -44,7 +44,8 @@ def manga(bgr, black=0.17, dark=0.33, mid=0.47, light=0.60, line=1.0, cell=7, co
     if bilat: small = cv2.bilateralFilter(cv2.bilateralFilter(small, 9, 40, 7), 9, 30, 7)
     sm = cv2.resize(small, (w, h), interpolation=cv2.INTER_CUBIC)
     lab = cv2.cvtColor(sm, cv2.COLOR_BGR2LAB)
-    L = lab[..., 0]
+    # 明度掺一半 HSV 的 V：红唇、暖色皮肤不至于压成黑块（漫画脸是白的）
+    L = (lab[..., 0].astype(np.float32) * 0.45 + sm.max(axis=2).astype(np.float32) * 0.55).astype(np.uint8)
     L = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(6, 6)).apply(L).astype(np.float32) / 255.0
     L = np.clip((L - 0.5) * contrast + 0.5 + ink_boost, 0, 1)
     # 色调用平滑过的明度分层，避免模糊背景碎成迷彩斑

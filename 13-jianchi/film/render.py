@@ -40,8 +40,9 @@ def noise1(t, seed, freq):
 
 # ---------------- 素材 ----------------
 class Clip:
-    def __init__(self, key, a, b):
-        self.key, self.a, self.b = key, a, b
+    def __init__(self, key, a, b, fy=''):
+        # fy：方源镜头的处理。's' 换成黑衣方源的脸，'r' 白衣压成黑袍
+        self.key, self.a, self.b, self.fy = key, a, b, fy
         cap = cv2.VideoCapture(os.path.join(ROOT, 'sucai/videos', VID[key] + '.mp4'))
         self.fps = cap.get(cv2.CAP_PROP_FPS)
         cap.set(cv2.CAP_PROP_POS_MSEC, a * 1000)
@@ -67,6 +68,12 @@ class Clip:
                 th = cv2.morphologyEx(m, cv2.MORPH_TOPHAT, np.ones((15, 15), np.uint8))
                 th = cv2.dilate(th, np.ones((7, 7), np.uint8))
                 if th.any(): f[Y0:Y1, X0:X1] = cv2.inpaint(sub, th, 5, cv2.INPAINT_TELEA)
+            if self.fy:
+                import face
+                if 'r' in self.fy:
+                    import seg
+                    f = face.robe_black(f, seg.mask(f, 'u2net_human_seg'))
+                if 's' in self.fy: f = face.swap(f)
             self.clean_cache[i] = f
         return self.clean_cache[i], i
 
@@ -323,9 +330,9 @@ def render_title(shot, tr, fi):
 # ---------------- 镜头编码 ----------------
 def load_clips(shot):
     if shot.get('kind') == 'panels':
-        return [Clip(*p['src']) for p in shot['panels']]
+        return [Clip(*p['src'], fy=p.get('fy', '')) for p in shot['panels']]
     if shot.get('kind') == 'title': return []
-    return [Clip(*shot['src'])]
+    return [Clip(*shot['src'], fy=shot.get('fy', ''))]
 
 def render_shot(args):
     k, shot, outdir = args

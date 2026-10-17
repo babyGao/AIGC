@@ -13,17 +13,19 @@
 | `assets/fonts/` | 拟声字（马善政）、字幕（霞鹜文楷），均 OFL |
 | `data/cues.json` · `data/字幕草稿.srt` | 68 条字幕时间轴（以音频为准） |
 | `docs/素材库.md` · `refs/sources.json` | 检索到的素材图与出处 |
+| `refs/fangyuan_black/` | 黑衣方源（网上流传最广的“仙尊悔而我不悔”，BV1Pr4y1R7mo 封面，122 万播放）——换脸的身份来源 |
 | `refs/` | 检索到的素材图（第三方，不进仓库；`refs/onepiece/` 除外） |
 | `sucai/videos/` | 扒下来的五部同人视频（不进仓库） |
 | `sucai/keyframes/` | 从视频里截的关键帧（不进仓库） |
 | `sucai/refs_hi/` | 素材图高清版（不进仓库） |
 | `sucai/shots/` | 视频镜头切分索引页（`tools/shot_index.py` 生成，不进仓库） |
-| `sucai/models/` | 人物抠像模型 u2net_human_seg / isnetis（不进仓库） |
+| `sucai/models/` | 抠像 u2net_human_seg / isnetis、换脸 inswapper_128 + buffalo_l、修复 GFPGAN 1.4（不进仓库） |
 | `film/shots.py` | **分镜表**：每个镜头的素材入出点、运镜、特效、拟声字 |
 | `film/render.py` | 逐帧渲染器（运镜、分格、遮幅、字幕） |
 | `film/manga.py` | 漫画化滤镜（XDoG 墨线 + 实黑 + 网点 + 专色） |
 | `film/fx.py` | 集中线、速度线、音浪、黑色闪电、光爆、粒子、拟声字 |
-| `film/seg.py` | 人物抠像（冲击帧、希区柯克变焦用） |
+| `film/seg.py` | 人物抠像（冲击帧、希区柯克变焦、压黑袍用） |
+| `film/face.py` | 方源换成黑衣版的脸（inswapper + GFPGAN），白衣压黑袍 |
 | `out/` | 渲染产物（不进仓库） |
 
 ## 出片
@@ -36,4 +38,4 @@ python3 film/render.py --shots 4,5         # 只重渲某几个镜头（编号�
 sh tools/stills_all.sh                 # 每个镜头一张样张，拼成 out/review_*.jpg
 ```
 
-依赖：Python 3（opencv-python-headless、numpy、Pillow、onnxruntime）、ffmpeg。
+依赖：Python 3（opencv-python-headless、numpy、Pillow、onnxruntime、insightface）、ffmpeg。
