@@ -13,7 +13,7 @@
 | `assets/fonts/` | 拟声字（马善政）、字幕（霞鹜文楷），均 OFL |
 | `data/cues.json` · `data/字幕草稿.srt` | 68 条字幕时间轴（以音频为准） |
 | `docs/素材库.md` · `refs/sources.json` | 检索到的素材图与出处 |
-| `refs/fangyuan_black/` | 黑衣方源（网上流传最广的“仙尊悔而我不悔”，BV1Pr4y1R7mo 封面，122 万播放）——换脸的身份来源 |
+| `refs/fangyuan_black/` | 用户指定的黑衣方源：`03_xiaojiu_crop.jpg`（换脸身份）、`02_user_manga.jpg`（官方漫画头像，造型参考）；`01_` 是之前检索的封面，已不用 |
 | `refs/` | 检索到的素材图（第三方，不进仓库；`refs/onepiece/` 除外） |
 | `sucai/videos/` | 扒下来的五部同人视频（不进仓库） |
 | `sucai/keyframes/` | 从视频里截的关键帧（不进仓库） |

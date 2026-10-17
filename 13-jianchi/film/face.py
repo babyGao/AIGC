@@ -3,8 +3,12 @@
 import os, cv2, numpy as np
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 M = os.path.join(ROOT, 'sucai/models')
-# 只取“仙尊悔而我不悔”那张（用户参考图里的脸是手绘五官，换出来鼻尖会起色斑）
-SRC = [os.path.join(ROOT, 'refs/fangyuan_black/01_BV1Pr4y1R7mo.jpg')]
+# 用户指定的黑衣方源：xiaojiu 画的黑袍方源（手托蝴蝶）取五官身份；
+# 官方漫画头像（02_user_manga.jpg）是线稿，换脸模型读不出写实五官（会换出卡通鼻），只作造型参考。
+# (路径, 裁切 x0,y0,x1,y1, 旋转角, 检测阈值)
+SRC = [
+    (os.path.join(ROOT, 'refs/fangyuan_black/03_xiaojiu_crop.jpg'), None, 0, 0.3),   # 从手机截图裁出的画
+]
 _app = _sw = _src = _gfp = None
 # GFPGAN 的 512 对齐模板（FFHQ）
 FFHQ = np.float32([[0.37691676, 0.46864664], [0.62285697, 0.46912813], [0.50123859, 0.61331904], [0.39308822, 0.72541100], [0.61150205, 0.72490465]]) * 512
@@ -18,10 +22,16 @@ def _init():
     _app.prepare(ctx_id=-1, det_size=(640, 640), det_thresh=0.3)
     _sw = insightface.model_zoo.get_model(os.path.join(M, 'inswapper_128.onnx'), providers=['CPUExecutionProvider'])
     embs = []; faces = []
-    for p in SRC:
-        img = cv2.imread(p) if not p.endswith('.webp') else cv2.cvtColor(np.asarray(__import__('PIL.Image', fromlist=['Image']).open(p).convert('RGB')), cv2.COLOR_RGB2BGR)
-        big = cv2.resize(img, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-        for f in _app.get(big):
+    for p, crop, ang, th in SRC:
+        img = cv2.imread(p)
+        if crop: img = img[crop[1]:crop[3], crop[0]:crop[2]]
+        if ang:
+            R = cv2.getRotationMatrix2D((img.shape[1] / 2, img.shape[0] / 2), ang, 1)
+            img = cv2.warpAffine(img, R, (img.shape[1], img.shape[0]), borderMode=cv2.BORDER_REPLICATE)
+        _app.det_model.det_thresh = th
+        fs = _app.get(img)
+        _app.det_model.det_thresh = 0.3
+        for f in fs[:1]:
             embs.append(f.embedding / np.linalg.norm(f.embedding)); faces.append(f)
     e = np.mean(embs, 0); e /= np.linalg.norm(e)
     _src = faces[0]; _src.embedding = e * np.linalg.norm(faces[0].embedding)
