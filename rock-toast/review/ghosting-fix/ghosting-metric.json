@@ -1,0 +1,11 @@
+{
+  "shot": "s09",
+  "frame": 54,
+  "local_time": 0.9,
+  "measurement_width": 270,
+  "old_position_region_pixels": 6891,
+  "before_warm_pixels": 4187,
+  "after_warm_pixels": 0,
+  "reduction": 1.0,
+  "scope": "Warm pixels in the vacated bread silhouette at one matched frame; not a whole-film percentage."
+}

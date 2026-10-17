@@ -1,0 +1,37 @@
+<!doctype html><meta charset="utf-8"><style>body{margin:0;background:#000}</style><canvas id="gl"></canvas>
+<script type="module">
+import { Impasto, Strokes } from '../../paint/src/impasto.js';
+import { motionMesh } from '../../paint/src/motion.js';
+const E = new Impasto(document.querySelector('canvas'), { W: 128, H: 128, ss: 1 });
+const canvas = () => { const c = document.createElement('canvas'); c.width = c.height = 128; return c; };
+const state = (x, colour, dx) => {
+  const c = canvas(), l = canvas();
+  c.getContext('2d').fillStyle = colour; c.getContext('2d').fillRect(x, 40, 32, 32);
+  l.getContext('2d').fillStyle = 'rgb(1,0,0)'; l.getContext('2d').fillRect(x, 40, 32, 32);
+  const labels = E.texture(l, 0), gl = E.gl;
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  return { tex: E.texture(c, 0), labels, meshes: [null, E.mesh(motionMesh([x, 40, x + 31, 71], 1, (_, px, py) => [px + dx, py], 128, 128))] };
+};
+const a = state(16, '#ff0000', 64), b = state(80, '#0000ff', -64);
+const gl = E.gl, at = (x, y) => { const p = new Uint8Array(4); gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, p); return [...p]; };
+const assert = (ok, text) => { if (!ok) throw new Error(text); };
+window.STATS = {};
+try {
+  for (const u of [0, .25, .5, .75, 1]) {
+    E.begin([0, 0, 0]); const mask = E.underPair(a, b, 1, u, { x: 64, y: 64, zoom: 1 });
+    const centre = at(Math.round(32 + 64 * u), 64);
+    assert(centre[3] === 255, `coverage at ${u}: ${centre}`);
+    assert(Math.abs(centre[0] - 255 * (1 - u)) <= 1 && Math.abs(centre[2] - 255 * u) <= 1, `colour at ${u}: ${centre}`);
+    if (u === .5) {
+      assert(at(24, 64)[3] === 0 && at(104, 64)[3] === 0, 'old or future silhouette remains');
+      const s = new Strokes(); s.push({ x: 64, y: 64, len: 120, wid: 8, c: [1, 1, 1], seed: 1 });
+      E.drawNow(s.data(), { grey: 0, mask });
+      assert(at(24, 64)[3] === 0 && at(104, 64)[3] === 0, 'stroke escaped moving silhouette');
+    }
+  }
+  assert(gl.getError() === 0, 'WebGL error'); window.STATS.passed = 7;
+} catch (error) { window.FAIL = error; }
+window.DUR = 1; window.render = () => { if (window.FAIL) throw window.FAIL; E.finish({ ground: [0, 0, 0] }); };
+window.READY = true;
+</script>

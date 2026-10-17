@@ -57,6 +57,9 @@ in vec2 vUV; in vec2 vPx;
 flat in vec3 vC1; flat in vec3 vC2; flat in vec4 vP; flat in vec4 vQ;
 uniform float uT, uReveal, uAppear, uAppDur, uRevDur, uAlpha, uHgt, uGrey, uWet, uRun;
 uniform vec3 uTint;
+uniform sampler2D uMask;
+uniform bool uMaskOn;
+uniform vec2 uTarget;
 layout(location=0) out vec4 oC;
 layout(location=1) out vec4 oH;
 float h1(float n){ return fract(sin(n * 127.1) * 43758.5453); }
@@ -66,6 +69,8 @@ float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
   return mix(mix(h2(i), h2(i + vec2(1, 0)), f.x), mix(h2(i + vec2(0, 1)), h2(i + 1.), f.x), f.y); }
 vec3 greyOf(vec3 c){ float g = dot(c, vec3(.3, .59, .11)); g = mix(.5, g, .92); return mix(vec3(g) * uTint, c, .05); }
 void main(){
+  if (uMaskOn) { vec2 mask = texture(uMask, gl_FragCoord.xy / uTarget).rg;
+    if (mask.y < .001 || mask.x / mask.y < 0.) discard; }
   float u = vUV.x, v = vUV.y, seed = vP.x; int type = int(vP.y + .5);
   float L = max(vPx.x, 1.), W = max(vPx.y, 1.);
   float alpha = vQ.x * uAlpha, hgt = vQ.y * uHgt, skew = vQ.z, taper = vQ.w;
@@ -188,23 +193,42 @@ void main(){
 
 const UVS = `#version 300 es
 layout(location=0) in vec2 p;
+layout(location=1) in vec2 delta;
 uniform mat3 uM; uniform vec4 uCam; uniform vec2 uView, uSize;
+uniform float uProgress;
 out vec2 vUV; out vec2 vS;
-void main(){ vUV = p; vec2 lp = p * uSize; vS = lp; vec2 sp = (uM * vec3(lp, 1.)).xy;
+void main(){ vUV = p; vec2 lp = p * uSize; vS = lp; vec2 sp = (uM * vec3(lp + delta * uProgress, 1.)).xy;
   float cr = cos(uCam.w), sr = sin(uCam.w); vec2 q = sp - uCam.xy; q = vec2(cr * q.x - sr * q.y, sr * q.x + cr * q.y) * uCam.z + uView * .5;
   gl_Position = vec4(q / uView * 2. - 1., 0., 1.); gl_Position.y = -gl_Position.y; }`;
 const UFS = `#version 300 es
 precision highp float;
 in vec2 vUV; in vec2 vS; uniform sampler2D uImg; uniform float uT, uReveal, uGrey, uAlpha; uniform vec3 uTint; uniform vec3 uRevC;
+uniform sampler2D uLabels; uniform int uGroup; uniform bool uAccumulate;
+uniform sampler2D uDistance; uniform bool uHasDistance;
 layout(location=0) out vec4 oC; layout(location=1) out vec4 oH;
 float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-void main(){ vec4 c = texture(uImg, vUV); if (c.a < .02) discard;
+void main(){ vec4 c = texture(uImg, vUV);
+  bool inside = c.a >= .02 && (uGroup <= 0 || int(texture(uLabels, vUV).r * 255. + .5) == uGroup);
+  if (!inside && !uAccumulate) discard;
   float rt = uReveal + (uRevC.z > 0. ? length((vS - uRevC.xy) * vec2(1., 1.6)) / uRevC.z : 0.);
   float g = uGrey * (1. - step(rt + .1, uT));
   float l = dot(c.rgb, vec3(.3, .59, .11)); l = mix(.5, l, .92);
   vec3 col = mix(c.rgb, mix(vec3(l) * uTint, c.rgb, .05), g);
-  float a = c.a * uAlpha;
-  oC = vec4(col, a); oH = vec4(.12 + h2(floor(vS * .7)) * .06, .1, 0., a); }`;
+  float a = inside ? c.a * uAlpha : 0.;
+  oC = vec4(uAccumulate ? col * a : col, a);
+  if (uAccumulate) {
+    float d = uHasDistance ? texture(uDistance, vUV)[uGroup - 1] : (inside ? 1. : -1.);
+    oH = vec4(d * uAlpha, uAlpha, 0., 0.);
+  } else oH = vec4(.12 + h2(floor(vS * .7)) * .06, .1, 0., a); }`;
+
+const MERGE_FS = `#version 300 es
+precision highp float;
+in vec2 vUV; uniform sampler2D uLayer, uField;
+layout(location=0) out vec4 oC; layout(location=1) out vec4 oH;
+void main(){ vec4 c = texture(uLayer, vUV); if (c.a < .01) discard;
+  vec2 field = texture(uField, vUV).rg;
+  float a = field.y > .001 ? smoothstep(-.8, .8, field.x / field.y) : 0.;
+  oC = vec4(c.rgb / c.a, a); oH = vec4(.15, .1, 0., a); }`;
 
 function sh(gl, type, src) { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) + '\n' + src.split('\n').map((l, i) => i + 1 + ': ' + l).join('\n').slice(0, 4000)); return s; }
 function prog(gl, vs, fs) { const p = gl.createProgram(); gl.attachShader(p, sh(gl, gl.VERTEX_SHADER, vs)); gl.attachShader(p, sh(gl, gl.FRAGMENT_SHADER, fs)); gl.linkProgram(p); if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p)); const u = {}; const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); for (let i = 0; i < n; i++) { const a = gl.getActiveUniform(p, i); u[a.name] = gl.getUniformLocation(p, a.name); } return { p, u }; }
@@ -222,6 +246,7 @@ export class Impasto {
     if (!gl) throw new Error('webgl2 unavailable');
     if (!gl.getExtension('EXT_color_buffer_float')) throw new Error('EXT_color_buffer_float unavailable');
     this.sp = prog(gl, VS, FS); this.cp = prog(gl, CVS, CFS); this.up = prog(gl, UVS, UFS);
+    this.mp = prog(gl, CVS, MERGE_FS);
     // strip template
     const c = []; for (let i = 0; i <= SEGS; i++) { const u = i / SEGS; c.push(u, -1, u, 1); }
     this.strip = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, this.strip); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(c), gl.STATIC_DRAW);
@@ -264,6 +289,8 @@ export class Impasto {
     gl.uniform1f(u.uAlpha, o.alpha ?? 1); gl.uniform1f(u.uHgt, o.hgt ?? 1); gl.uniform1f(u.uGrey, o.grey ?? 1); gl.uniform1f(u.uWet, o.wet ?? .3);
     gl.uniform1f(u.uWidMul, o.widMul ?? 1); gl.uniform1f(u.uRun, o.run ?? 1);
     gl.uniform3fv(u.uTint, o.tint || [.96, .99, 1.04]);
+    gl.uniform1i(u.uMaskOn, o.mask ? 1 : 0); gl.uniform2f(u.uTarget, this.IW, this.IH);
+    if (o.mask) { gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, o.mask); gl.uniform1i(u.uMask, 3); }
     gl.bindVertexArray(b.vao);
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, (SEGS + 1) * 2, o.n ?? b.count);
   }
@@ -286,12 +313,71 @@ export class Impasto {
     gl.uniform4f(u.uCam, cam.x, cam.y, cam.zoom, cam.rot || 0); gl.uniform2f(u.uView, this.W, this.H); gl.uniform2f(u.uSize, w, h);
     gl.uniform1f(u.uT, o.t ?? 0); gl.uniform1f(u.uReveal, o.reveal ?? -1e6); gl.uniform1f(u.uGrey, o.grey ?? 1); gl.uniform1f(u.uAlpha, o.alpha ?? 1);
     gl.uniform3fv(u.uTint, o.tint || [.96, .99, 1.04]); gl.uniform3fv(u.uRevC, o.revC || [0, 0, 0]);
+    gl.uniform1f(u.uProgress, o.progress ?? 0); gl.uniform1i(u.uGroup, o.group ?? 0);
+    gl.uniform1i(u.uAccumulate, o.accumulate ? 1 : 0);
+    gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, o.distance || tex);
+    gl.uniform1i(u.uDistance, 2); gl.uniform1i(u.uHasDistance, o.distance ? 1 : 0);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, o.labels || tex); gl.uniform1i(u.uLabels, 1);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex); gl.uniform1i(u.uImg, 0);
     gl.bindVertexArray(null);
+    if (o.mesh) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, o.mesh.buf);
+      gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
+      gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
+      gl.drawArrays(gl.TRIANGLES, 0, o.mesh.n); gl.disableVertexAttribArray(1);
+      gl.useProgram(this.sp.p); return;
+    }
+    gl.disableVertexAttribArray(1); gl.vertexAttrib2f(1, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.quad01 || (this.quad01 = (() => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]), gl.STATIC_DRAW); return b; })()));
     gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.useProgram(this.sp.p);
+  }
+  // 对齐后合成
+  mesh(data) {
+    const gl = this.gl, buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW); return { buf, n: data.length / 4 };
+  }
+  distance(data, w, h) {
+    const gl = this.gl, tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.FLOAT, data);
+    for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.LINEAR);
+    for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
+    return tex;
+  }
+  underPair(a, b, group, u, cam) {
+    const gl = this.gl;
+    if (!this.layer) {
+      const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, this.W, this.H, 0, gl.RGBA, gl.HALF_FLOAT, null);
+      for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.LINEAR);
+      for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
+      const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+      const field = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, field);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RG16F, this.W, this.H, 0, gl.RG, gl.HALF_FLOAT, null);
+      for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.LINEAR);
+      for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, field, 0);
+      gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+      if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error('motion framebuffer incomplete');
+      this.layer = { tex, field, fb };
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.layer.fb); gl.viewport(0, 0, this.W, this.H);
+    gl.clearBufferfv(gl.COLOR, 0, [0, 0, 0, 0]); gl.clearBufferfv(gl.COLOR, 1, [0, 0, 0, 0]);
+    gl.blendFunc(gl.ONE, gl.ONE);
+    this.under(a.tex, this.W, this.H, { grey: 0, cam, group, labels: a.labels,
+      mesh: a.meshes?.[group], progress: u, alpha: 1 - u, accumulate: true, distance: a.distance });
+    if (b && u > 0) this.under(b.tex, this.W, this.H, { grey: 0, cam, group, labels: b.labels,
+      mesh: b.meshes?.[group], progress: 1 - u, alpha: u, accumulate: true, distance: b.distance });
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb); gl.viewport(0, 0, this.IW, this.IH);
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.useProgram(this.mp.p); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.layer.tex);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, this.layer.field); gl.uniform1i(this.mp.u.uField, 1);
+    gl.uniform1i(this.mp.u.uLayer, 0); gl.bindVertexArray(null);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.quad); gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.useProgram(this.sp.p); return this.layer.field;
   }
   // draw a transient Float32Array of strokes (uploaded now)
   drawNow(data, o = {}) {

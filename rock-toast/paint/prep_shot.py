@@ -1,7 +1,7 @@
 # 动态镜头预处理：原片片段 → 防抖锁定到关键帧 → 逐帧分区/留用/光照图 → 帧间光流（笔触跟着画面走）
 # 运行：python -I paint/prep_shot.py [s01 s02 ...]   输出 paint/cache/<镜头>/
 #   f###.jpg 画布坐标的原片帧；m###.png（R 分区 G 留用 B 轮廓光）；x###.png（R 接触阴影 G 镜面高光 B 玻璃高光）
-#   v###.bin 第 ### 帧到下一帧的光流（画布坐标，1/4 分辨率，int16，单位 1/8 像素）；meta.json
+#   v###.bin 正向，b###.bin 反向；光流为画布坐标，1/4 分辨率，int16，单位 1/8 像素
 import os, sys, json, time
 import numpy as np, cv2
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
@@ -91,18 +91,27 @@ def prep(sid):
     print(sid, n, 'frames', f'max shake {shake:.1f}px', f'{time.time() - t0:.0f}s')
 
 def flows(sid):
-    """帧间光流（画布坐标）。空间平滑 + 前后帧平滑 + 微小运动归零：静止的盘子、砧板上的笔不会自己蠕动"""
+    """双向逐对估计，避免混用不同时刻的位移。"""
     out = os.path.join(CACHE, sid); meta = json.load(open(os.path.join(out, 'meta.json'))); n = meta['n']
     qw, qh = MK.W // FQ, MK.H // FQ
     small = [cv2.cvtColor(cv2.resize(cv2.imread(os.path.join(out, f'f{i:03d}.jpg')), (qw, qh), interpolation=cv2.INTER_AREA), cv2.COLOR_BGR2GRAY) for i in range(n)]
+    # 连续物体轮廓
+    for i in range(n):
+        lab = cv2.resize(cv2.imread(os.path.join(out, f'm{i:03d}.png'))[..., 2], (qw, qh), interpolation=cv2.INTER_NEAREST)
+        distance = np.full((qh, qw, 4), -256, np.float32)
+        for g in range(1, len(MK.KEYS[sid]['parts']) + 1):
+            mask = (lab == g).astype(np.uint8)
+            if mask.any():
+                d = (cv2.distanceTransform(mask, cv2.DIST_L2, 5) - cv2.distanceTransform(1 - mask, cv2.DIST_L2, 5)) * FQ
+                distance[..., g - 1] = np.clip(d, -256, 256)
+        distance.astype('<f4').tofile(os.path.join(out, f'd{i:03d}.bin'))
     dis = cv2.DISOpticalFlow_create(cv2.DISOPTICAL_FLOW_PRESET_MEDIUM)
-    raw = [cv2.GaussianBlur(dis.calc(small[i], small[i + 1], None), (0, 0), 1.6) * FQ for i in range(n - 1)]
     for i in range(n - 1):
-        a, b = raw[max(0, i - 1)], raw[min(n - 2, i + 1)]
-        fl = raw[i] * .5 + a * .25 + b * .25
-        mag = np.hypot(fl[..., 0], fl[..., 1])[..., None]
-        fl = fl * np.clip((mag - .25) / .35, 0, 1)
-        np.clip(fl * 8, -32767, 32767).astype('<i2').tofile(os.path.join(out, f'v{i:03d}.bin'))
+        for prefix, a, b in [('v', i, i + 1), ('b', i + 1, i)]:
+            fl = cv2.GaussianBlur(dis.calc(small[a], small[b], None), (0, 0), .8) * FQ
+            mag = np.hypot(fl[..., 0], fl[..., 1])[..., None]
+            fl *= np.clip((mag - .25) / .35, 0, 1)
+            np.clip(fl * 8, -32767, 32767).astype('<i2').tofile(os.path.join(out, f'{prefix}{i:03d}.bin'))
 
 if __name__ == '__main__':
     args = sys.argv[1:]

@@ -48,10 +48,11 @@ export function sampler(P) {
 export function rasterize(ctx, list) {
   for (const s of list) {
     if (s.die) continue;
-    ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.ang); ctx.fillStyle = `rgb(${s.c[0] * 255},${s.c[1] * 255},${s.c[2] * 255})`;
+    const ca = Math.cos(s.ang), sa = Math.sin(s.ang);
+    ctx.setTransform(ca, sa, -sa, ca, s.x, s.y); ctx.fillStyle = `rgb(${s.c[0] * 255},${s.c[1] * 255},${s.c[2] * 255})`;
     if (s.type === DAB) { ctx.beginPath(); ctx.ellipse(0, 0, s.len / 2, s.wid / 2, 0, 0, 6.3); ctx.fill(); } else ctx.fillRect(-s.len / 2, -s.wid / 2, s.len * .95, s.wid * .92);
-    ctx.restore();
   }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
 export function paintPlan(P, o = {}) {

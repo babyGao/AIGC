@@ -1,10 +1,10 @@
 // 动态镜头：?shot=s01（一镜一条，video.mjs 顺序渲染，最后拼接）
-// 笔触跟着原片光流移动；物体离开的地方笔触褪掉，新露出来的地方补笔；颜色逐帧向原片靠拢
-// 镜头运动（推、横移、升降、螺旋、拉远）是虚拟的：背景层和主体层按不同比例移动，形成前后层次
+// 底色、笔触、高光共用轨迹；前后帧对齐后合成，遮挡按物体顺序处理。
 import { Impasto, Strokes, KNIFE, BRUSH, DAB, LINE, POST_DEFAULT } from './impasto.js';
 import { W, H, N, load, pixels, subjectPlan, applyAdds, paintBackdrop, highlights, lines } from './frame.js';
 import { paintPlan, sampler, rasterize } from './plan.js';
 import { POST, GROUND, clamp } from './look.js';
+import { makeMotion, trajectory, strokeAt, commitStroke, retireCovered, boundsOf, motionMesh } from './motion.js';
 
 const Q = new URLSearchParams(location.search);
 const SID = Q.get('shot');
@@ -21,16 +21,22 @@ window.DUR = IT.dur;
 
 const glc = document.getElementById('gl'), ov = document.getElementById('ov');
 ov.width = W; ov.height = H; const og = ov.getContext('2d');
-const E = new Impasto(glc, { W, H, ss: 2 });
+const E = new Impasto(glc, { W, H, ss: +(Q.get('ss') || 2) });
 const canvasOf = d => { const c = document.createElement('canvas'); c.width = W; c.height = H; c.getContext('2d').putImageData(new ImageData(d, W, H), 0, 0); return c; };
 
 // —— 帧数据：原片帧 + 两张打包的图（分区/留用/轮廓光；接触阴影/镜面高光/玻璃高光）——
 const meta = IT.still ? { n: 1 } : await getJSON(`cache/${SID}/meta.json`);
 const dir = `cache/${SID}`, pad = i => String(i).padStart(3, '0');
 async function loadFrame(i) {
-  const [f, m, x] = await Promise.all([load(`${dir}/f${pad(i)}.jpg`), load(`${dir}/m${pad(i)}.png`), load(`${dir}/x${pad(i)}.png`)]);
+  const [f, m, x, d] = await Promise.all([load(`${dir}/f${pad(i)}.jpg`), load(`${dir}/m${pad(i)}.png`), load(`${dir}/x${pad(i)}.png`),
+    IT.still ? null : fetch(`${dir}/d${pad(i)}.bin`).then(async r => {
+      if (!r.ok) throw new Error(`missing silhouette ${SID}/${i}: run prep_shot.py --flow ${SID}`);
+      const data = await r.arrayBuffer();
+      if (data.byteLength !== meta.qw * meta.qh * 16) throw new Error('invalid silhouette data');
+      return new Float32Array(data);
+    })]);
   const raw = pixels(f), mm = pixels(m), xx = pixels(x);
-  return { raw, L: mm, V: mm, RIM: mm, AO: xx, HI: xx, SPEC: xx, ch: { L: 0, V: 1, RIM: 2, AO: 0, HI: 2 } };
+  return { raw, L: mm, V: mm, RIM: mm, AO: xx, HI: xx, SPEC: xx, distance: d, ch: { L: 0, V: 1, RIM: 2, AO: 0, HI: 2 } };
 }
 // 粒度：笔触由粗到细的半径（画布像素）、细节阈值（越小，细笔越多）、食物最大笔
 const GRAINS = {
@@ -47,23 +53,21 @@ const m3 = a => [[a[0], a[1], a[2]], [a[3], a[4], a[5]], [0, 0, 1]];
 const mul = (A, B) => A.map((r, i) => [0, 1, 2].map(j => r[0] * B[0][j] + r[1] * B[1][j] + r[2] * B[2][j]));
 const inv2 = A => { const [[a, b, c], [d, e, f]] = A, det = a * e - b * d; return [[e / det, -b / det, (b * f - e * c) / det], [-d / det, a / det, (d * c - a * f) / det], [0, 0, 1]]; };
 const stepOf = (g, i) => { const T = trkOf.get(g); return mul(m3(T[i + 1]), inv2(m3(T[i]))); };
-async function flowOf(i) {
-  if (!flows.has(i)) { const b = await (await fetch(`${dir}/v${pad(i)}.bin`)).arrayBuffer(); flows.set(i, new Int16Array(b)); }
-  return flows.get(i);
-}
-function flowAt(fl, x, y) {
-  const { qw, qh, fq } = meta; let fx = x / fq - .5, fy = y / fq - .5;
-  fx = Math.max(0, Math.min(qw - 1.001, fx)); fy = Math.max(0, Math.min(qh - 1.001, fy));
-  const ix = fx | 0, iy = fy | 0, ax = fx - ix, ay = fy - iy, i00 = (iy * qw + ix) * 2, i10 = i00 + 2, i01 = i00 + qw * 2, i11 = i01 + 2;
-  const u = (fl[i00] * (1 - ax) + fl[i10] * ax) * (1 - ay) + (fl[i01] * (1 - ax) + fl[i11] * ax) * ay;
-  const v = (fl[i00 + 1] * (1 - ax) + fl[i10 + 1] * ax) * (1 - ay) + (fl[i01 + 1] * (1 - ax) + fl[i11 + 1] * ax) * ay;
-  return [u / 8, v / 8];
+async function flowOf(i, back = false) {
+  const key = `${back ? 'b' : 'v'}${pad(i)}`;
+  if (!flows.has(key)) {
+    const r = await fetch(`${dir}/${key}.bin`);
+    if (!r.ok) throw new Error(`missing motion field ${SID}/${key}: run prep_shot.py --flow ${SID}`);
+    const b = await r.arrayBuffer();
+    if (b.byteLength !== meta.qw * meta.qh * 4) throw new Error(`invalid motion field ${SID}/${key}`);
+    flows.set(key, new Int16Array(b));
+  }
+  return flows.get(key);
 }
 
 // —— 画面状态 ——
 const bg = paintBackdrop(K, 3), bgB = E.batch(bg.strokes.data()), bgT = E.texture(canvasOf(bg.layin), 14);
-// 时间轴：原片第 i 帧到第 i+1 帧算一段。一进入这一段，就先把第 i+1 帧该是什么样算好（目标），
-// 这一段里的所有变化（新笔淡入、旧笔淡出、换色、铺底）按段内进度 u 均匀完成——每一帧只变一点，不会在换片那一帧一下子跳
+// 每段固定起终点
 let list = [], simTau = 0, skip = null, cur = null, nxt = null, seg = -1;
 const collect = arr => ({ push: o => { arr.push(o); } });
 const rc = document.createElement('canvas'); rc.width = W; rc.height = H; const rcx = rc.getContext('2d');
@@ -76,7 +80,13 @@ function planOf(F) {
   const smp = sampler(P);
   if (!skip) { skip = new Uint8Array(P.props.length); skip[0] = 1; }
   const lay = new Uint8ClampedArray(smp.refd); for (let i = 0; i < N; i++) if (!P.lab[i]) lay[i * 4 + 3] = 0;
-  return { F, P, smp, tex: E.texture(canvasOf(lay), 2) };
+  const labels = E.texture(canvasOf(F.L), 0), gl = E.gl;
+  gl.bindTexture(gl.TEXTURE_2D, labels);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  return { F, P, smp, tex: E.texture(canvasOf(lay), 2), labels,
+    distance: F.distance ? E.distance(F.distance, meta.qw, meta.qh) : null,
+    bounds: boundsOf(P.lab, W, H, P.props.length) };
 }
 // 新笔记住自己相对取色均值的"手感"（明暗抖动），以后换帧取色时保留
 function remember(s, smp) {
@@ -101,56 +111,67 @@ async function initShot() {
   const fx = []; for (const ln of K.lines || []) lines(collect(fx), K, ln.pts, ln);
   for (const s of fx) { s.fixed = 1; remember(s, cur.smp); list.push(s); }
   if (IT.sizzle || IT.steam) prepFX(cur.P);
+  STATS.n = list.length;
 }
 
-// 进入第 i 段：预测每支笔到第 i+1 帧的位置 → 走出本区的这一段里褪掉；留下的定好目标颜色；缺口按第 i+1 帧补新笔（这一段里淡入）
+// 对齐前后画层
 async function beginSeg(i) {
-  seg = i; const fl = await flowOf(i);
+  const began = performance.now();
+  seg = i;
   nxt = planOf(await loadFrame(i + 1)); const smp = nxt.smp;
+  const forward = new Map(), backward = new Map();
+  for (const g of trkOf.keys()) { const D = stepOf(g, i); forward.set(g, D); backward.set(g, inv2(D)); }
+  for (let g = 1; g < cur.P.props.length; g++) if (K.parts[g - 1].name === 'egg') {
+    const a = cur.bounds[g], b = nxt.bounds[g];
+    if (a[2] >= a[0] && b[2] >= b[0]) {
+      const D = [[1, 0, (b[0] + b[2] - a[0] - a[2]) / 2], [0, 1, b[3] - a[3]], [0, 0, 1]];
+      forward.set(g, D); backward.set(g, inv2(D));
+    }
+  }
+  const go = makeMotion(await flowOf(i), meta, K.parts, forward);
+  const back = makeMotion(await flowOf(i, true), meta, K.parts, backward);
+  const box = [0, 0, W - 1, H - 1];
+  cur.meshes = cur.P.props.map((_, g) => g ? E.mesh(motionMesh(box, g, go, W, H)) : null);
+  nxt.meshes = nxt.P.props.map((_, g) => g ? E.mesh(motionMesh(box, g, back, W, H)) : null);
   for (const s of list) {
     if (s.fixed) continue;
     s.cA = s.c; s.c2A = s.c2;
-    if (trkOf.has(s.g)) {                                   // 跟着物体整体走：这一段里匀速移到下一帧的位置
-      const D = stepOf(s.g, i); s.px = D[0][0] * s.x + D[0][1] * s.y + D[0][2]; s.py = D[1][0] * s.x + D[1][1] * s.y + D[1][2];
-      s.tv = [s.px - s.x, s.py - s.y, Math.atan2(D[1][0], D[0][0])];
-    } else { s.tv = null; const [u, v] = flowAt(fl, s.x, s.y); s.px = s.x + u; s.py = s.y + v; }
+    trajectory(s, go);
     if (leftRegion(smp, s, s.px, s.py)) { s.ph = 2; s.cB = s.cA; s.c2B = s.c2A; continue; }
     if (s.hl) { const sv = nxt.F.SPEC[((Math.min(H - 1, Math.max(0, s.py)) | 0) * W + (Math.min(W - 1, Math.max(0, s.px)) | 0)) * 4 + 1] / 255; s.ph = sv < .06 ? 2 : 0; /* 高光明显变暗才褪 */ s.cB = s.cA; s.c2B = s.c2A; continue; }
     [s.cB, s.c2B] = targetAt(s, smp, s.px, s.py);
   }
   rcx.clearRect(0, 0, W, H);
-  rasterize(rcx, list.filter(s => !s.fixed && !s.hl && s.ph !== 2).map(s => ({ ...s, x: s.px, y: s.py, c: s.cB })));
+  rasterize(rcx, list.filter(s => !s.fixed && !s.hl && s.ph !== 2).map(s => ({ ...strokeAt(s, 1), c: s.cB })));
   const born = [];
   paintPlan(nxt.P, { R: GRAIN.Rinc, T: GRAIN.T, seed: 1000 + i, skip, sampler: smp, out: collect(born), init: rc, incremental: true });
-  for (const s of born) { s.ph = 1; remember(s, smp); list.push(s); }
+  STATS.retired = retireCovered(list, born);
+  for (const s of born) { s.ph = 1; remember(s, smp); trajectory(s, back, true); list.push(s); }
   const hl = []; highlights(collect(hl), nxt.F.SPEC, nxt.P, { ch: 1 });
   const old = list.filter(s => s.hl && s.ph !== 2);
-  for (const h of hl) if (!old.some(o => Math.abs(o.px - h.x) < 20 && Math.abs(o.py - h.y) < 20)) { h.ph = 1; remember(h, smp); list.push(h); }
+  for (const h of hl) if (!old.some(o => Math.abs(o.px - h.x) < 20 && Math.abs(o.py - h.y) < 20)) { h.ph = 1; remember(h, smp); trajectory(h, back, true); list.push(h); }
   STATS.born = born.length; STATS.n = list.length; STATS.dead = list.filter(s => s.ph === 2).length;
+  STATS.ms = Math.round(performance.now() - began);
 }
 // 到达第 i+1 帧：褪完的删掉，新笔转正，颜色落到目标，铺底换成新的
 function endSeg() {
   list = list.filter(s => s.ph !== 2);
-  for (const s of list) { if (s.ph === 1) s.ph = 0; s.c = s.cB; s.c2 = s.c2B; s.tv = null; }
-  E.gl.deleteTexture(cur.tex); cur = nxt; nxt = null; seg = -1;
-}
-
-function advect(fl, d) {
-  for (const s of list) {
-    if (s.fixed || s.ph === 1) continue;               // 新笔已经画在下一帧的位置上
-    if (s.tv) { s.x += s.tv[0] * d; s.y += s.tv[1] * d; s.ang += s.tv[2] * d; continue; }
-    const [u, v] = flowAt(fl, s.x, s.y);
-    const [u1, v1] = flowAt(fl, s.x + 6, s.y), [u0, v0] = flowAt(fl, s.x - 6, s.y), [u3, v3] = flowAt(fl, s.x, s.y + 6), [u2, v2] = flowAt(fl, s.x, s.y - 6);
-    const w = ((v1 - v0) - (u3 - u2)) / 24;            // 局部旋转
-    s.x += u * d; s.y += v * d; s.ang += w * d;
+  for (const s of list) commitStroke(s);
+  for (const state of [cur, nxt]) {
+    for (const m of state.meshes || []) if (m) E.gl.deleteBuffer(m.buf);
+    delete state.meshes;
   }
+  E.gl.deleteTexture(cur.tex); E.gl.deleteTexture(cur.labels);
+  if (cur.distance) E.gl.deleteTexture(cur.distance);
+  flows.delete(`v${pad(seg)}`); flows.delete(`b${pad(seg)}`);
+  cur = nxt; nxt = null; seg = -1;
 }
 async function advanceTo(tau) {
   while (simTau < tau - 1e-6) {
     const i = Math.floor(simTau + 1e-6); if (i >= meta.n - 1) break;
     if (seg !== i) await beginSeg(i);
     const d = Math.min(tau, i + 1) - simTau;
-    advect(await flowOf(i), d); simTau += d;
+    simTau += d;
     if (Math.abs(simTau - (i + 1)) < 1e-6) { simTau = i + 1; endSeg(); }
   }
 }
@@ -276,17 +297,26 @@ window.render = async t => {
   if (!IT.still) await advanceTo(clamp(t / IT.dur) * (meta.n - 1));
   const u = nxt ? clamp(simTau - seg) : 0;
   ST.clear();
-  for (const s of list) {
+  const addStroke = s => {
     const a = s.fixed ? 1 : s.ph === 1 ? u : s.ph === 2 ? 1 - u : 1;
-    if (a <= 0) continue;
-    ST.push({ ...s, c: mix3(s.cA, s.cB, u), c2: mix3(s.c2A, s.c2B, u), alpha: (s.alpha ?? 1) * a });
-  }
-  for (const s of fxStrokes(t)) ST.push(s);
+    if (a <= 0) return;
+    const p = strokeAt(s, u);
+    if (s.fixed && !IT.still) p.x += Math.sin(s.y * .014 - t * 5) * .9;
+    ST.push({ ...p, c: mix3(s.cA, s.cB, u), c2: mix3(s.c2A, s.c2B, u), alpha: (s.alpha ?? 1) * a });
+  };
   const cm = cams(t);
   E.begin(GROUND);
   E.under(bgT, W, H, { grey: 0, cam: cm.bg }); E.draw(bgB, { grey: 0, t: 1, hgt: 1, cam: cm.bg });
-  E.under(cur.tex, W, H, { grey: 0, cam: cm.sub });
-  if (nxt && u > 0) E.under(nxt.tex, W, H, { grey: 0, cam: cm.sub, alpha: u });   // 铺底也是逐帧过渡
+  if (IT.still) {
+    E.under(cur.tex, W, H, { grey: 0, cam: cm.sub });
+    for (const s of list) addStroke(s);
+  } else for (let g = 1; g < cur.P.props.length; g++) {
+    const mask = E.underPair(cur, nxt, g, u, cm.sub);
+    ST.clear(); for (const s of list) if (!s.fixed && s.g === g) addStroke(s);
+    E.drawNow(ST.data(), { grey: 0, t: 1, hgt: 1.3, cam: cm.sub, mask });
+  }
+  if (!IT.still) { ST.clear(); for (const s of list) if (s.fixed) addStroke(s); }
+  for (const s of fxStrokes(t)) ST.push(s);
   E.drawNow(ST.data(), { grey: 0, t: 1, hgt: 1.3, cam: cm.sub });
   E.finish({ ...POST_DEFAULT, ...POST, ground: GROUND });
   overlay(IT.start + t, t);

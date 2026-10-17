@@ -3,6 +3,11 @@
 /paint/cache/
 /review/*
 !/review/motion-check/
+!/review/ghosting-fix/
+/review/ghosting-fix/*
+!/review/ghosting-fix/修复验证.md
+!/review/ghosting-fix/ghosting-metric.json
+!/review/ghosting-fix/s09-comparison-final.jpg
 __pycache__/
 *.pyc
 node_modules/
