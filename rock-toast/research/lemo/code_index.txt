@@ -1,0 +1,929 @@
+
+######## archive-lighttable
+  film.js (729) | 《差两秒》 Two Seconds Short — Archive Light Table demo. render(t) for the whole film. / One continuous camera over one light table. World units = pixels of the first-flight plate scan / (5000 px = 7 in); every item sits on the table w | track, w2s, dive, shot, int2s, shd, tex, text, wipe, ring, dot, plate, subtitles, tableTags
+  index.html (19) |  | 
+  mix.py (188) |  | seg, P, arp, glass_tap, paper, tick, starter, pen, swell, eio, rms
+  timeline.js (64) | 《差两秒》 Two Seconds Short — the single timeline. 90 BPM, one beat = 2/3 s; every key action sits on the grid. / film.js (picture), tools/export.mjs (voice cues, subtitles, cue list) and mix.py (via out/timeline.json) read it. / key  | BPM, b, HIT, VOICE, SUBS
+  tools/cuecheck.mjs (16) | Cue grid check: every key action in timeline.js (HIT) must sit on a beat or half-beat of the 90 BPM grid, / except the two deliberate breaths (suck, hush), which sit just before their downbeat by design. / usage: node tools/cueche | 
+  tools/export.mjs (29) | Timeline -> out/timeline.json (for mix.py and the checks) and out/cues.json + out/cues_srt.json (subtitles). / Reads voice/out/dur.json and voice/out/words.json (written by tts.py and asr_check.py). / usage: node tools/export.mjs  | 
+  tools/fonts.py (26) |  | 
+  tools/prep.py (148) |  | emulsion_mask, pushpull, save_gray, soft, hull
+  tools/sru.py (14) |  | 
+  tools/subcheck.mjs (26) | Subtitle single-line check, measured in the page with the real fonts (Noto Sans SC 500 36 px for the Chinese / line, IBM Plex Sans 400 27 px for the English line; the page draws them with fillText, which never wraps). / Every line | 
+
+######## art-deco
+  chars.js (542) | Characters v2 — Art Deco figure language (Cassandre / Erté / Lempicka): elongated streamlined bodies, small egg heads, / faceted lacquer volumes (hard terminator between a lit plane and a shadow plane, airbrushed inside each plane | PIP_H, PIP_SOLE, PIP_M, FACES, drawFigure, drawPip, drawPipHead, envelope, clef, drawDancer, plumeFan, drawDancerTop, POSES, FRONT_POSES
+  engine/bulbs.js (188) | Art Deco engine · bulb marquee sign. Any text, any font: glyphs are thinned to a one-pixel skeleton, / traced into stroke chains and dotted with evenly spaced bulbs. Each bulb can be lit independently (chases, one-by-one ignition) | buildSign, drawSign, litAll, litSequence
+  engine/cam.js (27) | Art Deco engine · tiny pinhole camera for 2D sets drawn in true one/two-point perspective (Cassandre's steep angles). / World: x right, y up, z forward (metres). Camera at (cx,cy,cz) looking +z, optional yaw (turn) / pitch (tilt u | makeCam, cardTransform
+  engine/deco.js (345) | Art Deco engine · core drawing primitives (palette, metal gold, gold line, airbrush fills, ornaments). / Every function takes the 2D context `g` first and never keeps global state, so it can draw into any canvas. | TAU, clamp, lerp, seg, ss, eio, eo, ei, back, mulberry, hash, C, rgba, mix
+  engine/type.js (240) | Art Deco engine · typography & graphic components (title bar, numerals, year badge, dial, clock, subtitle card). / Gold-filled text with an engraved shadow and an optional moving sheen. align: 'center' | 'left' | 'right'. | FONTS, goldText, measure, titleBar, decoDigits, yearBadge, floorMedallion, dial, clockFace, subtitleCard, micIcon, capIcon
+  film.js (131) | Film assembly: shot list on the timeline grid, in-media transitions (symmetric door splits, revolving-door wipe, match cuts), / subtitle cards. Everything is deterministic in t. | DUR, shotAt, renderFilm, init, subs, events
+  frames.js (193) | Gate stills: component kit, model sheet, style frames. | kit, charTest, headTest, frameLobby, frameRoof, signTest, modelSheet, stairTest, shotTest, oneColour
+  index.html (6) |  | 
+  main.js (23) |  | 
+  mix.py (223) |  | st, ld, env_curve, room, mono_room, vload, drive, space, metal, tread, marble, wood, paper, klaxon
+  music/score.py (408) |  | sbt, buf, nt, ht, ch, brush_swish, brush_tap, stride, walk, clarinet_gliss, wah_note, live
+  scenes/lobby.js (309) | LOBBY — grand one-point-perspective hall: lacquer walls, fluted gold pilasters with fan uplights, coffered ceiling, / chevron-runner marble floor with a sunburst inlay, bronze elevator bank + semicircle floor dial, clock, concierg | ROOM, drawLobby, doors, plaque, guest
+  scenes/roof.js (113) | ROOF — the bulb sign "THE STARLIGHT" on the tower crown, seen from below in steep two-point perspective (Cassandre). | SIGN_TEXT, sign, sky, skyline, signRig, drawRoof
+  scenes/stairs.js (126) | STAIRWELL — an architectural cross-section of the tower's stair core (Art Deco poster section drawing). / Switchback flights: flight A runs left→right up to a mid landing, flight B right→left up to the next floor. / The camera cra | FLOOR_H, pipAt, drawStairs
+  scenes/tower.js (142) | TOWER — the Starlight Hotel seen from outside in true 3-point perspective: setback facade with gold piers, lit windows, / stepped entrance arch + revolving door + facade clock, and the bulb sign on the crown. Used for the street c | Z0, TIERS, SIGN_Y, towerSign, signGeom, drawTower
+  shots_kitchen.js (152) | KITCHEN (K): side-scrolling tracking shot with parallax. Match cut in on a spinning silver tray (the "30" medallion rhymes with it), / chefs chop on the backbeats, a Busby-Berkeley tunnel of raised trays, Pip slides under, the las | pipX, kitchenShot
+  shots_lobby.js (85) | Lobby shots (L): wide run, button presses + OUT OF ORDER plaque, face close-up (panic → silence → cap fix → resolve). | lobbyWide, lobbyButton, lobbyFace
+  shots_misc.js (188) | Title (T), envelope insert, ballroom (Busby Berkeley), and the ending (dial ding → doors → end card). | titleShot, envelopeInsert, ballroomShot, endDial, endCard
+  shots_out.js (50) | Exterior shots: street crane-down (S) and the finale pull-back (R5). | pipOnGround, streetShot, pullShot
+  shots_roof.js (215) | Roof sequence: run along the catwalk → tower clock hits XII (silence) → the throw → the fall → the catch (bell 1) / → bandleader opens the song (bells 2–4) → the sign lights letter by letter toward Pip (5–11) → bell 12 behind him. | bellLit, roofRun, towerClock, roofThrow, letterFall, theCatch, bandleader, sheetInsert, signLights, lastLetter
+  shots_stairs.js (68) | Stairwell one-take (C): crane up → pull out to the whole 30-floor section → push back in → into the "30" medallion. | stairBeat, stairU, stairShot
+  timeline.js (54) | Single source of truth for timing: tempo grid, section bounds, and every sync point (picture, music, foley, voice). / Pure JS (node can import it: tools/dump_timeline.mjs → timeline.json for the Python score / mix / checks). / sta | BPM, K_BPM, STAIR0, STAIR_BEATS, KIT0, kb, ROOF0, STRIKE1, strike, TUTTI, BALL1, DING, DUR, bt
+  tools/cuecheck.py (20) |  | 
+  tools/dump_timeline.mjs (7) | timeline.js → timeline.json (for Python: score / mix / cuecheck) | 
+  tools/pitch.py (11) |  | 
+  tools/subs.py (12) |  | 
+
+######## ascii-crt
+  art.js (181) | 字符画的"底片"：先在离屏像素上算出灰度（R = 琥珀，G = 地球），再交给 term.js 按格取平均、查密度表选字。 / 全部确定性：同样的参数永远得到同样的画。 / 噪声 ---------- | fbm3, earthShade, Art, horizonY, paintEarthrise, makeCraters
+  crt.js (119) | 单色磷光 CRT 后期（WebGL2）。改写自 core/post/crt.js：去掉录像带色度渗色和 RGB 光栅（单色显示器没有荫罩）， / 改成 P3 琥珀磷光的强度 → 颜色映射 + 第二通道（地球蓝）+ 曲面屏桶形畸变 + 圆角屏幕 + 玻璃反光 + 开 / 关机。 / 输入：场景画布 R = 琥珀强度，G = 地球蓝强度（可 >1 的部分靠叠加两次表达，饱和在 1）。 | makeCRT
+  index.html (6) |  | 
+  main.js (615) | TRANQUILITY.LOG —— 全片时间线。window.render(t) 画第 t 秒；window.EV 导出拟音 / 旁白事件；window.SUBS 导出字幕。 | begin, blackRect, voChars, strip, typedN, regTyping, bootText, bootTok, linkPanel, sBoot, sCarrier, sMsg, sReply, earthCells
+  mix.py (161) |  | T, nz, bp, lp, hp, add, key, tick, relay, degauss, data_chirp, ratchet, err, bel
+  music/score.py (322) |  | m, osc, ladder, wow, adsr, pan2, place, voice_saw, ir_long, ir_gated, reverb, delay, drone, seq
+  term.js (113) | 字符网格引擎：VT323 字形图集 + 按格子贴字。 / 约定：场景画布用 'lighter' 叠加，R 通道 = 琥珀磷光强度，G 通道 = 地球蓝强度（crt.js 负责上色）。 / 格子：宽 cw，高 ch = 2cw（VT323 的 advance = 0.4em，字形竖向 0.8em），字号 fs = cw / 0.4。 | W, FONT, COLS_ATLAS, ATLAS, initTerm, glyph, text, inverse, cursor, makeRamp, pick, cellsFromImage
+  tools/subs.mjs (10) | 导出页面的 window.SUBS → out/subs.json（和画面里的日志栏用同一份时间） | 
+  voice_fx.py (22) |  | 
+
+######## backrooms
+  figures.js (85) | 人形：① 摄像者自己的腿和鞋（低头时入画）② "东西"——远处的细长剪影，比例略不对 / 两点之间的胶囊（半径 r），每帧可重新摆 | makeLegs, makeThing
+  index.html (7) |  | 
+  main.js (184) | Night Shift Orientation — Liminal Found Footage 风格 demo / three.js 场景（720×540，4:3）→ GTAO + 物理景深（自动对焦找焦）+ 辉光 → VHS 摄像机着色器 → 1920×1080（左右黑边） | gLight, lightExtra, darkMem, camPose, render, endCard
+  mix.py (236) |  | nz, sec, env_ar, fade, bus, put, glight, load_voice, tapewow, speaker, murmur, clack, motor, breath
+  music/muzak.py (37) |  | 
+  osd.js (82) | 摄像机 OSD：自制 5×7 点阵字体（REC、电量、时间码、日期、字幕机片名） / 画在 720×540 的"磁带空间"画布上，由 VHS 着色器合成进信号（所以也吃色度渗色和跟踪抖动） | text, width, drawOSD
+  sheet.js (59) | "东西"的剪影设计页（关卡 1 交付）：index.html?sheet=1 / 左：正面剪影（静止 / 挥手）与 1.75 m 员工、2.70 m 吊顶的比例；中下：挥手的四个相位；右：设计要点 + 片中的样子 | human, render
+  story.js (102) | 时间线：唯一真值。机位关键帧、对白、广播、灯闪、对焦、磁带断点、字幕全部从这里读 / 坐标：米；x 东，z 南（-z = 北，走廊方向）；yaw 0 = 朝北，+π/2 = 朝西（左转），−π/2 = 朝东 / 时间压缩（关卡 1 后压到 60 s 以内）：下面所有时间按"原始时间"写，再经 W() 映射到成片时间。 | W, DUR, T, LINES, CHIMES, POS, YAW, PITCH, CAMH, FOV, FOCUS, APER, FEAR, HOLD
+  subs.js (59) | 字幕：模仿录像带时代的隐藏式字幕（Line 21 / CEA-608）——等宽白字、每行一条黑底块、一行最多 32 字符 / 广播 = "[PA]" 前缀；摄像者的气声 = 斜体；环境声用方括号描述（SDH 习惯），包括全片最安静的那一秒 "[SILENCE]" | buildCaps, drawCaps
+  tex.js (191) | 程序化贴图（Canvas2D）：墙纸、地毯、吊顶板、日光灯格栅、告示纸、出口标志 / 全部确定性（mulberry 种子），不依赖外部图片 | wallpaper, carpet, ceiling, troffer, RULES, notice, cork, exitSign, outlet
+  thing2d.js (78) | "东西"的剪影：Canvas2D 画的有机轮廓（片中做成走廊尽头的公告板，永远近乎正对镜头） / 同一个函数也用于剪影设计页。单位：米；原点 = 两脚中间的地面 / o = { wave: 0..1 抬手程度, ph: 挥手相位(rad), tilt: 头歪(rad) } | drawThing
+  vhs.js (100) | VHS 摄像机后期（three ShaderPass，最后一道，直接输出到 1920×1080 画布） / 顺序：4:3 画幅 → 磁带逐行抖动 / 磁头切换条 / 跟踪撕裂 → 镜头桶形畸变（OSD 不畸变） / → 亮度水平带宽限制 + 锐化振铃 → 色度大幅水平糊开并滞后 → 高光向右拖尾 → 自动白平衡 / 曝光 / AGC 噪点 / → 掉磁（白色横线）→ 黑电平抬升 + 高光软削 → 暗角 / 不做 CRT 扫描线/光栅：这是"被录下来的带子" | VHS
+  world.js (380) | 空间：手工路线 + 程序化填充的无尽办公格子间；自写光照着色器（上千盏日光灯来自一张数据贴图） | H, LX, LOX, WALLS, EXIT, PILLARS, lightData, lightTex, LIGHTS, updateLights, U, silhouetteMat, paint, buildWorld
+
+######## blueprint
+  draw.js (207) | 制图引擎：纸面坐标 → 斜二测投影 → 镜头 → 屏幕；所有几何都是折线，便于"按长度画出"。 / ink 画布：白 = 曝光的线，黑 = 纸（黑色填充 = 消隐）。fx 画布：R 投影 / G 水渍 / B 印章（lighter 叠加）。 | W, inkC, fxC, ovC, g, TAU, cam, proj, LW, setCam, lw, clear, S, camMatrix
+  film.js (368) | 全片时间线：108 BPM，21 小节。所有动作、镜头、字幕、音效事件都从这里来。 | BEAT, B, DUR, LINES, setLines, subs, netHC, EV, renderFilm
+  index.html (6) |  | 
+  machine.js (352) | 接云机：正立面几何（纸面坐标，y 向下），斜二测挤出，爆炸视图，活标注。 | G, M, gearAngles, explodeOf, drawMachine, drawGarden, flower, explodePaths
+  main.js (108) |  | fig1Dims
+  mix.py (150) |  | nz, tt, ex, pen, letter, hatchs, compass, slide, unroll, fit, slap, paperpuff, swell, brass
+  music/score.py (192) |  | B, seq, tr, rend, gate, rms_db, band
+  paper.js (142) | 晒图纸合成器（WebGL2）：纸张在纸面坐标里程序生成（任意缩放都清晰）， / ink 画布（R = 白线曝光度，黑 = 纸）+ fx 画布（R = 投影变暗，G = 水渍湿度，B = 红色印章）合成到输出画布。 | makePaper
+  sheet.js (291) | 图纸家具：图框、页眉、标题栏、零件表、注释栏；修订云线 ↔ 云；雨与水渍；手影；印章。 | SW, border, header, TB, titleBlock, PARTS, partsList, wrap, notes, cloudLobes, revCloud, makeDrops, rain, handShadow
+  tools/check_mix.py (18) |  | 
+  tools/subs.mjs (8) | 从页面读 window.SUBS 导出 subs.json（srt 与烧录字幕同一份数据） | 
+  tools/video_range.mjs (29) | 局部渲染（core/render/video.mjs 的副本，加 --from/--to 帧号）：node core/render/video.mjs styles/<slug>/demo [--fps 24] [--workers 3] [--q 'k=v'] [--out out/video.mp4] / 多个片子并行制作时 workers 用 3（默认），单独渲染可开到 6 / 每个 worker 独立浏览器，JPEG 截图经管道交给 ffmpeg； | 
+
+######## brick-toy
+  actors.js (61) | 积木宇航员：纯积木拼成的可动人偶（腿/臂绕髋/肩转动，头可转） | HIP, SHOULDER, ARM_L, makeAstro, walkPose
+  bricks.js (85) | 积木几何与材质。单位：1 = 一个凸点间距（8mm）；砖高 1.2，板高 0.4 | BRICK, COL, plastic, brickGeo, roundGeo, coneGeo, slopeGeo, mesh, brick, plate
+  index.html (7) |  | 
+  main.js (271) | Rocket from Spare Parts — Brick Toy 风格 demo | walk, astroAt, handsWorld, cam, brickIcon, pill, hud, render, events
+  mix.py (54) | 混音：拟音（按 events.json）+ 旁白/对讲 + 配乐（旁白时压低）+ 室内底噪与钟表 → mix.wav | 
+  music/edit.py (28) | 配乐剪辑 → score.wav（48k 立体声，成片长度） / A 段：Monkeys Spinning Monkeys，第一拍对齐第一块砖（4.0s），倒塌瞬间硬切 / 重建：同曲安静段回来（-9dB），下拍对齐"找到锥头" / 升空：Heroic Age 53.61s 的爆发点对齐点火，60.53→79.02 跳 10 小节（相似度 .95），最后重音落在片尾卡 | load, place
+  rockets.js (250) | 火箭：一号（细高塔，逐块抛上去）→ 倒塌（预计算物理）→ 用散落的砖重建二号（带尾翼、驾驶舱、大锥头）→ 点火升空 | V2H, makeRockets
+  set.js (101) | 布景：真实书桌（HDRI + 胡桃木 + 茶具 + 台灯 + 铅笔 + 一摞书）+ 绿色底板 + 书顶的积木月球 | M, TOP, PAD, PAD_TOP, MOON, buildSet, groundY
+  story.js (63) | 时间线：所有剪辑点对齐配乐小节；动画按 12fps 步进（定格动画"拍两格"） | DUR, ANIM_FPS, q, qc, BEAT, beat, bar, T, VO, SHOTS, shotAt, CREDITS
+
+######## briefing-board
+  audio/mix.py (302) |  | silent, note, hit, bar, kit, chord_at, stab, lp_sweep, marker, tap, magnet_snap, pop_off, landing, friction
+  index.html (46) |  | 
+  kit/batch.mjs (30) | Batch renderer: every scene JSON → PNG, in one browser. / node kit/batch.mjs scenes/stills/*.json [--out stills/] [--t 12.5] / Each scene may set "size": [w, h] (default 1920×1080), "t" (time to render; default: everything / revea | 
+  kit/board.js (726) | Engineering Briefing Board kit v3: one continuous whiteboard wall, filmed. / A scene is data (scenes/*.json): the board, a camera built from overlapping eased moves, / and elements that live on the board: / prints   cut-out photos | bease, THEME, FONT, loadFonts, setScene, camAt, toScreen, toWorld, anchor, writeBox, screenSpeed, renderScene, SUB, measureSub
+  kit/tools/clean_lettering.py (17) |  | 
+  kit/tools/fetch_fonts.py (59) |  | get, chars, subset
+  kit/tools/fetch_sources.py (49) |  | sha256, fetch
+  kit/tools/make_print.py (19) |  | 
+  kit/tools/mirror_span.py (23) |  | 
+  kit/tools/prep_object.py (199) |  | birefnet, poly_mask, clean_alpha, decontaminate, grade, main
+  kit/tools/redraw_stays.py (90) |  | centres, line_score, match
+  kit/tools/redraw_suspension.py (94) |  | robust_quad, side_fit, poly
+  kit/tools/repair_hangers.py (61) |  | 
+  kit/tools/ship_anchors.py (14) |  | 
+  kit/tools/sky_key.py (40) |  | 
+  kit/tools/stretch_span.py (34) |  | mx
+  scenes/_gen_film.py (349) |  | el, ev, Cam, wavy, bease, tip_time, tag_box, num_box, union
+  tools/camcheck.mjs (97) | Camera smoothness, "the wall is never seen whole before the reveal", and the judgement frames. / node tools/camcheck.mjs [--reveal 31.1] [--fps 24]          (run from anywhere; LIB found from this file) / Samples the page's camera | 
+  tools/camplot.py (23) |  | 
+  tools/cuecheck.py (21) |  | 
+  tools/final_asr.py (25) |  | 
+  tools/rescheck.mjs (18) | Resolution check: for every frame (24 fps), every photo in frame must have at least one real photo / pixel per screen pixel (ratio ≥ 1). A stretched span counts its stretch. Writes out/rescheck.csv. / node tools/rescheck.mjs [--fp | 
+  tools/rhythm_report.py (84) |  | win
+  tools/subcheck.mjs (35) | Subtitle check: one line per language, measured with the real fonts in the page. / node tools/subcheck.mjs [path/to/film.srt] / 1. In the page (window.SUBCHECK): the Chinese and the English line of every cue are measured with / th | 
+
+######## cel-anime-80s
+  bg.js (239) | 喷枪背景：加载时一次性画成大图（color + emissive 两张），逐帧只做平移——和真实动画"背景美术 + 赛璐璐"的分工一样 | NEON, streetPlate, skylinePlate, smear, reflectPlate, drawLoop, tallFar, tallNear
+  cel.js (102) | 赛璐璐绘制工具：平滑/折角混合路径、平涂 + 硬边阴影 + 硬边高光 + 彩色描线、飘带、离屏画布 | W, TAU, LWK, canvas, path, poly, cel, line, ribbon, flutter, hex, mix, rgba, rng
+  fx.js (107) | 特效：雨（3 张循环）、水花、速度线（流線）、镜头光晕、光条、尾灯光轨 / 雨丝：drawing = 第几张（3 张循环，12fps 换张）；ang = 倾角（弧度，0 = 竖直） | rain, splashes, speedLines, flare, lamp, trail
+  hands.js (35) | 戴手套的手（捏握：手指在物体后，拇指压在物体正面）。局部坐标：拇指尖 = (0,0)，手从左边伸进来（dir=-1 时镜像） / C = { glove:{f,s,h,l}, cuff:{f,s,l}, sleeve:{f,s,h,l}, stripe?, pad? } | hand, HER, HIS
+  head80.js (308) | 80 年代人设的头部（返修 v2）：颅骨球体 + 鹅蛋形下颌，三个角度（front / q = 3/4 / side）× 多种表情 / 局部坐标：颅骨球心 (0,0)，半径 80；头顶 -80，眼睛中心 +22，鼻底 +54，嘴 +74，下巴 +114。脸朝画面右侧。 / 描线：皮肤 = 细的暖深棕，头发 = 深紫，睫毛近黑，道具近黑（80 年代赛璐璐的彩色描线） | EXPR, head80
+  hud.js (29) | 字幕层（不经过胶片后期，像录像带上后加的字幕）：奶黄色半窄体 + 深色描边；调度员青色 + "BASE" 无线电标签 | subSpans, hud
+  index.html (6) |  | 
+  main.js (75) | City Lights, 1987 — 80s Cel Anime demo | render, events
+  mix.py (148) | 混音：原创配乐（music/score.wav）+ 引擎（按转速曲线合成）+ 雨 / 风 / 海 + 事件拟音 + 人声（调度员走无线电）→ mix.wav / 用法：.venv/bin/python styles/cel-anime-80s/demo/mix.py | curve, stereo, sweep_noise, squelch, bell, metal_scrape, motor, S, rms
+  music/analyze.py (43) | 配乐自检：分段 RMS、频段能量、静音段、卡带段频谱、节拍网格、削波、分轨平衡 / 运行：.venv/bin/python styles/cel-anime-80s/demo/music/analyze.py | band
+  music/score.py (746) | coding: utf-8 -*- | T, mtof, ts, noise, _sos, lp, hp, bp, svf, ks_loop, env_follow, saw, adsr, make_ir
+  pal.js (54) | 色指定（color model）：白天标准色 → 按时间带（夜 / 黎明）自动换算，和真实动画的"时间帯別 色指定"一样 | BASE, LIGHTS, palette, PAL
+  post.js (139) | 录像带 + CRT 后期（WebGL2）：透过光辉光 + 晕染 + 调色 → 色度渗色 / 红右移 → 字幕 → 荧光辉光 → 扫描线 + RGB 光栅 + 四角压暗；开机亮线、磁带跟踪噪声 / 输入两张 2D 画布：scene（画面）与 glow（只画发光体：霓虹、车灯、透过光文字） | makePost
+  rider.js (162) | 少女"夜鸟"与摩托：侧面骑行赛璐璐（原点 = 两轮中间的地面，y 向上为负） | wheel, bike, limb, riderSide, LAMPS
+  scenes1.js (195) | 冷开场 + 片名：下摇、磁带、眼睛大特写、片名卡 | crane, cassette, gloveHold, tape, eyes, titleCard, title
+  scenes2.js (239) | 骑行蒙太奇：背影纵深、胸像光带、车轮大特写、高架大全景 | riderRear, rear, bustShot, wheelShot, highwayPlate, highway
+  scenes3.js (318) | 阻碍与爆发：吊桥、拧油门 + 转速表、正面冲刺、飞越止め絵、落地 | bridge, throttle, charge, jumpPlate, jump, land
+  scenes4.js (234) | 黎明：交接磁带、卡带机 PLAY、火箭升空、晨光里的微笑、片尾卡 | handoff, deck, liftPlate, liftoff, smile, endcard
+  shots.js (99) | 逐镜头绘制。每个镜头 fn(S) ，S = { t, lt（镜头内时间）, u（0..1）, g（画面）, e（发光层）, A（资源）} | celLayer, side, SHOTS_FN
+  story.js (71) | City Lights, 1987 — 时间线：所有剪辑点对齐配乐小节（原创配乐 116 BPM，4/4） | BPM, BEAT, BAR, bar, beat, DUR, q12, q8, qc12, T, VO, SHOTS, shotAt, CREDITS
+  test.js (32) | 角色单独试画：index.html?test=model（角色设定表）| side | bust | test
+  tools/sheet.py (13) |  | 
+  tools/srt.py (17) |  | 
+  tools/still.mjs (28) | core/render/still.mjs 的本地副本，多了 --q（页面查询串，如 test=side&raw=1）和 --prefix / 用法：node styles/cel-anime-80s/demo/tools/still.mjs styles/cel-anime-80s/demo 1.5 3 --q test=side --out dir | 
+
+######## crayon-book
+  chars.js (402) | 角色：小女孩（Pip）、月亮、小羊玩偶。全部参数化：视角 × 表情 × 姿势。 | head, star, girl, sheep, moon
+  crayon.js (222) | 蜡笔笔触引擎（Canvas2D）：画进"笔压层"（RGB=颜色，A=笔压），由 gl.js 按纸纹决定附着。 / 世界坐标 → 屏幕坐标经 CAM；线条宽度按屏幕像素（每帧都是"重新画"的一张画，笔粗不随镜头缩放太多）。 / BOIL.step = floor(t*12)：每 2 帧（24fps 下）换一次抖动种子 = 线条沸腾。 | W, CAM, BOIL, WMUL, layer, clear, sx, sy, ws, line, fill, dab, ellipse, handCircle
+  end.js (198) | 结尾：画面拉远成一本打开的绘本（真纸：中缝阴影、页面弧度、柔和投影），书躺在蜡笔画的木桌上， / 旁边是用短了的蜡笔、一支笔头湿着蓝色的平头刷和一杯洗笔水。翻页 → The End。 / 桌面空间：右页 = [0,1920]×[0,1080]，左页 = [-1920,0]×[0,1080]，中缝 x = 0。 | TURN, endFrame
+  film.js (247) | 正片时间线：一镜到底在同一页画上移动；45s 后拉出成书页（end.js） | DUR, LINES, SUBS, EV, RUNG_T, frame, drawPage, subTo
+  gl.js (224) | WebGL2 合成器：纸面 → 蜡笔层（纸纹阈值附着）→ 水彩层（蜡笔防水）→ 终合成（纸纹浮雕、暗角） / 每个蜡笔层是一张 Canvas2D：RGB = 蜡笔颜色，A = 笔压。着色器按"笔压 > 纸纹凹陷深度"决定蜡是否附着。 | W, makeComp
+  index.html (6) |  | 
+  main.js (18) | 入口：?test=swatch|model 进入试画页；否则渲染正片 | 
+  mix.py (236) | 混音：原创配乐（music/score.wav）+ 材质拟音（蜡笔刮纸、湿刷子、毡子、纸页）+ 夜晚底噪 + 旁白 → mix.wav / 用法：.venv/bin/python styles/crayon-book/demo/mix.py | nz, T, fade, envelope, crayon, scribble, write, paper_rustle, blink, swish, felt, baa, cricket, tap
+  music/score.py (247) |  | m, mbox, toy, toyp, samp, bend, slide, play_theme_bar, gate, rms
+  pal.js (19) | 有限的一盒蜡笔（11 支）+ 一管水彩 | PAL
+  rig.js (44) | 角色绘制的公共部件：部件遮挡（擦掉后面的线/色 + 剪纸垫底）、肢体管、画布组 / 一个"角色组"：垫底（knock）、涂色（f）、轮廓（l）三张层 | group, clearGroup, erase, knock, part, tube, curve
+  sheet.js (125) | 角色设定表：?test=model&page=girl|moon&v=1 | sheet
+  subs.mjs (9) | 导出字幕时间线（与烧录字幕同一份数据 window.SUBS）：node styles/crayon-book/demo/subs.mjs → subs.json | 
+  test.js (49) |  | test, star
+  world.js (174) | 这一页画：孩子式透视的房子、树、草地、梯子、白蜡星星、水彩刷痕。世界坐标 3200×1800（整页 = CAM s 0.6） | WORLD, pr, HOUSE, ridgeY, MOON, WIN, LAD, drawWorld, drawLadder, STARS, drawStars, BANDS, bandFront, drawWash
+
+######## dark-keynote
+  engine.js (475) | engine.js — Dark Tech Keynote 绘制引擎（可复用：场景只调用这里的函数） / 暗色近黑渐变底 + 细线网格 + 柔光 + 圆角 UI 面板 + 唯一强调色；光扫揭幕、乱码滚数字、吸附飞行、条带透视、2.5D 摄影机。 | W, PAL, FONT, setAccent, font, rgba, mix, buf, rr, bg, glow, grid, vignette, panel
+  film.js (561) | film.js — 《Room to Think》装配：混乱世界 → 收拢 → 光的揭幕 → 大数字 → 呼吸 → 回响 | statusDigitsBox, setLines, subs, renderFilm, buildEvents
+  frames.js (31) | frames.js — 关卡风格帧 / 引擎示例 | engineDemo, poster
+  index.html (6) |  | 
+  main.js (15) |  | 
+  mix.py (202) |  | sine, caret_tick, key, glass, felt, whoosh, plop, flick, pop, glitch, buzz_low, thump, doom, shimmer
+  music/check.py (67) |  | onset_at
+  music/score.py (323) |  | win_of, ramp, onset_off, put, play, lp, hp, bpf, hzm, saw_voice, pad_block, put_st, thump, shake
+  timeline.js (63) | timeline.js — 速度网格 + 音型 + 三条声部的音符表（画面 / 配乐 / 混音 / 自检共用的唯一数据源） / 音型 P（原创，12 个十六分音符）：A3 E4 B4 E4 C#5 E4 | A3 E4 B4 E4 D5 C#5 | BPM, P, K, voice1, rate2, voice2, voice3, voiceClean, typeTimes
+  tools/cuecheck.py (24) |  | ev
+  tools/dump_timeline.mjs (8) | 速度网格 + 音符表 → timeline.json（配乐 / 混音 / 自检共用） | 
+  tools/export.mjs (11) | 导出 events.json（混音）+ out/srt.json（字幕）：node styles/dark-keynote/demo/tools/export.mjs | 
+  tools/final_asr.py (23) |  | 
+  world.js (168) | world.js — 混乱世界：按音符表生成几百个 UI 元素（文件 / 照片 / 通知 / 窗口），以及它们的吸附槽位与分类槽位 / 世界 = 一块 1920×1080 的"屏幕"（桌面），摄影机在它上面推拉 | SCR, NOTE, TXT, CARET_H, CAM0, pullZoom, items, camCenter, poseAt, TILE, ROWS, SLOTS, CARET_HOME, RING
+
+######## data-physical
+  data.js (8) | 全球累计装机容量（GW），IRENA (2026) Renewable Energy Statistics，经 Our World in Data 整理（CC BY 4.0） / 太阳能 = 光伏 + 光热，并网 + 离网；风电 = 陆上 + 海上。原始 CSV 在 data/，下载于 2026-10-16。 | YEARS, SOLAR, WIND, GW_PER_SHEET, BRASS_EVERY, fmt
+  film.js (244) | 《两条螺旋》Two Spirals — Data Physicalization 数据实物化 demo / render(t)：相机关键帧 → 叠片 → 景深 → 2D 叠层（读数、判定、计数器、字幕、落版）；EV 给混音；TEXTS 给 readcheck；SUBCHECK 给字幕单行检查 | setCamera, text, line, dot, plate, verdict, swatch, pairLabels, stackLabel, subtitles, overlay
+  index.html (7) |  | 
+  mix.py (264) |  | sos, lpf, hpf, bpf, tv, hz, mi, q, put, inst, adsr, saw, stereo, bass
+  set.js (161) | 实物：胡桃木表盘、两圈实物柱（太阳能 = 拉丝铝片，风电 = 亚克力片，两者每 100 GW 都夹一片黄铜）、最后落下的黄铜圆片 / 每一片的位置都是时间的纯函数：任意帧可单独渲染 | R, STEP, N, th, rS, PAIRS, topY, NEW25, FALL25, LAND25, SHEETS, landed, buildSet
+  timeline.js (61) | 《两条螺旋》Two Spirals — 唯一的时间源：节拍、旁白、字幕、事件 / 96 BPM，4/4：一拍 0.625 s，一小节 2.5 s。画面动作、旁白起点、音乐重拍都对在这张格子上。 | BPM, q, DUR, BUILD, BUILD_LEN, T, VO, VOICE, LABELS
+  tools/export.mjs (22) | timeline.js → voice/lines.json（TTS 用的念法 + 语音识别应听到的原文）；有 voice/out/dur.json 时再写 out/cues.json 并检查旁白不重叠 / usage: node tools/export.mjs <demo> | 
+  tools/fonts.mjs (23) | 字体子集：从 timeline.js 收集画面与字幕用到的字，经 Google Fonts CSS2 API 下载 OFL 字体子集到 fonts/，写 fonts.css / usage: node tools/fonts.mjs <demo> | 
+  tools/holdcheck.py (9) |  | 
+  tools/srt.mjs (5) | out/cues.json → 双语字幕条目（中文一行 + 英文一行），时长与画面上烧进去的一致：≥ max(1.8 s, 语音 + 0.6 s) | 
+  tools/subcheck.mjs (13) | 字幕单行检查：在页面里用真实字体量宽（中文 Noto Sans SC 500 36px，英文 Inter 400 27px，nowrap），每行都必须窄于安全宽度 / usage（库根目录）：node <demo>/tools/subcheck.mjs <demo>     有任何一行过宽就 exit 1 | 
+
+######## dataviz
+  engine.js (398) | Data Storytelling engine — "a pencil-annotated chart on cream paper". / Everything visual in this style lives here; film.js only calls these functions. / World units = chart pixels at zoom 1. A 2D camera {x, y, zoom, roll, sx, sy} | W, P, RAMP, rampRGB, rgb, valueColor, applyCam, w2s, s2w, viewRect, drawPaper, resample, pencilStroke, quadPath
+  film.js (468) | A Hundred Summers — the film. Story, camera and timing only; all drawing goes through engine.js. | setData, setCaptions, subs, renderFilm, buildEvents
+  index.html (6) |  | 
+  main.js (34) |  | engineDemo
+  mix.py (159) |  | buf, put, nz, db, tap, scratch, ruler, snap, wood, cricket, smooth_env, r
+  music/score.py (213) |  | buf, put, pitch, plonk, saw, chord, kick, shaker, hat, clang, boom, gate, duck_to, rms
+  timeline.js (42) | A Hundred Summers — tempo grid and every timed event. Single source of truth for picture, score, foley and checks. / 90 BPM, 4/4. k = beat index from 0; t = k * B seconds. | BPM, T, LIFE0, yearK, lifeYears, K, DUR, U, X, BOX, BAND
+  tools/cuecheck.py (23) | 配乐卡点 ↔ 画面事件对齐表：music/score.json keys vs events.json（画面事件），并报告 24fps 取整误差 | 
+  tools/extract_data.py (30) | NASA GISTEMP v4 全球海陆温度距平（基准 1951–1980）→ 每年夏季（JJA，6–8 月）距平 / 输入 data/GLB.Ts+dSST.csv（原样下载，公版）→ 输出 data/jja.json + 打印叙事里用到的事实 | 
+  tools/final_asr.py (16) | 成片逐句 whisper：从成片音轨按字幕区间截取每句再转写，对照 lines.json 的 asr/text | 
+  tools/subs.py (14) | 字幕时间（与 film.js setCaptions 同一公式）→ out/subs.json；断言 停留 ≥ max(1.8, 语音 + 0.6) 且不重叠 | 
+  tools/words.py (20) | whisper 逐词时间 → 原文逐词时间（字幕逐词出现用）。按字符位置比例把 whisper 词起点映射到原文单词上 | 
+
+######## engraving
+  engine/burin.js (463) | burin.js — a line engine for copperplate engraving in Canvas 2D. / Adapted from the Opuscar 98 set engine (copied, not imported) and extended for this library: / every stroke keeps its place in the engraver's cutting order, so any | INK, RNG, hash, noise1, noise2, clamp, mix, sstep, xf, compose, parseD, toPath, bboxOf, shape
+  engine/copper.js (137) | copper.js — the plate before it is printed: polished copper with fine polishing scratches and the soft reflection / of a studio window, the engraved grooves (dark trough, a bright burr on the lip), the burin — mushroom-shaped / wo | drawCopper, copperLight, drawGrooves, drawBurin, drawSwarf
+  engine/index.js (25) | Copperplate engraving engine — public entry. / burin.js  line engine: ordered strokes, hatching, cross-hatching, stipple, fur, tone fields, formTone, contourHatch / plate.js  paper, plate mark, border, engraved lettering, roundels | engraveShape
+  engine/plate.js (144) | plate.js — the printed sheet around an engraving: laid paper, the pressed plate mark, ruled border, / engraved lettering (roman capitals and copperplate script), magnification roundels and leader lines. / Everything draws in world | PAL, FONTS, paperTexture, drawSheet, borderInk, measure, engraveText, writeScript, fitLines, roundelFrame, leader, wrapLines
+  engine/wash.js (95) | wash.js — hand colouring, the way plates were coloured after printing: transparent watercolour laid region by / region, blooming out from where the brush touched. Each region is painted once into its own cached sheet: / · the colo | Wash
+  example/index.html (24) | STYLE.md §10: any shape + a light direction, engraved in cutting order, with one hand-coloured element. | 
+  film.js (356) | "The Honeybee, Plate VII" — a museum / science-card film in the copperplate engraving style. / All words and data come from content.json. Timing is on a 96 BPM grid (1 beat = 0.625 s) and re-flows with the / number of details (1–4 | W, makeFilm
+  index.html (6) |  | 
+  main.js (13) | page contract for core/render: window.READY, window.render(t), window.DUR, window.EV / ?content=content_alt.json swaps the content file. | 
+  mix.py (156) | Sound for "The Honeybee, Plate VII": three layers (room tone, foley keyed to the film's events, the baroque score), / the narrator on top with the score ducked under him. Run from the repo root: / .venv/bin/python styles/engraving | roomtone, scratches, ticks, whoosh, load
+  music/score.py (418) |  | T, cue, tr, pl, hch, bow, cello8, viola8, hatch16, cont, sec_A, sec_B, sec_C, sec_outro
+  subjects/bee.js (285) | The honeybee (Apis mellifera, worker), dorsal view, wings spread as on a 19th-century natural-history plate. / Built entirely from the burin engine. Local frame: plate px at scale 1, thorax/abdomen junction at (0,0), head up (−y). | FORE, FORE_VEINS, HIND, HIND_VEINS, HAMULI_U, wing, buildBee
+  subjects/details.js (172) | Magnified details of the honeybee, each drawn for a roundel of radius 500 local units (centre 0,0). / buildDetail(name) → { ink, regions: { name: {path, polys} }, specimen: polys (for the ruled ground to avoid) } / ink groups: 'ol | DETAILS, buildDetail
+  subjects/scallop.js (55) | A second built-in specimen: the great scallop (Pecten maximus), left valve seen from above, as on a conchology plate. / Same contract as bee.js: buildScallop({ x, y, s }) → { ink, regions, focus }. / ink groups: 'ol0' (the shell's | buildScallop
+  tools/cuecheck.py (29) | cue check: every scored accent (music/cues.json) against the picture event it is written for (events.json). Tolerance: 1 frame @24. | f
+  tools/events.mjs (10) | events.json with a content file: node styles/engraving/demo/tools/events.mjs styles/engraving/demo [content.json] / (core/render/events.mjs takes no query string; this is the same thing with ?content=) | 
+  tools/readcheck/index.html (20) | reading-time check: from the moment each text starts, how long does it stay fully inside the frame? need ≥ chars/12 + 1 s | 
+  tools/subs.py (12) | subtitles from the film's voice events (same rule as film.js drawSubs): on 0.1 s before the line, off 0.6 s after it | 
+
+######## game-show
+  assemble.py (7) | 组装 main.js = main_v1.js 前 109 行（调色板/节拍/通用视觉，改 150 BPM、93 小节）+ main_v1 的角色库（robotDB … 舞台前）+ main_b.js（v2/v3 全部场景） | 
+  build.py (8) | 组装 index.html = 通用框架头（frame_head.html：样式/滤镜/动画工具）+ 本集 main.js / 收录进 Lemo-Opuscar 时：原来从 ../cat-case/index.html 截取「// 猫（胖橘）」之前的部分， / 已把截出来的那段（标题已换成 AI 进化节拍）固化为 frame_head.html，不再依赖仓库外项目。 | 
+  frame_head.html (194) |  | el, txt, tf, op, show, rng, measure, chars, charsPop, charsIdle, halftone, bg, caption, captionAnim
+  index.html (1588) |  | el, txt, tf, op, show, rng, measure, chars, charsPop, charsIdle, halftone, bg, caption, captionAnim
+  main.js (1389) | ============================================================ / 《AI 进化节拍》—— 节奏天国风格，140 BPM / 所有“打点”都通过 ev() 登记，渲染器导出 events.json，配乐脚本据此放音效/人声 / ============================================================ | ev, punch, gtext, stripes, dots, raysEl, starPath, burst, judge, banner, bannerAnim, robotDB, robotAG, robotT
+  main_b.js (1202) | 角色 v2：16 个模型 ---------------- | bean, pose, twins, poseAny, smallBot, human, humanFace, setArm, robotW, podium, dropY, heyAt, nearestIn, scene
+  main_v1.js (1071) | ============================================================ / 《AI 进化节拍》—— 节奏天国风格，140 BPM / 所有“打点”都通过 ev() 登记，渲染器导出 events.json，配乐脚本据此放音效/人声 / ============================================================ | ev, punch, gtext, stripes, dots, raysEl, starPath, burst, judge, banner, bannerAnim, bean, pose, twins
+  make_srt.py (27) | 从 events.json 的 v:* 打点 + voices/lines*.txt 台词生成 ../game-show.srt / 片中只有英文喊词（画面字卡是中文、已烧进画面），srt 只收录喊词；同一句连续重复（间隔 < 0.15 s）合并成一条。 / 用法：python make_srt.py [out.srt] | dur
+  music.py (334) | 《AI 进化节拍 v2》配乐：150 BPM，王道进行 Fmaj7–G7–Em7–Am7；音效与人声读取 events.json | addv, load, square_lead, brass_stab, slap, arp, woodblock, cowbell, crash, bleep, stone, puff, pssh, buzz
+  remix2026.js (265) | ================= REMIX：2026 年热点，全堆上来 ================= | 
+  render.mjs (68) | 用法（在任意目录运行均可，脚本会 chdir 到 demo/）： / node render.mjs events                  → events.json（DUR + 全部打点，给 music.py 用） / node render.mjs stills 1.9 3.1 ...      → stills/t_*.png（STILLS_DIR=out/check 可改输出目录） / node render.mjs video [wor | openPage
+  synth_lib.py (196) | 合成器库：乐器 + 音效（抽自胖橘案卷 music.py） | mtof, add, env, lp, hp, bp, kick, snare, clap, snap, hat, pluck, bell, bass
+
+######## glass-product
+  check_mix.py (20) |  | 
+  index.html (7) |  | 
+  main.js (310) | Aura — Hear the Light · Glass Product Render 风格 demo | pose, kickState, budLight, frame, spaced, glintText, subtitle, hud
+  mix.py (126) |  | nz, sweep, panned_sweep, mag_click, glass_ding, slide, tock, whoosh_air, puff, early, rms
+  music/score.py (332) |  | mid, hz, T, sos, lp, hp, bp, stereo, put, fade, kick_soft, k808, clap, hat
+  product.js (186) | 产品：虚构耳机 Aura —— 玻璃鹅卵石耳机（无柄、透镜形）+ 旋盖玻璃充电盒 / 单位：毫米。耳机本地轴 Y = 朝外（正面玻璃穹顶），-Y = 入耳方向（导管 + 硅胶耳塞） / —— 材质 —— | AURA_A, AURA_B, glass, frosted, guideMat, setPulses, makeBud, explode, CASE, makeCase
+  story.js (57) | 时间线：120 BPM，1 拍 = 0.5 s，1 小节 = 2 s。所有剪辑点、光扫、脉冲都对齐拍点（音乐先行） | BPM, DUR, b, T, SHOTS, shotAt, KICKS, MACRO_SWEEPS, VO, SFX
+  studio.js (115) | 影棚：暗场玻璃摄影布光（黑底 + 条形柔光箱），环境贴图每帧由"灯条场景"重新生成（光扫 = 真的有一根灯条划过） / 地面：黑色亮面 + 模糊镜面反射 + 程序焦散（玻璃把光聚在地上；随低音脉动、随声波外扩） | makeStudio
+  subs.py (9) |  | 
+
+######## halftone-dossier
+  fetch_fonts.mjs (11) |  | 
+  index.html (1087) |  | el, txt, tf, op, show, rng, measure, chars, charsPop, charsIdle, halftone, bg, caption, captionAnim
+  music.py (322) | 《胖橘案卷》配乐 + 音效：纯代码合成，120 BPM，一小节 = 2 秒 / 用法：python music.py [输出.wav]   默认写到本脚本旁的 music.wav | mtof, add, env, lp, hp, bp, kick, snare, clap, snap, hat, pluck, bell, bass
+  render.mjs (75) | 用法（可在任意目录运行，路径都相对本脚本所在的 demo/）： / node render.mjs stills 1.9 3.1 ... [--dir stills]  → <dir>/t_<秒>.png（默认 stills/） / node render.mjs video [workers]                   → out/seg_*.mp4 + out/video_noaudio.mp4（CRF 12 母版） / node rende | openPage
+
+######## hd-2d
+  chars.js (194) | 像素角色：程序化逐像素绘制（朝右的 3/4 侧身），每个姿势一帧，拼成图集；billboard 受场景光照 | SPX, makeChar, FRAMES
+  cliff.js (292) | 场景 C：风暴石阶（Gale Steps）+ 灯塔顶灯室（镜头 'cliff' 35.5–49.5、'lamp' 49.5–58.0） | buildCliff
+  forest.js (154) | 场景 B：低语林（Whisperwood）——夜林，Wren 提灯从左走到右；灯是主光，树影随她转动 | buildForest
+  forest_art.js (110) | 夜林像素美术：树皮、树冠团簇、蕨、草丛、蘑菇、林地地面 | pathZ, bark, canopy, fern, grassTuft, mushroom, forestGround, treeline
+  fx.js (156) | 氛围件：天空、星、海面、粒子（萤火/浮尘/火星/雨）、体积光柱、火光闪烁 | flick, sky, stars, sea, particles, rain, shaft, beamCard
+  harbor.js (250) | 场景 A：灰水港（Greywater）夜景——码头、木筋房、帆船、海、远处崖顶灯塔 | buildHarbor
+  index.html (7) |  | 
+  kit.js (131) | 场景搭建小件：世界坐标 UV、像素材质、房子、木箱、木桶、火焰、窗、灯柱、远山剪影 / 按法线做平面投影 UV（米 / tile）：让任何几何体上的像素密度一致 | worldUV, mat, mesh, box, mats, windowMat, windowQuad, house, crate, barrel, fire, ridge
+  main.js (57) | The Lampbearer — HD-2D 风格 demo | tiltCenter
+  mix.py (127) | 混音：配乐 music/score.wav（配音时自动避让）+ 分场景环境声 + 事件拟音 + 旁白/对白 → mix.wav / 用法：.venv/bin/python styles/hd-2d/demo/mix.py [out.wav]（默认写 demo/mix.wav） | curve, stereo, place, rms_db, fwoomp, strike, chime, bell, thunder, stepSoft, boom, lvl
+  music/edit.py (453) |  | decode, s, band_env, refine_onset, rms_db, short_rms_db, room_ir, make_tail, cosramp, eqp, main, write_cues
+  post_ts.js (107) | 本地副本（移轴版）：在物理景深上叠加按屏幕高度计算的移轴模糊。tiltAmt=0 时与 core/three/post.js 完全一致 / 后期：场景 → (MSAA+深度) → [GTAO 环境光遮蔽] → 物理景深（CoC∝|1/f−1/z|，螺旋采样）→ 辉光 → 调色/暗角 → 色调映射 / makePost(renderer, scene, camera, w, h, { ssaa: 2, ao: true })：ssaa 为内部超采样倍数（画布 | makePost
+  px.js (164) | 像素工具：低分辨率画布 → NearestFilter 贴图；抖动、噪声、描边；像素公告板（受光 + 投影） | PPM, bayer, h2, vn2, fbm, mulberry, hex, mixc, PX, texOf, ramp, woodPlanks, cobbles, rock
+  story.js (33) | 时间线（秒）：镜头、旁白、关键事件 | DUR, SHOTS, T, VO, shotAt
+  tools/render_range.mjs (31) | 只渲一段时间：node styles/hd-2d/demo/tools/render_range.mjs <a> <b> [--fps 60] [--workers 2] [--q 'tilt=1'] [--out styles/hd-2d/demo/out/range.mp4] / 与 core/render/video.mjs 同一套逐帧截图管线（同样的 JPEG q95 → x264 crf14），只是帧号范围是 [round(a*fps), rou | 
+  tools/sheet/index.html (15) |  | 
+  tools/srt.py (13) | 从 story.js 的 VO 表 + voices/dur.json 导出 SRT / 用法：.venv/bin/python styles/hd-2d/demo/tools/srt.py [out.srt]（默认写库交付物 styles/hd-2d/hd-2d.srt） | 
+  ui.js (125) | 2D 叠加层：章节卡、对话框、字幕、片名、镜头间黑场 | overlayReady, CREDIT, drawOverlay
+
+######## hologram-hud
+  engine/holo.js (327) | hologram-hud · 全息线框引擎 / 读 JSON 线框模型（顶点 / 边 / 四边面），负责：透视投影、转台旋转、扫描生长、局部爆炸、 / 零件自转、实心全息面（菲涅尔）、景深衰减、两级辉光。纯 Canvas 2D，确定性（只依赖参数）。 / const model = await loadModel('models/volt.json'); / const H = new Holo(1920, 1080); | loadModel, prepModel, normalizeModel, makeCamera, Holo, drawScanPlane, drawPad, modelFromPath
+  engine/hud.js (406) | hologram-hud · 界面层：目标框、引线标注、滚动数字、面板、画框、字幕、背景网格、故障闪烁 / 全部是 Canvas 2D 函数，参数化，确定性。颜色从 theme(hue, accent) 取。 | clamp, FONT, theme, background, vignette, plate, chrome, corners, targetBox, leader, rollText, monoText, fitFont, wrap
+  film.js (439) | 《Volt · Spec Scan》场景编排：所有文案来自 content.json，时间线按条目数自动重排（120 BPM，1 小节 = 2 s） | buildTimeline, makeFilm
+  frames.js (22) | 单独的引擎演示帧（STYLE.md §10 用）：?scene=star&t=… / 暖橙色四角光点 + 一截光标尾巴：用"唯一彩色"keep 保持它自己的颜色，其余按全息主色 | star
+  index.html (6) |  | 
+  main.js (20) | 页面入口：读 content.json（可用 ?content=content_alt.json 换内容）→ 模型 → 片子 | 
+  mix.py (240) |  | sine, att, blip, tick, lock_hit, confirm, roll, zip_, whoosh, servo, hiss, pneu, tink, whine
+  models/gen_kite.mjs (79) | 换内容测试用：虚构折叠航拍无人机 KITE M2 的线框模型 → kite.json / 用法：node gen_kite.mjs > kite.json    坐标：米；x 向前（机头），y 向上，z 向左。 | 
+  models/gen_volt.mjs (112) | 生成 VOLT CE-01 城市电助力车的线框模型（顶点 + 边 + 四边面），输出 volt.json / 用法：node gen_volt.mjs > volt.json / 坐标：米；x 向前（车头），y 向上，z 向车身左侧。地面 y = 0。 | 
+  models/mkmodel.mjs (218) | 线框模型构建工具：几何基本体 → {v, e, q}（顶点 / 边 / 四边面） / 输出格式（engine/holo.js 读取）： / { name, parts: [{ id, anchor:[x,y,z], pieces: [{ id, v:[x,y,z,...], e:[a,b,...], q:[a,b,c,d,...], explode:[dx,dy,dz], axis?:{c,d} }] }] } | Model
+  music/check.py (23) |  | 
+  music/score.py (366) |  | q, mark, stereo, put, hz, blep_saw, square, adsr, in_, chord_at, call_idx, has_hat, has_clap, arp_note
+  tools/cuecheck.py (23) |  | 
+  tools/export.mjs (18) | 导出 events.json（音效事件）、timeline.json（配乐网格）、out/srt.json（字幕） / 用法（仓库根）：node styles/hologram-hud/demo/tools/export.mjs [content.json] [工作目录，默认 demo/] | 
+  tools/final_asr.py (23) |  | 
+  tools/make_lines.mjs (9) | content.json → lines.json（Kokoro 配音输入）。用法：node tools/make_lines.mjs [content.json] [lines.json] [voice覆盖] | 
+
+######## impasto
+  engine/impasto.js (344) | Palette-knife impasto renderer (WebGL2). / Every mark is an instanced "stroke": knife / brush / dab / line. / Pass 1 paints strokes into two targets at 2x resolution: colour (+coverage) and paint height. / Pass 2 lights the height | F, S, KNIFE, POST_DEFAULT, Impasto, Strokes, hex, mixc, shade
+  engine/plate.js (164) | Reference illustration -> palette-knife strokes. / You draw a clean, flat, value-planned illustration with Canvas2D (Ref.fill / Ref.line), / every shape tagged with props (stroke direction, max stroke size, stroke type, group). /  | seedRng, Ref, paintRef, strokePath
+  film.js (348) | "The Colour of Rain" — director's timeline. Every shot is repainted from strokes each frame. | setup
+  index.html (3) |  | 
+  main.js (5) |  | 
+  mix.py (143) | Sound design + final mix: rain bed (3 layers), wet foley, umbrella fabric, palette-knife scrapes, birds; music on top. | put, splish, big_splash, plink, woodtap, fwump, fabric, knife, rosin, chirp, rain_bed, curve
+  music/score.py (93) | "The Colour of Rain" — score. Part A: solo cello (D minor, 3/4, 80). Part B: street musette waltz (D major, 3/4, 132). | E
+  scenes/cards.js (18) | Painted title + end card | buildTitle, buildEnd
+  scenes/cellist.js (164) | The street cellist. Local units: origin = floor under the crate, y up is negative; seated height ~1000. / Plates: body (crate, legs, torso, cello, open case, fingering arm) and head (pivots at the neck). / The bow arm is procedura | CEL, celloPt, drawBody, drawHead, face, buildCellist, bowArm
+  scenes/common.js (17) | shared drawing helpers for reference illustrations | P, E, RR, lin, rad, lerp, clamp, ss, seg, eo, eio, back, hash, quadPt
+  scenes/ecu.js (45) | Extreme close-up: cello top under the strings, raindrops on the varnish. Bow is procedural. | EW, STR, strings, drawEcu, buildEcu, ecuBow
+  scenes/figures.js (153) | Procedural painted figures, rebuilt every frame from fixed seeds (so paint never "boils"). | UMB, pat, umbrellaSide, umbrellaTop, walker, rain, splashes, ribbon
+  scenes/girl.js (109) | The girl: low shot on the puddle -> tilt up -> she opens the first colour. / Scene units 2200 x 2400. Her feet at GIRL_AT; local units: origin at her feet, height ~1250, facing right. | GW, G, drawGirlBg, GOX, drawGirlBody, drawGirlHead, girlFace, girlArm, buildGirl
+  scenes/medium.js (36) | Medium set: inside the arcade. Left: the arch opening onto the grey rainy square (bright). Right: warm lamp-lit plaster. / Scene units 2000 x 1130; the cellist sits at CELL_AT with scale CELL_S. | MW, CELL_AT, LAMP, drawMedium, buildMedium
+  scenes/top.js (20) | Overhead: the wet square seen from above. Segmental-arc paving; knife strokes follow the arcs. | TW, drawTop, buildTop
+  scenes/wide.js (133) | The square in the rain. One camera, three states: grey (opening), umbrellas in colour (middle), all colour + sun (finale). / Scene units: 2112 x 1188 (1.1 x frame), one-point perspective, horizon y = 540. | WW, figScale, ARCH, drawWide, buildWide
+  test.js (54) |  | setup
+  timeline.js (75) | Music grid = source of truth for picture and sound. / Part A: solo cello, D minor, 3/4 @ 80 BPM (the grey world). / Part B: street waltz (musette), D major, 3/4 @ 132 BPM (colour). | A, B, at, TA, TB, BEAT_A, T, DUR, MEL_A, MEL_B, CHORDS_B, POPS, noteTimes, NA
+  tools/dump_timeline.mjs (5) | export the music grid for the Python score/mix | 
+
+######## ink-wash
+  climax.js (132) | 第 5 镜 静（笠檐大特写 → 过肩：拔剑写"水"）+ 第 6 镜 断流（捺笔出字化飞白，浪分上下两半翻卷塌下） | init, render
+  comp.js (160) | 宣纸合成器（WebGL2） / 每个画面三张 2D 画布：wet（湿墨，晕开 + 边缘积墨 + 颗粒）、dry（干墨，纸纹咬边）、col（朱砂、绫裱等颜色层）。 / 两套画面 A/B 用"墨晕"蒙版转场：新画面从一团正在扩散的墨里长出来，前沿有一圈深色水线。 | makeComp, layerSet
+  cross.js (110) | 第 3 镜 过江（横跟）+ 第 4 镜 浪起（低角大全景） | heroX, crossPose, renderCross, renderRise
+  cues.mjs (3) | 从 story.js 导出字幕区间（与画面烧录一致）：node styles/ink-wash/demo/cues.mjs > cues.json | 
+  face.js (96) | 侠客面部特写（3/4 侧向右）：斗笠檐压在额上，线描为主、清墨托阴影。 / 局部坐标：脸心 (0,0)，额到下巴约 70 单位；expr: calm(闭目) / alert(睁眼) / resolve(决) / peace(笑) | face
+  frames.js (68) | 关卡 1 风格帧（?test=frame&f=wide|cross|cut） | renderFrame
+  glyph.js (72) | "水"字：以 OFL 楷书字体 Ma Shan Zheng 的字形做骨架。 / 四笔中线（竖钩、横撇、撇、捺）按字形描出，笔压对应字形粗细；笔触引擎按笔顺逐笔写，最后用字形轮廓（略外扩）裁边， / 于是笔顺、提按、飞白来自引擎，字的结构与重心来自书法字形。坐标在 100×100 字格内，第三个数是笔压。 | SHUI, glyphMask, shuiStrokes, cutStroke, writeShui, tipAt
+  hero.js (321) | 无名侠客：写意造型，几笔成形。姿势 = 关节字典（局部坐标，身高 100，y 向下为正，脚底为原点，面朝右）。 / 每一帧按姿势重新生成笔触（种子固定 → 笔毫纹理稳定），面朝左时镜像。 | VERM, POSE, mixPose, hero
+  index.html (6) |  | 
+  ink.js (208) | 水墨笔触引擎（Canvas2D） / 一笔 = 中心线 + 压力轮廓 + 若干"笔毫"。湿笔的墨体画进 wet 画布（合成器里会晕开、积边）， / 干笔的笔毫画进 dry 画布（按墨量断开 → 飞白）。所有坐标是世界单位，由调用者 setTransform。 | TONE, reseed, mk, draw, drawSeq, blot, mass, qpts
+  land.js (149) | 山水：远山（湿墨渐隐入雾）、中山（披麻皴 + 点苔）、崖石（斧劈）、松、芦苇、墨圈涟漪 | vn2, ridgeFn, mountainLayer, cun, cliff, pine, reed, ripple
+  main.js (44) |  | 
+  mix.py (140) |  | env_adsr, drip, brush, water_step, splash, skid, sword, cut, splatter, collapse, waterclose, cloth, seal, rms
+  music/score.py (198) |  | G, H, xiao, D, mark, verb, cut_after, gate_zero, rms_db, onset
+  passage.js (149) | 第 7 镜 过江（江被劈开，白路；身后水合拢）→ 抱拳 → 收卷盖印 → 片尾卡 | render
+  seal.js (31) | 朱红白文方印"水"：印文用代码画的篆意线条（中间一道 S 形长画，两侧各两段折水纹） | seal
+  sheet.js (83) | 角色设定表（关卡 1）：?test=sheet | renderSheet
+  shots.js (71) | 镜头调度：按时间选镜头，处理墨晕转场，给出合成参数与音效事件 | init, frame, subPos, events
+  story.js (31) | 时间线唯一真值（秒）。配乐 music/score.py 按同一套时间写。 | DUR, T, VO, stepTimes
+  subs.js (20) | 字幕 = 题跋：斜体焦墨小字，放在画面留白处，句首一枚小朱印；墨晕出现/化开 | subtitle
+  test.js (58) |  | render, renderFaces
+  wave.js (68) | 巨浪：泼墨浪身 + 顺势的水纹线（学宋人水图的线描）+ 含墨卷起的浪头（飞白即浪花）+ 墨点水沫 / 局部坐标：原点在浪脚水面，y 向上为负。o: {x, y, s, rise(0..1), curl(0..1), t, seed, am} | waveShape, wave
+  world.js (155) | 手卷世界（世界坐标，缩放 1 = 屏幕像素）：右端远山与崖松（起点岸），中间大江（留白），左端对岸。 / 第 1–2 镜：墨滴晕开成山 → 自右向左展卷 → 崖石晕出 → 侠客三笔画出 → 起跳 | WW, HERO0, HERO1, init, camXf, blit, layers, openCam, leapScreen, renderOpen
+
+######## iso-infographic
+  engine.js (388) | Isometric Infographic engine — Canvas 2D, true isometric (axes at 30°), flat 3-tone faces, no outlines. / World: x → screen down-right, y → screen down-left, z → up.  Depth toward viewer = x + y + z. / Usage: const iso = new Iso(c | C30, clamp, lerp, seg, ss, eo, eio, back, hash, rgb, css, mix, hex, tri
+  film.js (606) | From Bean to Cup — one continuous camera over one isometric board. Timeline, camera, stations, overlays, sound events. / Scenes only call engine.js (style) / world.js (the board) / hero.js (close-ups). | DUR, camAt, ROUTE, render, events
+  hero.js (109) | Hero close-ups in the flat infographic language: the palm (opening and ending, identical pose), the picking fingers, / the coffee branch and the cup. All drawn in world units (billboards) with origin = where the object rests on th | palm, pinch, branch, cherry, cup, kmTag
+  index.html (8) |  | 
+  main.js (12) |  | 
+  mix.py (227) |  | bp, lp, hp, nz, ex, nrm, brown, fit, fade, partials, grains, verb, snap, palm
+  music/score.py (175) |  | put, gtr, kal, bas, hit, chord_at, pick_bar, strum, lp, env, band
+  tests.js (25) |  | hero, spark
+  timeline.js (34) | Tempo grid + cue times: single source of truth for picture, score, mix and checks. | BPM, TL, SUBS, KM
+  tools/cuecheck.py (21) |  | 
+  tools/final_asr.py (15) |  | 
+  tools/subs.py (9) |  | 
+  world.js (450) | The diorama: one square board (S = 240 units) seen in true isometric. Story geometry lives here; drawing via engine.js only. / coasts (hand-drawn polygons, world XY) ---- | S, UP_COAST, LOW_COAST, SEA, UP_LAND, LOW_LAND, MTN, TER, blob, PICKER, BEDS, FARM_ROAD, PORT_A, PORT_B
+
+######## lidar-survey
+  film.js (532) | 《林下的田》 The Fields Under the Forest — LiDAR Survey library demo. / One continuous camera over 0.74 km² of forest in Ashford, Connecticut (USGS 3DEP 2016 points, NAIP 2016 photo). / render(t) is deterministic: every frame can be dra | camAt, placeCamera, cutAt, text, line, plate, reading, subtitles, drawOverlay, drawSection, drawHistory, drawEnd
+  index.html (15) |  | 
+  mix.py (272) |  | sos, lpf, hpf, bpf, tv, hz, mi, put, adsr, saw, fm, stereo, ping, blip
+  timeline.js (69) | The one timeline: picture, score, foley, voice and subtitles all read these numbers. / 96 BPM, 4/4: one beat = 0.625 s, one bar = 2.5 s. Key actions sit on beats (tools/cuecheck.py checks). | BPM, BEAT, b, T, PEEL_STEPS, VO, CAM
+  tools/audiocheck.py (22) |  | 
+  tools/build_data.py (109) |  | dtm_at
+  tools/cuecheck.py (13) |  | 
+  tools/export.mjs (27) | timeline.js -> voice/lines.json (TTS input), timeline.json (for mix.py and cuecheck), cues.json + out/cues_srt.json / usage: node tools/export.mjs <demo_dir>     (exit 1 if a subtitle would overlap the next one) | 
+  tools/fetch_ept.py (61) | box: lon0,lon1,lat0,lat1 | merc, get, load_h, nb, walk, dl
+  tools/fetch_naip.py (14) |  | 
+  tools/fonts.py (31) |  | 
+  tools/load.py (14) |  | load
+  tools/motioncheck.py (33) |  | 
+  tools/profile.py (41) |  | at
+  tools/scout_dem.py (24) |  | 
+  tools/subcheck.mjs (14) | Subtitle single-line check, measured in the page with the real fonts (Noto Sans SC 500 36 px for the Chinese line, / Barlow Condensed 400 30 px for the English line, nowrap): every line must be narrower than the safe width. / usag | 
+  tools/terrain.py (29) |  | local, lonlat, points, dtm
+  tools/trace.py (45) |  | samp
+  tools/walls.py (53) |  | seglen
+
+######## living-screencast
+  clawd.js (70) | Clawd：18×10 方像素。由 Claude Code 终端 logo 的象限字符 ▐▛███▜▌ / ▝▜█████▛▘ / ▘▘ ▝▝ 1:1 展开 / （每个字符格 = 2×2 象限，行加倍成方像素）。道具与特效用同一像素网格。 / 返回 [[c, r, kind]]，kind: 1 身体 2 眼睛 | CLAY, grid, sprite, pixels, pixart, BANG, DOTS, PENCIL, SPARK, HEART, CHECK, SWEAT, dust, speedlines
+  film.js (457) | 《Clawd Moves In》时间线：VO 挂词、镜头、Clawd 表演、光标、界面状态、音效事件 | BPM, DUR, VO, W, WE, EV, camAt, SUBS, build, frame
+  index.html (192) |  | 
+  main.js (121) |  | render, sprites, hud, wipe
+  sound.py (216) |  | tt, db, first, all_, hz, pulse, crush, nz, bar_of, chord_at, pan_piano, pan_chip, N, groove
+  tools/asr_check.py (19) |  | 
+  tools/mixcheck.py (14) |  | 
+  tools/subs.mjs (8) | 导出烧录字幕的时间表 → out/subs.json（再用 core/render/srt.py 转 .srt） | 
+  tools/vo_try.py (19) |  | 
+  ui.js (151) | Claude 应用（Code 页）与终端的纯 2D 重绘。所有函数：状态 → HTML 字符串（确定性） / 终端 logo 的象限网格几何（JetBrains Mono 19px：字宽 0.6em，行高 30） | WIN, TERM, LOGO, desk, light, dark, useTheme, appWin
+
+######## lowpoly-island
+  index.html (7) |  | 
+  main.js (207) | The Island That Grew — Low-poly Isometric Island 风格 demo | skyAt, cam, hexIcon, spaced, titleBlock, hud, render, events
+  mix.py (145) |  | bubble_rise, splash, wood_knock, tile_clack, leaf_pop, stone_thunk, glass_tink, whump, gull, cricket, creak, rms
+  music/check.py (160) |  | m2f, cents, main
+  music/score.py (663) |  | m2f, log, harmony, lp, hp, bp, tarr, auto, soft_attack, partial_gain, noise_burst, modal, kalimba, marimba
+  post.js (117) | 正交相机后期：场景(MSAA+深度) → GTAO → 远处按深度融进渐变天空(+星星) → 移轴模糊 → 辉光 → 粉彩调色/暗角 → 色调映射 / 改自 core/three/post.js（core 的景深用 perspectiveDepthToViewZ，正交相机下不成立） | makePost
+  sea.js (83) | 低多边形海面：三角网格顶点动画（多组正弦），flatShading 让每个三角面各自反光； / 浅滩颜色由"已长出的地块"实时画出的浅水图驱动（泻湖跟岛一起长） / CPU 版同一个波函数（浮标、小船跟着起伏） | waveH, SHALLOW_SPAN, makeSea
+  story.js (84) | 时间线：96 BPM；律动从第一块地升起（6.25s）开始计小节。所有剪辑点、生长事件都对齐这个网格。 | DUR, BPM, G0, bar, beat, T, VO, CHORDS, chordAt, noteAt, SKY, SHOTS, shotAt, CREDITS
+  subs.py (14) |  | 
+  world.js (496) | 岛：六边形柱地块布局 + 全部低多边形道具 + 生长日程（每个生长事件带音高 → 配乐旋律声部） | hex2w, mat, PAL, BEAM_NOTES, CELLS, buildWorld
+
+######## microgame
+  chars.js (297) | 两个原创角色（"家"画风）：CADET DOT（见习宇航员）与 COACH TICK（秒表脑袋主持人） / 两骨 IK（够不着就等比拉长——卡通橡皮臂）：返回与 limb 相同结构；bend = ±1 肘部方向 | ik, DOT_POSE, R_H, drawDot, TICK_POSE, whiteGlove, drawTick
+  film.js (268) | 全片装配：段落 → 画面；电视框转场、舞台、老虎机、Boss 拼贴、片尾卡、字幕、音效事件 | setLines, subs, srtCues, events, endCard, renderFilm
+  frames.js (142) | 关卡 1：角色设定表 + 画风翻译表 + 风格帧 | modelSheet, styleSheet, styleFrame, f1, f2, f3, f4
+  g_ascii.js (172) | ASCII 终端画风（向 ascii-crt 学：字即画面、按字形真实墨量排序的密度阶、负空间、琥珀磷光 + 辉光 + 扫描线、桶形屏）——自写简化版 | CW, clearAscii, rasterize, type, print, cadetAscii, testCadet, render, DOT_ART, drawArt, sceneStrap
+  g_blue.js (139) | 蓝图画风（向 blueprint 学：晒图蓝纸、淡蓝白线四档线宽、中心线/隐藏线虚线、尺寸线与手写标注、一枚红章只用一次）——自写简化版 | LINE, WT, paper, setDraw, bl, arcPts, rectPts, rrPts, occlude, label, dim, stamp, cadetBlue, testCadet
+  g_boss.js (313) | BOSS 关 LAND IT!：一个画面里混多种画风——孔版天空、蜡笔地球/大海、蓝图返回舱、ASCII 高度表、像素小伞、水墨大伞、瑞士红圆落点；舱窗里是"家"画风的 Dot / 视觉焦点只允许一个：伞 → 舱 → 红圆（高度表缩小放右上角，海鸥已删） | BT, risoSky, crayonEarth, crayonSea, swissTarget, inkCanopy, blueCapsule, asciiPanel, altAt, sceneBoss, capPos, targetPos, descentFrame, testBoss
+  g_crayon.js (177) | 蜡笔绘本画风（向 crayon-book 学：蜡只沾在纸牙上、RGB=颜色 A=压力、靛蓝描边不用黑、来回排线涂出界、12fps 线条沸腾）——自写简化版 | CR, clearCrayon, cline, cpoly, circlePts, hatch, cfill, knock, print, ctext, cadetCrayon, testCadet, PUMPS, scenePump
+  g_ink.js (215) | 水墨画风（向 ink-wash 学：五色墨、湿/干两层、飞白、积墨、朱砂只用一点）——自写简化版 | TONE, clearInk, stroke, blot, splatter, print, cadetInk, vermilion, seal, dust, brushText, sceneSneeze
+  g_pixel.js (154) | 像素画风（向 pixel-rpg 学：索引色帧缓冲、整数像素、最近邻放大、1px 墨色外轮廓、Bayer 抖动）——自写简化版 | PW, C, bayer, pset, fill, rect, disc, present, cadetPix, meteor, DODGE_HITS, sceneDodge, gull
+  g_riso.js (126) | 孔版印刷画风（向 risograph 学：R/G/B = 蓝/黄/粉三块版的密度、lighter = 叠印、source-over = 挖空、每区最多两版、纸白挖空光晕、版错位 kick）——自写简化版 | clearRiso, ink, shape, C_, E_, RR, print, withHalo, cadetRiso, testCadet, sceneCatch
+  g_swiss.js (107) | 瑞士排版画风（向 swiss-motion 学：12 栏网格、单字族、左齐右不齐、黑白 + 一个信号红、大留白、不加阴影/颗粒）——自写简化版 | SW, GRID, colX, page, text, cadetSwiss, testCadet, SAL, BOUNCE, live7, sceneSalute
+  glpass.js (170) | "材料通道"：一张 WebGL2 画布 + 几个片元着色器，把某个画风的中间画布"印/画/显示"出来。 / 用法：const out = pass('riso', srcCanvas, {u_off:[...]}); g.drawImage(out, 0, 0) | pass, canvas, staticTex
+  hud.js (151) | 引擎层（所有画风之上统一的"游戏 UI"）：引线计时条、命令词、结果章、生命头盔、字幕牌 / ───────── 引线：编织绳 + 每拍一个刻度结；火花从左烧到右端的小冲天炮 ───────── | fuse, command, stamp, lifeIcon, livesBoard, stageBadge, subtitle
+  index.html (6) |  | 
+  main.js (49) |  | posterOverlay
+  mix.py (248) |  | sine, env_ad, nz, sizzle, swoosh, spring_click, glass_crack, clink, buzzer, bling, rubber_squeak, air_pff, crayon_scribble, brush_swish
+  music/score.py (459) |  | mark, put, m, hz, lp, hp, bpf, bt, beatlen, tr, note, slap, square, epiano
+  stage.js (138) | 主持人舞台（"家"）：放射背景、招牌、中央大电视、Coach Tick、按钮讲台、生命板、关卡牌 | TV, TVZ, tvCam, drawStage, confetti
+  timeline.js (41) | 全片唯一真值：速度网格 + 段落表。画面、配乐、拟音、字幕都从这里取时间。（纯 JS，node 也能 import） | SEGS, DUR, S, find, bt
+  tools/cuecheck.py (23) |  | ev
+  tools/dump_timeline.mjs (6) | node tools/dump_timeline.mjs → timeline.json（配乐 / 混音脚本读） | 
+  tools/final_asr.py (20) |  | 
+  tools/subs.py (12) |  | 
+  tools/trim_cmd.py (21) |  | 
+  toon.js (76) | "家"画风（主持人舞台）：粗描边扁平卡通 + 硬边阴影。所有角色/舞台/UI 共用。 | P, K, setCtx, lw, part, tube, line, dot, circ, ell, rrect, poly, smooth, limb
+
+######## microscope
+  film.js (495) | 《量出来的蓝》 Measured Blue · Microscope Story demo / One continuous camera from the glass slide down to one nucleus and back. Every pixel of glass and tissue is the / real whole-slide scan (Ventana-1.bif, CC0); every number is computed | key, camAt, covers, plateAlpha, activeLevel, focus, drawSpecimen, composite, roiState, shareAt, reg, text, line, rr
+  index.html (17) |  | 
+  mix.py (309) |  | sos, lpf, hpf, bpf, tv, hz, mi, put, adsr, saw, rms, sustain, chord_at, bass
+  timeline.js (58) | The single source of time for picture, score, foley, voice and subtitles. / 90 BPM, 4/4: one beat = 0.6667 s, one bar = 2.6667 s. | BPM, BEAT, bt, DUR, T, VO, NUM
+  tools/cuecheck.py (14) |  | 
+  tools/export.mjs (38) | timeline.js -> voice/lines.json (TTS input), timeline.json (mix.py, cuecheck), cues.json + out/cues_srt.json (subtitles). / Also checks that every number in the script equals the measurement it reports. / usage: node tools/export. | 
+  tools/finalasr.py (21) |  | 
+  tools/fonts.py (23) |  | 
+  tools/nucleus.py (44) |  | 
+  tools/plates.py (234) |  | region, glass_ref, grade, save, tissue_centroid
+  tools/subcheck.mjs (14) | Subtitle single-line check, measured in the page with the real fonts (Noto Sans SC 500 34 px for the Chinese / line, Barlow Condensed 400 30 px for the English line, nowrap): every line must fit the safe width on one line. / usage | 
+
+######## midcentury-toon
+  engine/chars.js (255) | Cast for the demo, drawn with the engine: June (a geometric 1950s new homeowner, Mary Blair-style / turtleneck + cigarette trousers) and the product "Pip" with its dock. / Limited animation: bodies are held drawings; only arms, ha | NAVY, armJoints, toScreen, drawHand, drawOwner, drawDock, drawPip
+  engine/icons.js (72) | Icon library, drawn in the mid-century manual style (flat off-register colour + broken ink). / icon(ctx, name, cx, cy, size, o) — size = box edge in px. Designed in a 200-unit box centred on 0,0. / Names: dock, phone, start, cable | ICONS, icon
+  engine/toon.js (320) | Mid-century Cartoon engine (1950s limited animation, UPA / educational-film lineage). / The look in four rules: / 1. colour and line are two separate "cels": every fill is printed a few px off its ink line, / and the offset re-jit | PAL, rng, hash, noise, clamp, lerp, seg, ss, eo, eio, back, TAU, twos, REG
+  film.js (889) | "Meet Pip" — a product set-up guide in the mid-century cartoon style. / Everything readable comes from content.json; the timeline is rebuilt from the number of steps and the voice durations, / always on the 132 BPM grid. Scenes on | BPM, setup, DUR, section, srtCues, events, renderFilm
+  index.html (6) |  | 
+  main.js (17) | Page contract: window.READY, window.render(t), window.DUR, window.EV | 
+  mix.py (155) |  | nz, env_ad, M, sine, cardboard_thump, cardboard_creak, box_fall, plastic, plastic_thock, plug_click, scrape, stamp, paper_swish, slide_whistle
+  music/score.py (412) |  | T, M, hit, jit, bp, lpf, motor, vib, vib_run, flute, celesta, bass, dk, brush_tap
+  sheet.js (60) | Model sheet: the owner (June) + the product (Pip). Rendered with ?test=sheet | drawSheet
+  tools/cuecheck.py (18) |  | 
+  tools/cues.mjs (8) | Export subtitle cues (for .srt) straight from the film's timeline: node tools/cues.mjs [content.json] > cues.json | 
+  tools/lines.py (8) |  | 
+
+######## one-line
+  cam.js (47) | 镜头：构图关键帧（中心/缩放/转动/跟拍权重）与笔尖跟拍混合；跟拍带延迟与预判的平滑，并保证笔尖在画内 | BASE, camAt, worldToScreen
+  cues_export.py (9) | 从 story.js 的 VO 字幕区间导出 cues.json（与烧录字幕同一份数据） | 
+  face.js (131) | 反向设计：先画好最终的"老人的脸"，再把它按人生切成段。坐标 = 纸面单位，脸中心 (0,0)，y 向下。 / 左耳 = 出生（婴儿的小拳头弯成耳廓；大人的手指 = 眼镜左腿）   头顶 = 秃顶圆弧，风筝线是唯一一根头发 / 眼镜 = 自行车（车把 = 右眉，车座 = 左眉，车架 = 鼻梁两侧）      嘴 = 初恋（红：两张侧脸的头顶连成上唇 M，下面一道笑） / 鼻子 = 房子（戒指 = 左鼻孔，圆窗 = 右鼻孔）                  | LX, MOUTH_L, NOSE_A, SEGS
+  geom.js (129) | 一条路径：把各段 SVG path（各自的局部变换）按弧长采样，自动补切线连续的连接段， / 再按"段时间窗 + 曲率减速 + 卡点/停笔"给每个点分配时间。整片只有这一条线。 | STEP, sampleD, buildPath, headAt, posAt
+  hands.js (51) | 纸上方真实的笔和手：只画投影（柔和、低透明度），不画笔、不画手。 / 画里没有阴影——投影属于纸上方的真实世界。 | penShadow, handShadow
+  index.html (9) |  | 
+  ink.js (186) | 墨线渲染：路径 + 笔压（快细慢粗）+ 边缘微毛 + 慢处积墨 + 老年颤抖/飞白 + 唯一一段红线 | PAPER, INK, RED, prepare, drawLine, drawBlots
+  main.js (110) |  | camFor, penDir, render, events
+  mix.py (105) |  | smooth, db
+  music/score.py (79) |  | legato, pizz
+  paper.js (93) | 暖白纸：程序化纸纹（云斑 + 纤维 + 颗粒），锚定在纸面上随镜头移动缩放 | makePaper, drawPaper, vignette, makeTooth, drawTooth
+  shots.js (32) | 镜头关键帧：t 秒，(x,y) 构图中心（纸面单位），z 缩放（1 = 整张脸），r 转动（度），f 跟拍权重（0 = 纯构图，1 = 纯跟笔） | CAM
+  story.js (13) | 时间线唯一真值（秒）。配音按 whisper 逐词时间对齐到画面卡点。 | DUR, TITLE, VO, HAND, END
+  subs.js (49) | 字幕：手写体 Caveat，小而安静；从左到右"写"出来，淡出；背后一圈纸色光晕避开墨线 | subtitle, title, endCard
+  tools/probe.mjs (22) | 打印每段、每个 part 在段内的弧长比例，以及每 0.25s 的笔尖位置/速度 | 
+
+######## paper-lantern
+  asr.py (9) |  | 
+  index.html (17) |  | 
+  mix.py (129) |  | t_, bp, lp, hp, noise, env, norm, db, put, word, compress, load, click, shimmer
+  render/browser.mjs (15) | 无头 Chrome：优先 PLAYWRIGHT_CHROME 环境变量，否则找本机 playwright 缓存里的 headless shell / GPU 参数让 WebGL 走 ANGLE/GL（M 系列 Mac 上比默认 SwiftShader 快 ~6 倍） | EXE, ARGS
+  render/cues.mjs (8) |  | 
+  render/page.mjs (21) | 打开 demo/index.html（静态服务根 = 仓库根，页面可引用 /node_modules/three、/core/assets/...），等待 window.READY | ROOT, REPO, PAGE, server, openPage, closeServer
+  render/serve.mjs (12) | 极简静态服务器（ES module 不能走 file://） | serve
+  render/still.mjs (14) | 渲静帧：node render/still.mjs <t> [<t> ...] [--out dir] [--q ?ssaa=1] | 
+  render/video.mjs (29) | 渲视频：node render/video.mjs [--fps 30] [--workers 6] [--from s] [--to s] [--out out/video.mp4] | 
+  src/art.js (329) | 剪纸母题：全部在米制画布上画（y 向上）。颜色由调用方给。 / —— 山 —— | FONT, karst, ridge, xiangyun, waves, waterTop, osmanthus, leaf, pine, willow, reeds, jiangnanHouse, pavilion, lantern
+  src/lib.js (44) | 通用小工具：确定性随机、插值、缓动 | clamp, lerp, seg, ss, eio, eo, ei, back, spring, mulberry, hash, vnoise, TAU, monotone
+  src/main.js (81) | 总控：时间线（按配音时长排）、镜头调度（懒加载/释放）、转场、字幕 | get, gc, drawShot
+  src/paper.js (205) | 纸雕层：画布（米制坐标、y 向上）→ 纸纹 + 顶边受光 + 底边暗 → 三维平面（背光透纸 + 自发光窗 + 投影） | PPM, cv, GRAIN, CLOUD, paint, text, vtext, finish, tex, paperMat, sheet, skyPanel, moon, setMoon
+  src/people.js (106) | 人物剪影：关键点 + Catmull-Rom 平滑轮廓（点带第三个值 1 = 尖角）。面朝右，身高 H=1 时的坐标，s = 实际身高（米） / 过点平滑闭合曲线（中心 Catmull-Rom → 三次贝塞尔）；尖角点的切线为 0 | spline, girlStand, girlSit, GIRL_SHOULDER, grannyStand, grannySit, GRAN_SHOULDER, arm, childStand, sushi, SUSHI_SHOULDER, change, ribbon, rabbit
+  src/post.js (114) | 后期：每个镜头 → (MSAA+深度) → 物理景深 → 辉光 → rtA/rtB；最终合成：叠化 / 调色 / 暗角 / 色调映射 / sRGB | GRADE0, Pipe
+  src/props.js (115) | 室内道具剪纸：圆窗窗棂、蒸笼、坛罐、挂历、吊灯、桌椅、碗碟、礼盒、字条 | cut, roundWindow, steamers, stove, jar, bowl, teapot, pendant, calendar, table, chair, boxFront, label, cake3q
+  src/room.js (67) | 真实世界：胡桃木桌上的纸雕灯箱（木框、内壁）、昏暗房间、茶具与一盘真月饼 | BOX, lightbox
+  src/shots/index.js (45) | 镜头表：start 用台词定位；in = 入场转场 | SHOTS
+  src/shots/s01_night.js (109) | S1 · 中秋夜（开灯 → 片名）：月亮、祥云、群山、临水村落、桂花树、灯笼 | MOON, build
+  src/shots/s02_kitchen.js (96) | S2 · 外婆的厨房（“我是一块月饼，出生在外婆的厨房。”） | kitchenSet, build
+  src/shots/s03_press.js (129) | S3 · 俯拍：揉面 → 包馅 → 木模“啪”地一压 → 印出“圆”字 → 烤成金色 | cakeFace, build
+  src/shots/s04_scroll.js (92) | S4 · 明朝的习俗：桥上互赠月饼的两人 + 展开的卷轴（《西湖游览志余》） | robed, build
+  src/shots/s05_table.js (74) | S5 · 空着的位子（L07）→ 墙上小满的照片（L08） | portrait, build
+  src/shots/s06_pack.js (74) | S6 · 装盒：月饼放进礼盒 → 压上字条 → 写好地址 → 合盖（“于是，我出发了”） | giftBox, build
+  src/shots/s07_journey.js (85) | S7 · 出发：翻过山、跨过江，夜车（绿皮车）横穿画面，月亮一直跟着 | train, build
+  src/shots/s08_window.js (52) | S8 · 夜车车窗：窗外树影飞快后退，月亮不动；小桌上的礼盒随车摇晃（“原来这就是想家”） | build
+  src/shots/s09_change.js (81) | S9 · 嫦娥：大月亮前飞过的嫦娥与飘带、云上的玉兔；镜头下摇到人间——屋顶上抬头看月亮的人 | build
+  src/shots/s10_pass.js (64) | S10 · 擦肩而过：两列夜车交会，对面车窗里闪过另一个盒子（“外婆 收”），交会瞬间时间变慢 | carriage, build
+  src/shots/s11_city.js (64) | S11 · 小满的城市：高楼一层层升起，灯很亮，月亮很远很淡 | towers, build
+  src/shots/s12_apartment.js (60) | S12 · 小满加完班回到公寓：窗外是城市，桌上是外婆寄来的盒子；她掀开盖子，暖光涌出来 | cityWindow, build
+  src/shots/s13_note.js (70) | S13 / S16b · 俯拍盒内：月饼 + 字条，字迹逐列/逐行写出来 / variant 'gran'：外婆的竖排行书；'girl'：小满的横排手写 + 歪扭的“外婆”月饼 | build
+  src/shots/s14_bite.js (72) | S14 · 咬一口：小满侧脸特写；窗外的城市化成小时候——桂花树下外婆牵着她看月亮；眼睛红了（一点泪光） | build
+  src/shots/s15_gran_open.js (40) | S15 · 同一个晚上，外婆也收到了一个盒子（蓝色的，小满寄的） | build
+  src/shots/s16_mutual.js (81) | S16 · 相思的“相”，是互相的相：左边外婆的窗，右边小满的窗，中间同一个月亮；两道光从窗口连到月亮 | MM, mutualSet, build
+  src/shots/s17_sushi.js (78) | S17 · 九百多年前的中秋：苏轼临江举杯望月；“但愿人长久，千里共婵娟”逐列写出 | cloudCurtain, build
+  src/shots/s18_finale.js (32) | S18 · 片尾：灯箱里是“两扇窗一个月亮”，镜头拉出到桌前；“中秋快乐” | build
+  src/shots/sheet.js (22) |  | build
+  src/stage.js (44) | 灯箱舞台：场景 + 顶部 LED 主光（向下投影）+ 环境光 + 背光 uniforms + 摄影机 | stage, aim, dist, dispose
+  tts.py (16) |  | 
+  words.py (10) |  | 
+
+######## paper-popup
+  actors.js (111) | 角色：皮普（正/背两面，逐帧重画姿势）、皱皱、折折（立体纸飞机）、鲸鱼、小船 | makePip, makeCrumple, makeFold, makeWhale, makeBoat
+  art.js (459) | 所有纸片美术：角色（可逐帧重画的姿势）+ 场景道具 + 书页 | PIP_W, drawPip, CR_W, drawCrumple, drawWhale, hill, lolliTree, pine, bush, flower, mushHouse, door, windowGlow, sunOnStick
+  asr.py (7) |  | 
+  book.js (133) | 立体书：书脊在远端（z=0），封面向后翻到 90° 立起来当舞台背景 | BW, BT, PG, texOf, coverCanvases, makeBook
+  cutmesh.js (64) | 剪纸网格：正面=美术，背面=纸色（同一剪影），能投出镂空阴影 | mats, cutMesh, blobShadow, thread, particles
+  fetch_fonts.mjs (22) | 下载字体到本地；中文只取 story.js / hud.js 里用到的字 | 
+  gltest.mjs (17) |  | 
+  hud.js (138) | 2D 叠加层：旁白字幕、角色气泡（打字机）、章节横幅、动作评价字、片尾 | CPS, drawSubs, drawBubbles, blipTimes, drawChapter, drawAction, drawBang, drawEnd
+  index.html (6) |  | 
+  lib.js (44) | 通用小工具：确定性随机、插值、缓动 | clamp, lerp, seg, ss, eio, eo, ei, back, spring, mulberry, hash, vnoise, TAU, monotone
+  main.js (553) | 《小精灵冒险记》主程序：场景搭建 + 时间轴 + render(t) | prop, spriteTex, billboard, whaleY, WHALE_TOP, walk, arc, pipState, crumpleState, foldState, boatX, camAt, lightsAt, toScreen
+  make_srt.mjs (19) | 字幕导出：node styles/paper-popup/demo/make_srt.mjs [out.srt]   （默认 ../paper-popup.srt） / 直接读 story.js 的旁白 VO / 气泡 BUB 与 voices/dur.json，时间区间与 hud.js 的显示区间一致： / 旁白 drawSubs：t0-.15 淡入 … t0+dur+.25 开始淡出 → 取 [t0, t0+dur+.4] / 气泡 drawBubbl | 
+  mix.py (223) | 配乐 + 旁白 + 合成音效（纸片马里奥式）→ mix.wav / 用法（仓库根）：.venv/bin/python styles/paper-popup/demo/mix.py [输出路径，默认 demo/mix.wav] | bp, lp, hp, noise, pink, norm, st, tt, ex, sweep, fade, dbfs, verb, put
+  music/edit.py (21) | 配乐拼接：Dreamy Flashback(开场) → Jaunty Gumption(纸片世界, 跳剪到结尾) → Heartwarming(真实世界) | load, place
+  music/hw.py (15) |  | 
+  music/jump.py (27) |  | 
+  music/jump2.py (23) |  | 
+  music/survey.py (15) |  | 
+  paper.js (88) | 纸片工具：画布、白边剪纸、纸纹、描边形状 | INK, cv, GRAIN, paperFill, finishCut, sh, blob, smoothClosed, smoothOpen, crescent, rr
+  post.js (83) | 后期：场景 → (MSAA+深度) → 物理景深（CoC∝|1/f−1/z|，64 点螺旋采样）→ 辉光 → 色调映射 + 暗角 | makePost
+  probe.mjs (9) |  | 
+  render.mjs (68) | 用法（可在任意目录运行，脚本会先 cd 到自己所在的 demo/）： / node render.mjs stills 1.9 3.1 ...   → stills/t_*.jpg（STILLS_DIR=out/check 改输出目录） / node render.mjs events               → events.json / node render.mjs video [workers] [只渲这些 worker 号,逗号分隔]  →  | openPage
+  serve.mjs (12) | 极简静态服务器（ES module 不能走 file://） | serve
+  sets.js (218) | 四个跨页：页面美术 + 立体弹出件 + 会动的机关 | RISE, FOLD, pages, buildSets, buildSlats, updatePops
+  sheet.html (23) |  | 
+  shot.mjs (11) | node shot.mjs page.html out.png [evalExpr] | 
+  story.js (49) | 故事时间轴：旁白、气泡、章节横幅（秒） / 旁白：[id, 开始, 英文, 中文]；时长在 voices/dur.json | DUR, VO, BUB, CHAPTERS, TITLE_CN, CREDITS, OPEN, TURNS
+  test.html (32) |  | 
+  tile.py (14) | python3 tile.py out.jpg cols files... | 
+  tts/gen.py (14) | 模型用仓库共享的 core/tts/；输出目录默认 demo/voices/，VO_DIR=... 可改（校验时别覆盖正式配音） | 
+  tts/gen1.py (14) | 模型用仓库共享的 core/tts/；输出目录默认 demo/voices/，VO_DIR=... 可改（校验时别覆盖正式配音） | 
+  words.py (6) |  | 
+
+######## papercut-red
+  check_final.py (18) |  | 
+  climax.js (82) | 高潮画面：窗花背光透亮，光与纹样把年兽挡在门外（风格帧 + 成片 S9 共用） | drawClimax
+  fold.js (196) | 折—剪—展开：纸坐标 = 团花坐标（原点 = 纸中心，半边长 400 = TR） | camFold, drawFold
+  girl.js (285) | 女孩：红纸关节分片人物（侧面朝右）。单位：1 = 身高 424 中的 1；原点 = 脚底中心，y 向下 / 分片：头（含发髻、换脸片）、躯干（棉袄）、上臂 ×2、前臂+手 ×2、大腿 ×2、小腿+虎头鞋 ×2、剪刀（两片） | PELVIS, buildGirl, GJ, GPOSE, drawGirl, drawScissors
+  hud.js (47) | 字幕（红纸横批）、片名剪字、片尾对联 / 文字剪纸片：把文字填成红纸（阳刻），加纹理刀口 | textPiece, drawSubs
+  index.html (6) |  | 
+  light.js (94) | 夜景光照：画面 = 纸(正面受光的底色) × 光照图 L + 自发光 E（背光窗花）+ 辉光 + 体积光 | beginLight, pool, lightImage, lightRect, lightMasked, applyLight, glowWindow, bloom, rays, addMasked
+  main.js (549) | Nian Comes to Town — Red Paper-cut demo | mix, buildMacro, macroProg, pathPt, shotMacro, buildTitle, drawTitleCard, shotTitle, nianLying, riseNian, girlCutting, shotVillage, shake, shotRise
+  mix.py (169) |  | room_ir, verb, snip, swish, tap, snap, peel, stamp, thud, growl, breath, yelp, puff, match_
+  motifs.js (101) | 民间剪纸纹样库（全部是"剪掉"的操作，在调用处的片坐标里用） / 锯齿纹、月牙纹、云纹 / 旋涡纹、梅花孔、铜钱孔、鱼鳞、刻线 / 折线按弧长重采样，返回 [{x,y,nx,ny}]（法线指向行进方向左侧） | along, sawRow, sawEdge, crescentPts, crescent, crescentRows, swirl, doubleSwirl, cloudCut, plum, rosette, coin, dots, strands
+  music/score.py (294) |  | hum, vv, glide, erhu_glide, pipa, zheng, zheng_trem, flute, erhu, wb, gong, drum, gliss, melody
+  nian.js (214) | 年兽：深红纸关节分片巨兽（侧面朝左）。憨：大头、大眼、圆身、短腿、云尾；压迫感来自体积。 / 原点 = 身体中心，站立时地面在 y ≈ +395。分片：身、头（换眼片）、下颌、鬃毛、尾、四腿（上 + 下） | NJ, HS, buildNian, NPOSE, drawNian
+  paper.js (213) | 红纸剪纸引擎：纸张纹理、剪纸片（填充 + 镂空 + 内刻线 + 刀口）、纸影、背光透射 / 坐标：每个"片"在自己的单位坐标里画（枢轴在原点），预渲染成贴图（K 像素/单位）后按变换贴到画面上。 | PAL, canvas, rnd, paperGrain, paperTile, fillPaper, curve, wob, trace, P, densify, Pl, ellipsePoly, fill
+  rig.js (33) | 关节分片骨架：2D 仿射矩阵 [a,b,c,d,e,f]（与 canvas setTransform 同序） | mul, T, R, S, ap, scaleOf, I, put, solveRig
+  sheet.js (139) | 角色设定表（女孩 / 年兽）：?test=sheet_girl / ?test=sheet_nian | girlSheet, nianSheet
+  story.js (28) | 时间线唯一真值：120 BPM，2/4 拍（1 拍 = 0.5 s，1 小节 = 1 s） | DUR, BEAT, T, VO, SHOTS, shotAt
+  subs.py (13) |  | 
+  test.js (39) |  | test
+  tuanhua.js (120) | 团花：8 层折叠剪（D4 对称）。只设计一个 45° 楔形，再镜像 8 次——折纸 / 展开动画用的也是同一个楔形。 / 单位：半径 R = 400；原点 = 纸中心；楔形 θ ∈ [0, π/4]（canvas y 向下，θ 顺时针） | TR, outerR, wedgeCuts, wedgeFlat, D4, tuanhua, tuanhuaHoles
+  village.js (124) | 夜村布景：红纸房子（翘檐、锯齿瓦、对联条、窗洞）、远山、梅树、雪地（白纸）、打孔雪花 / 房子 ---------- | housePiece, mountainPiece, plumTreePiece, snowPiece, drawSnow, lanternPiece
+  world.js (130) | 村子世界：布局 + 夜 / 昼两套纸色 + 夜景光照。背景层 = 靛蓝纸；只有窗花、灯笼、主角是红的。 | W, NIGHT, DAY, HOUSES, HERO, kit, winI, drawVillage
+
+######## pictogram-motion
+  cover.html (120) |  | tile, draw
+  cover34.html (119) |  | tile, draw
+  edl.js (129) | 剪辑表：150 BPM，1 拍 = 0.4s，1 小节 = 4 拍 = 1.6s。所有镜头都落在拍点上。 / 浏览器里是 window.EDL；node 里 require/import 后导出 timeline.json 给配乐。 / kind: intro/chapter/card/finale；beats = 时长（拍） / n = 大项编号（/43）；sub = 分项 | 
+  engine.js (315) | 引擎：调色板、工具、官方核心图形风格的方格图案、运动员骨架、文字排版 / 全部挂在 window.G 上。画布 1920×1080。 | 
+  index.html (33) |  | 
+  lab.html (74) |  | colors
+  lab.mjs (19) | 用法：node lab.mjs out.png "p=sprint,hurdles&n=8&beats=4" / node lab.mjs out.png "pattern=1"   （图案检查） / 封面：node lab.mjs stills/cover_ej.png "lang=ej" cover.html   （cover34.html = 3:4 竖版） | 
+  music/music.py (1628) | coding: utf-8 -*- | T, mtof, log, sos, filt, tt, nz, normp, fade_end, saw, rbj, tv_filter, pan2, add
+  poses/aqua.js (246) | 水上 7 项：四种泳姿（2 拍卡，2 拍一个完整划水循环）+ 跳水、花样游泳、水球 / 泳姿人形水平：rot = 90 头朝右、俯卧；rot = -90 头朝左、仰卧。 / 此时手臂局部角：180 = 指向头顶方向，90 = 腹侧，0 = 指向脚，-90 = 背侧。 | 
+  poses/asia.js (461) | 第 7 章 亚洲 · 新浪潮：卡巴迪、藤球、武术、滑板、攀岩、霹雳舞、电子竞技 | 
+  poses/ath.js (494) | 田径 14 项 | 
+  poses/ball.js (521) | 球类 16 项（足篮排手曲橄棒板高 + 持拍 6 项 + 泰克球） / ── 小工具 ── | 
+  poses/base.js (49) | 姿势库约定（所有 poses/*.js 共用） / POSES[name] = { / pose(u) → 姿势对象         u = 本卡开始后的拍数（150 BPM，1 拍 0.4s；卡长 4 拍，快切卡 2 拍） / 或 keys: [...] + loop: 拍数   （见 G.keyPose） / back(ctx, J, u, C)   可选，画在人形后面的道具/环境（单位 = 身高，原点 = 髋部） | 
+  poses/combat.js (330) | 格斗 9 项：judo karate taekwondo boxing wrestling fencing jujitsu kurash mma / 用「世界角」写手臂/腿（0 = 竖直向下，90 = 水平向前，180 = 竖直向上），这里换算成骨架约定 / body: true 的关键帧直接按骨架约定（相对身体）写，适合翻滚 / 躺地 | 
+  poses/nature.js (594) | 第 6 章 山与海：赛艇、皮划艇、帆船、冲浪、铁人三项、公路/场地/BMX/山地自行车、马术 | 
+  poses/power.js (292) | 力与准 7 项：weightlifting shooting archery gym_art gym_rhythm gym_tramp pentathlon / 世界角写法（0 下 / 90 前 / 180 上），body: true 的帧按骨架约定原样使用 | 
+  render.mjs (67) | 用法（在 demo/ 目录下运行）： / node render.mjs stills 1.9 3.1 ...   → stills/t_*.png / node render.mjs video [workers]      → $OUTDIR/seg_*.mp4 + list.txt（无声分段，交给 mux.sh） / 语言：LANGQ=ej（默认，英日版）→ 输出 out_ej/；LANGQ=zh（中文版）→ 输出 out/ / 可选：START / | openPage
+  scenes.js (719) | 场景：片头 / 章节卡 / 项目卡（三种版式）/ 田径长镜头 / 片尾 / 转场 / HUD | 
+  sheet.py (13) |  | 
+  shot.mjs (28) | 用法：node shot.mjs 1.0 6.8 20.1 ...  → stills/t_*.jpg ；加 --sheet 拼成一张 | 
+
+######## pixel-rpg
+  font.js (117) | font.js — 原创可变宽像素字体：大写高 7、x 高 5、降部 2，行高 10；逐字打印用 / 大写 | LINE_H, glyphW, textW, text, textOutlined, wrap
+  index.html (8) |  | 
+  main.js (243) | main.js — 《The Last Save Point》导演脚本：按 timeline.json 排镜头、转场、调色板、事件（EV）与字幕（SUBS） | typing, drawDialog, listSlide, shotCorridor, battleState, shotBattle, battleLUT, doorState, shotDoor, applyRegions, renderVillage, fileLabelGB, renderCamp, shake
+  memscenes.js (294) | memscenes.js — 三段回忆（4 色村庄 160×90 / 8-bit 篝火 / 16-bit 战斗）、缩略图、片名、结尾卡 | half, village, blitHalf, campfire, BATTLE, battle, battleUI, thumbVillage, thumbCamp, thumbBattle, thumbNow, titleCard, endCard
+  memsprites.js (84) | memsprites.js — 回忆里的精灵：4 色小时候（160×90 原生）、8-bit 少年（篝火，坐姿） / 小 ARLO：深色头发、拿木剑；两帧走路 | kidArlo, kidWren, kidWrenPoint
+  mix.py (178) |  | put, sq, tri, crush, adsr, echo, S, bed, silence
+  music/score.py (496) |  | midi, hz, ns, lp, hp, bp, phase, _blep, pulse, tri_nes, tri, wave, _lfsr, noise
+  pixel.js (72) | 像素基础：320×180 原生画布、ENDESGA-32 调色板、4×4 Bayer 抖动、5×7 位图字体、字符串精灵 | W, PAL, bayer, hash, vnoise, makeCtx, ditherV, sprite, text, textW
+  portraits.js (188) | portraits.js — 对话框头像（32×32，3/4 侧向右），底图 + 表情叠层（眉眼 x9–25 行 14–19，嘴 x15–23 行 22–24） | portraitArlo, portraitWren, portraitWren8
+  props.js (165) | props.js — 存档水晶（程序化旋转八面体，平面着色量化到保护青色阶）、石台、光晕、最终之门 / —— 水晶：frame 0..7 覆盖 90°（四重对称），返回 {w,h,d} —— | crystalSprite, crystal, halo, pedestal, door
+  px.js (168) | px.js — 索引色像素引擎：320×180 帧缓冲存调色板索引，色深 / 褪色 / 塌缩 / 回涨都是换查找表（像 SNES 的 CGRAM） / —— 主调色板：ENDESGA-32（0–31）+ 保护色（32+，褪色表不动它们）—— | W, T, C, NPAL, PROTECT, RGB, LUT, FADED_RAMP, GB4, GBI, NES, darken, whiten, bayer
+  scenes.js (244) | scenes.js — 场景：走廊 + 水晶厅（现在）、最终之门（正面仰摇）；光照 = 调色板索引提亮/压暗（不混色） / —— 索引提亮 / 压暗表 —— | LIGHT, glow, shade, torch, torchGlow, FLOOR, CORR, corridor, shadowBlob, DOOR, doorScene
+  sheet.js (153) | sheet.js — 角色设定表 / 精灵图（480×270 原生，×4 = 1920×1080） / ?sheet=1                整张设定表 / ?sheet=1&zoom=a:b,...    开发用放大（arlo:idle / pa:neutral / pw:smile / pw8:x） | zoomView, miniScene, gbScene
+  sprites.js (417) | sprites.js — 角色骨架（胶囊肢体 + 光向分阶明暗 + 自动描边）+ 手绘 ASCII 头部 / —— 材质色阶 [line, dark, mid, light] —— | MAT, headSprite, CHARS, POSE, drawChar, scarfTail, scarfTailBack
+  tools/subs.mjs (10) | 导出 .srt：node styles/pixel-rpg/demo/tools/subs.mjs → styles/pixel-rpg/pixel-rpg.srt（与烧录对话框同一份 window.SUBS） | 
+  ui.js (137) | ui.js — RPG 界面：对话框（三种色深皮肤）、战报窗、菜单 + 手形光标、存档位列表、状态栏、存档进度、SAVE COMPLETE / 窗口：皮肤 snes = 蓝渐变 + 白/银边；nes = 黑底白框；gb = 浅底深框（传入 4 色索引） | win, dialog, battleMsg, hand, saveMenu, miniHeads, LIST, fileList, statusWin, savingWin, saveCompleteWin
+
+######## risograph
+  draw.js (92) | 分版绘制工具：颜色 = 三版浓度 [蓝, 黄, 粉]（0..1） / 普通绘制 = 挖空（覆盖三版）；over() 内绘制 = 只往对应版上加墨（叠印） | W, plate, g, layer, S, ink, inkA, PAPERINK, clear, over, fill, circle, ellipse, rect
+  film.js (331) | 《Sunday Ride》全片时间线：120 BPM，1 小节 = 2 s。所有时间对齐拍点（0.5 s）。 | DUR, SHOTS, EV, setLines, subs, shotAt, renderFilm
+  index.html (6) |  | 
+  main.js (56) |  | 
+  mix.py (161) |  | mixin, riso_drum, door_chime, catch, flap, flock, coo, brake, church, snap, crunch, peck, paper_out, paper_land
+  music/bell.py (56) |  | strike, bell
+  music/score.py (487) |  | mhz, M, sos_bp, lp, hp, peak, _ks, string, rel_env, guitar_note, guitar_body, bass_note, vibe_note, whistle_line
+  rider.js (396) | 角色：骑车的人（高瘦、圆眼镜、大鼻子、条纹毛衣、长围巾）+ 老式城市自行车 + 鸽子 + 法棍 / 颜色都是分版浓度 [蓝, 黄, 粉]。只开蓝版时他是一个完整的蓝色剪影；每加一版，他身上多一种颜色。 | PAL, L, head, scarf, torsoSide, figureSide, poseStandSide, BIKE, bikeBack, bikeFrame, basket, crankFront, posePedal, riderBike
+  riso.js (154) | Riso 印刷合成器（WebGL2） / 输入：一张"分版画布"——R = 蓝版浓度，G = 黄版浓度，B = 荧光粉版浓度（0 = 不上墨，255 = 实地） / 用普通 source-over 绘制 = 自动"挖空"（后画的形状在三个版上都盖住先画的）； / 用 'lighter' 只往某个通道加 = "叠印"（例如粉色太阳叠在蓝天上 → 紫）。 / 输出：纸白底上三块专色 multiply 叠印，每版独立的：套色错位（位移+微旋转）、网点半调（各自网 | INK, PAPER, makeRiso
+  scenes.js (196) | 场景背景（分版绘制）。每个函数只画背景层，人物由镜头脚本叠加。 / 分段色带天空：从地平线往上，一层层网点带（riso 做渐变常用阶梯） | bands, RIVER, river, lamp, ST, STREET, bakeryBuilding, street, bakeryFront
+  scenes2.js (192) | 公园、俯拍河堤、印刷机出纸口、车铃特写 | PARK, park, parkFore, overhead, printerTable, printerBody, paperSheet, bellECU
+  sheet.js (99) | 角色设定表：index.html?sheet=1 （整张也是 riso 三版印出来的） | modelSheet
+  tools/subs.py (12) |  | 
+  tools/video_png.mjs (29) | core/render/video.mjs 的副本：PNG 截图（JPEG 4:2:0 会吃掉粉/蓝网点的颜色），中间片 yuv444 crf10 / 多个片子并行制作时 workers 用 3（默认），单独渲染可开到 6 / 每个 worker 独立浏览器，JPEG 截图经管道交给 ffmpeg；最后无损拼接 | 
+
+######## rubber-hose
+  bg.js (138) | bg.js — 灰阶"水彩"背景（只画一次，缓存成大图；背景不 boil，线条更细更灰，比角色低一档对比） / 对比度原则（关卡 1 反馈）：墙面用中灰退后，角色的白和墨黑要比背景任何一处都更亮/更黑 | wash, drawBG, camBase, COUNTER_Y, paintKitchen, PLATES, LADLE, BASIN, paintCupboard
+  cast.js (155) | cast.js — 会动的厨房群演（都随节拍呼吸：b = −1..1 呼吸相位，正 = 拉长） / 局部坐标：原点 = 底部中心（挂着的东西 = 挂钩处） | clock, toaster, faucet, shaker, plateStair, hanging, sugarBowl, windowCurtain, plate
+  chars.js (365) | chars.js — 橡皮管角色：马克杯（主角）、方糖，以及共用部件（派饼眼、嘴、白手套、大圆头鞋、橡皮管四肢、蒸汽） / 所有坐标是角色局部坐标：原点 = 两脚之间的地面，y 向下为正（杯子高约 280） | P, ribbon, union, pieEye, brow, mouth, glove, shoe, hose, steam, MUG, mug, CUBE, cube
+  events.js (62) | events.js — 声音事件表（window.EV → events.json → mix.py）。拟音跟材质走：陶瓷 / 糖 / 金属 / 水 / 橡皮 | buildEvents
+  film.js (60) | film.js — 1930s 胶片后期：4:3 圆角片门、片门抖动、亮度闪烁、划痕、灰尘、毛发、晕影 / 场景先画到离屏画布（1920×1080，内容在中间 1440 宽的片门里），再按帧合成到主画布 | GATE, makeFilm, post
+  index.html (6) |  | 
+  main.js (59) | main.js — 入口：?mode=sheet|kitchen|test 出设定表；默认 = 成片 | 
+  mix.py (192) |  | nz, sine_sweep, partials, porcelain, ceramic_low, woodblock, sugar_crunch, slide_whistle, boing, bell_ring, water_splash, bubble_bed, rubber_creak, china_crash
+  music/score.py (393) |  | bar, Note, put, nt, up, stride, oompah, brush, snare_back, roll, cymbal, slide, boing, wood
+  scenes.js (607) | scenes.js — 全片镜头。每个镜头 = 机位（世界点→画面中心 + 缩放）+ 背景 + 群演（随拍呼吸）+ 角色表演 / 角色用 tq = q(t)（12fps 拍两格），机位用连续 t（每帧平滑） | initScenes, POS, shotTitle, shotWide1, shotBitter, shotWide2, shotChase, shotToaster, shotCupboard, shotTwo, shotLeaving, shotSweet, shotDance, shotIris
+  sheet.js (156) | sheet.js — 角色设定表（?mode=sheet&w=2880&h=1620）与厨房群演表（?mode=kitchen） | modelSheet, kitchenSheet
+  story.js (83) | story.js — 时间线（唯一真值：画面、字幕、拟音、配乐 cue 都从这里导出） / 144 BPM，4/4：1 拍 = 5/12 s = 10 帧，1 小节 = 5/3 s；bar(b, beat) 都是 1 起算，beat 可带小数 | BPM, bar, NBARS, ANIM_FPS, q, beats, breath, VO, SUBS, SHOTS, shotAt, K, CUES, CREDITS
+  tools/final_asr.py (22) |  | norm
+  tools/still.mjs (27) | 本地副本：加 --w/--h（设定表用大画布）。渲静帧：node core/render/still.mjs styles/<slug>/demo <t> [<t> ...] [--range a:b:step] [--q 'k=v&..'] [--prefix t_] [--out dir] / 以仓库根为静态服务根，页面需暴露 window.READY 和 window.render(t)；页面报错立即退出（非 0） | 
+  tools/subs.mjs (10) | 导出字卡时间线（和烧录字幕同一份数据）：node styles/rubber-hose/demo/tools/subs.mjs → demo/out/cues.json | 
+  toon.js (158) | toon.js — 2D 卡通矢量引擎（复制自 styles/scifi-toon/demo/toon.js，改：墨色/线宽、BASE 预缩放、任意仿射 transform） / 1) 自己维护仿射矩阵：形状先变换到屏幕坐标再描边 → 任何景别线宽恒定（卡通特写不会变细线） / 2) line boil：屏幕空间按 ~7px 重采样，沿法向做低频噪声位移；BOIL 状态 12fps 在 3 张之间循环 / 3) 平涂：fill → clip 内画硬边阴影块 | W, INK, g, init, BASE, push, pop, reset, transform, translate, rotate, scale, tx, zoom
+  ui.js (48) | ui.js — 片名字、播音员字卡（字幕）、话筒图标：直接用 Canvas2D 屏幕坐标绘制 / 胖字片名：墨色外描边 + 右下投影 + 白色字面；letters 可逐字蹦（bounce(i) → 偏移像素） | fatTitle, mic, subPlate
+
+######## satellite-briefing
+  engine.js (314) | Satellite Briefing engine: one perspective camera around a spherical Earth, imagery plates sampled / by lon/lat in a WebGL2 shader, and the same camera math in JS for the 2D annotation layer. / One world -> screen function (projec | R, ecef, makeCamera, project, unproject, kmPerPx, Engine
+  film.js (658) | 《地图上还写着海》 The Map Still Says Sea — Satellite Briefing demo. / render(t) is a pure function of t: camera from keyframes, plates and scans from the timeline, / annotations through the one camera (engine.project). | camKeys, camAt, zoomFollow, regionState, ringScan, init, subCheck, areaPct, render, wipeLat, mapState, drawMap, lostBand, focusMask
+  index.html (20) |  | 
+  mix.py (646) |  | sos, lpf, hpf, bpf, tv, hz, mi, put, adsr, saw, fm, stereo, delay, bass
+  overlay.js (94) | The analyst layer: hairlines, brackets, labels, readouts, the map layer and the transcript strip. / Everything that sits on the ground goes through project() from engine.js. | C, F, beginTexts, endTexts, text, measure, hair, pathLL, brackets, tick, readout, SUB, subtitle
+  timeline.js (72) | The one timeline: picture, score, foley, voice and subtitles all read these numbers. / 100 BPM, 4/4: one beat = 0.6 s, one bar = 2.4 s. Key actions sit on beats (tools/cuecheck.py checks). | BPM, BEAT, b, T, RINGS, REWIND, VO
+  tools/audiocheck.py (41) |  | 
+  tools/bmng.py (42) |  | 
+  tools/cuecheck.py (26) |  | 
+  tools/export.mjs (34) | timeline.js -> voice/lines.json (TTS input), timeline.json (for mix.py and cuecheck) / usage: node tools/export.mjs <demo_dir> [DIST] | 
+  tools/fetch_gibs.py (62) |  | get, main
+  tools/fetch_landsat.py (294) |  | http, search, choose, grid, fetch_scene, dropouts, destripe, to_refl, main
+  tools/finalasr.py (21) |  | 
+  tools/fonts.py (34) |  | get
+  tools/growth.py (24) |  | 
+  tools/impactcheck.py (34) |  | bands
+  tools/lowcheck.py (11) |  | 
+  tools/mapfield.py (58) |  | 
+  tools/motioncheck.py (33) |  | 
+  tools/plates.py (276) |  | load, lonlat, pix_area_km2, quantile_match, clean_lines, clean_rows, destreak_rgb, water, historic_mask, clean, bmng_on, normalise_scenes, main
+  tools/preview.py (12) |  | 
+  tools/subcheck.mjs (14) | Subtitle single-line check, measured in the page with the real fonts (Noto Sans SC 38 px for the Chinese line, / Barlow Condensed 33 px for the English line, nowrap): every line must be narrower than the safe width. / usage (from  | 
+  tools/vectors.py (236) |  | mask, marching, rdp, to_ll, length_km, rings_of, words, hav, nearest_water, crossings, crossings_line, main
+  tools/voicefix.py (15) |  | 
+
+######## scifi-toon
+  asr.py (19) |  | 
+  chars.js (289) | chars.js — 原创角色：Dr. Vask（厌世天才）、Gary（紧张搭档）、Decaf（会说话的咖啡） / 所有角色：局部坐标脚底为原点、y 向下；face=1 朝右（3/4 侧），-1 镜像 | PAL, eye, mouth, hand, mug, remote, coffeeCup, vask, gary
+  index.html (6) |  | 
+  levels.py (11) |  | 
+  main.js (518) | Coffee Run — Sci-Fi Sitcom Toon 风格 demo | talk, cam, V, G, world, sucked, spit, montageDuo, cupWorld, cupShot, wipe, tag, wrapSub, subs
+  mix.py (154) |  | brown_, nz, sweep, fade, bpsweep, plip, squeak, tic, gulp, cloth, rclick, portal_open, portal_hum, portal_close
+  music/score.py (344) |  | tt, mf, M, lp, hp, bp, adsr, saw, sq, tri, Bus, theremin, bass, pluck
+  srt.mjs (10) | 导出字幕：node styles/scifi-toon/demo/srt.mjs → ../scifi-toon.srt（与烧录字幕同一份 window.SUBS） | 
+  story.js (76) | story.js — 时间线（唯一的真值来源：画面、字幕、拟音、配乐 cue 全部从这里导出） / 角色 12fps 步进（q），镜头/传送门/特效每帧平滑 | DUR, ANIM_FPS, q, BEAT, VO, SHOTS, shotAt, WIPES, TAGS, T, CUES, CREDITS
+  toon.js (155) | toon.js — 2D 卡通矢量引擎 / 1) 自己维护仿射矩阵：形状先变换到屏幕坐标再描边 → 任何景别线宽恒定（卡通特写不会变细线） / 2) line boil：屏幕空间按 ~7px 重采样，沿法向做低频噪声位移；BOIL 状态 12fps 在 3 张之间循环 / 3) 平涂：fill → clip 内画硬边阴影块 → 最后描边 | W, INK, g, init, push, pop, reset, translate, rotate, scale, tx, zoom, mirrored, getM
+  voice.py (45) |  | peq
+  worlds.js (380) | worlds.js — 每个平行宇宙一套配色的背景、客串外星人、传送门 / 舞台坐标：1920×1080，地平线/地面约 y=900；背景画得比舞台宽，给推拉摇留余量 | portal, lab, jelly, jellyCounter, blobby, jellyCup, mugWorld, umbrella, table, mugGuy, glassGuy, straw, teethWorld, tooth
+
+######## shadow-puppet
+  backstage.js (110) | 幕后：艺人的手（剪影 + 暖色轮廓光）、油灯（亮 / 熄 + 细烟）、立柱、舞台木框 | silhouette, fistHand, pinchHand, lampBody, flame, smoke
+  carve.js (181) | 皮影"刻皮"工具：每一片驴皮 = 一张预渲染的透射率贴图（颜色 = 透过的光色；镂空 = 透明；墨线 = 近黑） / 画到透射率画布上时用 multiply，重叠的皮片自然更暗。坐标单位 = 1920×1080 幕布上的 1 px（机位 1×）。 | SS, DYE, canvas, smooth, poly, piece, hideTexture, drawPiece, fill, cut, cutLine, ink, within, scales
+  gl.js (110) | 皮影幕布合成（WebGL2）：画面 = 色调映射( 灯光场 × 驴皮透射率 × 布纹 ) + 前景层 + 辉光 / 输入：tr（透射率，白 = 全透）、front（预乘 RGBA 前景：舞台木框、观众、幕后场景、字幕）、可选 lmap（灯光图，r×6 = 亮度） | makeGL
+  houyi.js (321) | 后羿皮影：11 片驴皮 + 箭壶 + 弓箭 + 两根雉尾翎子；三根操纵杆（颈杆、两根手杆） / 侧身朝右。所有坐标单位 = 幕布 px（机位 1×）。旋转：弧度，正 = 顺时针；手臂/腿 0 = 自然下垂，负值 = 向前（向右）抬 / —— 关节（父片局部坐标）—— | J, LEGLEN, build, ap, REST, solve, drawHouYi, drawRods
+  hud.js (21) | 字幕：说书人题板——黑漆窄木牌 + 细金线 + 朱红"说"字印；Cormorant Garamond 600 | drawSub
+  index.html (6) |  | 
+  main.js (373) | Hou Yi Shoots the Suns — Shadow Puppetry demo | lampI, mix, heroPose, heroFull, camAt, camRaw, drawScreen, heroNock, render, drawSubs, renderBack, drawHouYiRodsView, handPt, renderEnd
+  mix.py (157) |  | room_ir, verb, woodclap, match_, fwoomp, rodtap, flap, leather_step, twang, thwack, snuff, wingflap, crack_, breath
+  music/score.py (297) |  | warp, fade, trim, env_curve, big_gong, small_gong, cymbal, crash, bangu, tanggu, muyu, banhu_note, banhu_color, rising
+  poses.js (8) | 后羿关键姿势（bowT/drawT = 手心目标，相对各自肩关节；bendB/bendF = 肘弯方向，+1 肘朝后下） | POSES
+  scenery.js (181) | 景片：全部是刻出来的驴皮件，幕布大部分留白（只是被灯照亮的布） / 山（左右两片，山纹地层 + 云头镂空）、地面条（刻纹，焦土时裂纹逐渐烧穿）、河（可揭下的靛青水纹条）、树（叶冠一片 + 干一片 / 枯枝）、茅屋、火焰纹皮件（杆上抖动） | groundY, buildScenery, drawLand, FLAMEX
+  stage.js (90) | 舞台：前台木框（雕花横楣 + 立柱 + 台口）、前排小观众后脑剪影、前景立柱（转场）、片名 / 片尾镂空皮影牌 / —— 木框（画在前景层，幕布坐标）；spill = 布透出来的光照在木框内沿上的强度 —— | drawFrame, drawAudience, drawPillar, buildStage
+  story.js (34) | 时间线：唯一真值（镜头、旁白、灯、箭、音效、配乐 cue 都从这里来）。100 BPM：1 拍 = 0.6 s，1 小节 = 2.4 s | BEAT, DUR, T, KILL, hitT, VO, SHOTS, shotAt
+  suns.js (83) | 太阳皮影：一整片刻花圆皮件（外圈火焰纹镂空 + 联珠 + 半透明橙红盘）+ 盘心一只三足金乌剪影（单独一片，被射中时跌落） / 火焰舌：从角度 a 的根部卷出去（S 形，尖端回勾） | crowPiece, buildSuns, mulM, drawSun, drawCrow, SUNPOS
+  test.js (154) | 角色设定表：index.html?test=model | modelSheet, styleFrame, handsTest
+  tools/cues.py (14) |  | 
+  tools/probe.mjs (17) | 调试：逐时间点测 render 耗时 | 
+
+######## silent-film
+  cardspecs.js (15) | Intertitle designs, keyed by timeline section. level: 0 = a shout (heavy rule), 1 = narration, 2 = tender (vines). | CARDS
+  chars.js (255) | Cast of The Runaway Loaf (all original). Values are print densities (0 = black, 1 = white). | headShape, OTTO, GIRL, COP, SELLER, drawLoaf, drawBoule, drawBouleHalf
+  engine/cards.js (106) | Intertitle cards (art-deco border + serif), iris, and the theatre around the 4:3 gate. / art-deco border ---- | CARD_BG, FONT_BODY, decoBorder, intertitle, iris, theatre
+  engine/figure.js (417) | Realistic-proportion human rig for the silent-film style. / 2.5D: joints are solved in 3D body space (x forward, y up, z = character's left), projected orthographically / with a yaw (0 = facing camera, 90 = facing screen-right, -9 | BODY, P0, mixPose, solve, projector, torsoPoint, drawFigure, runPose, runBob, walkPose, walkBob
+  engine/film.js (180) | Film-aging post module (WebGL2). Stack it on ANY 2D canvas: / const film = new FilmPost(1440, 1080); / const out = film.render(srcCanvas, { frame, strength: .6, sepia: .15 }, colorMaskCanvas?);   // → canvas / damage(g2d, x, y, w, | FilmPost, damage
+  engine/heads.js (287) | Heads for the silent-film rig: realistic proportions, silent-era make-up (pale skin, dark lids and lips). / Features live on a 3D head (x forward, y down, z left; 1 = head height) and are projected with the head yaw, / so front, 3 | drawHead, FRONT_ADULT, PROFILE_ADULT, FRONT_CHILD, PROFILE_CHILD
+  engine/ink.js (248) | Silent-film "redrawn photoplay" drawing primitives (Canvas2D). / Everything is drawn in grey values; film.js adds the silver tone, sepia, grain and damage. / Look: warm-black ink contour (heavier on the side away from the light) + | INK, V, grey, S, setFrame, H, catmull, bez, ellipsePts, rectPts, xform, bbox, pathOf, ink
+  engine/redraw.js (134) | "Video frame → silent-film drawing" (WebGL2). Also the house style: the film's own tonal paintings go through it too, / so real footage and animation share one hand. / const rd = new Redraw(1440, 1080); / const out = rd.render(src | Redraw
+  film.js (115) | The Runaway Loaf — film assembly. / Frame pipeline: shot paints a tonal 4:3 frame → Redraw (ink lines, wash steps, boiling hatch) → iris (a mask in the camera) / → FilmPost (silver/sepia print, grain, flicker, weave, scratches, bu | DUR, renderFilm, events
+  frames.js (165) | Gate-1 sheets: model sheet, style frames, redraw sample (?scene=frames.xxx) | modelSheet, headsR, frameMarket, CARDS, frameCard, redrawSample, cardSheet, oneColour
+  index.html (6) |  | 
+  main.js (21) | The Runaway Loaf — page entry. window.render(t) draws frame t; ?scene=file.fn renders a test/sheet scene. | 
+  mix.py (59) |  | claw, fps
+  music/score.py (188) |  | at, bt, n, chord, key, m2n, midi, gliss, trem, stride, hurry
+  poses.js (85) | Key poses and expressions for The Runaway Loaf (built on engine/figure.js P0()). | EXPR, pose, loafInHands, halves, bouleInHands, bouleHalves
+  scenes/market.js (124) | SHOT 10 — the market, one locked-off take (Keaton rule: the whole chain happens in one frame, no cuts). / lt = shot-local time (s). 144 BPM → one beat = 0.41667 s. The chain lands on beats (see timeline.js HIT.*). | B, L, drawMarket
+  sets.js (188) | Set pieces for the small hill town (tonal painting; the Redraw pass inks and hatches them). | rnd, sky, house, window_, awning, street, sidewalk, lampPost, crate, fruitPile, fruit, melon, cart, contactShadow
+  sheets.js (82) | Test and sheet scenes (?scene=sheets.xxx) | test, heads, redrawTest, redrawFig, armTest, loafTest
+  shots.js (394) | The Runaway Loaf — shots. Each shot paints a TONAL 4:3 frame (1440×1080, grey values = print density); / film.js runs it through Redraw (ink + hatch) and FilmPost (print + ageing). lt = seconds since the section started. | poseAt, numAt, palmsAt, bakery, chase, market, roll, sil, tender, irisShot, girlFace
+  stage.js (34) | Frame pipeline: scene → 4:3 film canvas → FilmPost (tone + ageing) → damage overlay → gate on the 16:9 frame. | FW, fc, fg, post, shoot, gate
+  timeline.js (72) | The Runaway Loaf (v2, tightened) — tempo grid: single source of truth for picture, score, mix and cue check. / Photoplay cue-sheet sections. Every section starts on the previous one's end; beats are in that section's tempo. / [nam | FPS, SEC, DUR, at, secAt, HIT, CARDS_AT
+  tools/cuecheck.py (9) |  | 
+  tools/dump_timeline.mjs (6) | timeline.js → timeline.json (for Python: score / mix / cue check) | 
+  tools/subs.py (9) |  | 
+
+######## silkscreen-poster
+  engine/poster.js (225) | poster.js · 旅行海报版式：场景层 + 页眉 + 底部标准信息带（名称、难度、距离、用时、爬升）+ 横幅 / 所有文案来自 content.json；这里只负责排版和"怎么印上去" | statItems, readTime, buildPoster, contrast, pickInk, ARTV, swapFrontLine, drawPoster, BW, BANNER_BANDS, drawBanner
+  engine/scenes.js (219) | scenes.js · 引擎内置场景：lake / waterfall / ridge / forest / coast / 每个场景返回按印刷顺序排好的"层"（plane）：{ id, depth, parts:[{ ink, path, knock?, sub }] } / ink = 调色板键（sky1 sky2 far mid near sun），sub = 同一节拍里的第几刮（0 主色，1 点缀色，晚半拍） / depth：视差系数（1 = 纸面 | PW, SCENES, buildScene
+  engine/silk.js (301) | silk.js · 丝网印刷画风引擎（不透明平涂墨层 + 硬边 + 套色错位 + 刮板拉墨 + 墨层光泽 + 纸张） / 所有函数都在"当前 ctx 变换"下工作：调用方先把 ctx 变换到纸面坐标（单位随意，常用海报单位 u）。 / 引擎只管"怎么印"，不管"印什么"：形状由调用方以 Path2D 或绘制函数给出。 | clamp, lerp, mulberry, hash, vnoise, hex2rgb, rgb2hex, mix, shade, makeTextures, texFill, paperSheet, inkFinish, wipeRegion
+  film.js (427) | film.js · 场景 demo：户外步道指南（丝印旅行海报） / 时间线完全由 content.json 推出来（1–4 条步道都成立），100 BPM，一拍 0.6 s | BPM, setup, render, getTL
+  index.html (6) |  | 
+  main.js (8) |  | 
+  mix.py (185) |  | evs, first, fade, scrape, squelch, tick, stamp, rustle, paperslide, regclack, seg_env
+  music/compose.py (294) | compose.py · 《Three Trails》配乐：美式户外民谣，100 BPM，D 大调，开放 D 调弦（DADF#AD） / 卡点全部从 ../events.json 读（画面时间改了，重跑本脚本即可对齐）。 / 配器与来源（全部 CC0 或代码合成）： / 钢弦民谣吉他：core/audio/pluck.py `acoustic_guitar` 物理建模（扫弦 / 耙弦 / 分解和弦 / 空弦单音） / 滑棒吉他：本文件 numpy 合成（连 | evs, ev1, strum, pick, harm, bass, kick, slap, brush, shake, cymbal, hz, slide, T
+  tools/cuecheck.py (15) |  | 
+  tools/timeline.mjs (9) | 打印时间线（可换内容）：node styles/silkscreen-poster/demo/tools/timeline.mjs [content_alt.json] | 
+
+######## spy-titles
+  chars.js (321) | 剪纸角色：特工 THE AGENT、信使 THE COURIER、黄铜钥匙。四肢是分开的纸片，关节处有切缝（Anatomy 断肢语法） / 坐标：脚底中点为原点，y 向下，面朝 +x。s = 缩放（1 = 特工约 540px 高） / 包一层剪影图层（已在图层里就直接画） | AGENT_POSE, runPose, agentSide, agentFront, COURIER_POSE, walkPose, coRunPose, courierSide, courierFront, KEY, key, keyholeP
+  film.js (473) | 全片时间线：表演、镜头、字幕、音效事件。时间全部来自 story.js | setLines, subs, renderFilm, events
+  frames.js (195) | 场景（片中复用）+ 关卡 1 风格帧 | subStrip, AIR, airport, TR, trainLayout, train, titleScene, frame
+  glyph.js (65) | 剪纸字：用 opentype.js 取 OFL 字体轮廓 → 折线化 → 每个字母"重新剪一遍"（毛边、微旋转、微错位） | loadFonts, layout, cutLetter, drawLine
+  index.html (7) |  | 
+  main.js (41) |  | 
+  mix.py (163) |  | nz, n1, env_ad, paper_cut, paper_slide, paper_whoosh, card_slap, paper_flip, blinds, scissor, step, skid, land, coat_whoosh
+  music/score.py (339) |  | B, put, swing, m, stab, long_chord, motif, spring_ir, trem, gtr, walk_bar, brush_bar, stick_bar, rail_bar
+  paper.js (157) | 剪纸 + 丝网平涂引擎：4 色纸、剪刀毛边（局部坐标里剪一次，形状跟着纸片走，不"沸腾"）、切缝、纸影、纸纹 | W, C, cv, gMain, g, setG, S, clear, curScale, rough, roughC, pathPoly, piece, rectP
+  scenes.js (300) | 片中各场景的"世界"绘制（世界坐标 + 摄像机）。角色表演、时间线在 film.js | CAM, cam, view, DIR, NRM, KH_SCREEN, keyholeShot, GRID, gridField, gridBY, velvet, introSet, AIR, airLayout
+  sheet.js (115) | 角色设定表：index.html?sheet=1&v=1（整张也是剪纸 + 四色纸做的） | modelSheet
+  story.js (21) | 时间线唯一真值：132 BPM，前面让出 1 拍给第一句旁白（OFF），小节 n 从 B(n) 开始 / 铜管强奏 = 剪辑点 | BPM, B, DUR, HIT, T
+  title.js (95) | 片名 THE VELVET CIPHER：自己拼的剪纸几何字形（直线 + 圆弧，笔画不匀、基线错落），不参照任何真实片名 logo / CIPHER 的 I = 一块黑色"锁板"，中间剪出红色钥匙孔；钥匙放进去就是芥末黄的 I / 字形：高 100 单位，左上为原点；返回 [外轮廓, (镂空)...] | GLYPH, titleLayout, titleBox, drawGlyph, CUT_ANG, drawTitle
+  tools/subs.py (7) | 字幕导出：与 film.js subs() 同一公式（t0 = 旁白起点，t1 = t0 + max(1.8, 语音 + 0.6)）→ out/subs.json | 
+  vendor/opentype.min.js (1) | sourceMappingURL=opentype.min.js.map | 
+
+######## stained-glass
+  comp.js (193) | Stained-glass compositor (WebGL2). / glass   = tonemap( backlight(x,y,time) * transmittance * glass texture ) + weathering haze * room light / surface = albedo * (room ambient + glow spilled from lit lancets + point lights) / floo | makeComp
+  dragon.js (264) | The Dragon: a banded glass serpent (spine chain cut into dorsal/belly pieces), jointed head + jaw, / two legs, two ribbed wings. Faces right; mirror the base matrix to face left. | spine, drawDragon, DPOSE, lerpD
+  frames.js (28) | Style frames for gate 1 (same renderer as the film). | LANC, AFTERNOON, FRAMES
+  glass.js (208) | Stained-glass drawing core: smooth cut pieces, lead cames, grisaille painting. / Everything is drawn through a Pass, which mirrors transforms on the glass canvas (g: transmittance colours) / and the surface canvas (s: lead, iron,  | COL, LEAD, INK, MAT, rgb, vary, smooth, poly, circle, ellipse, sampleCurve, brush, line, Pass
+  index.html (6) |  | 
+  knight.js (201) | The Knight: a glass figure cut into ~30 pieces, rigid parts on a 2D skeleton (facing right; mirror to face left). / Units = window units (lancet is 260 wide). Pelvis at origin, feet at y≈+182, top of coif ≈ -186. | EXPR, fk, drawKnight, POSE, lerpPose
+  main.js (28) |  | 
+  mix.py (136) |  | hall_ir, verb, glass_tink, glass_crack, lead_creak, grind, weld, air, step_tick, wings, clash, ignite, crackle_bed, rs
+  music/score.py (143) |  | stem, zero, ramp, rms
+  scene.js (100) | Scene renderer: one state object -> one frame. Camera is an affine view of the wall plane; the floor is / rendered by the compositor with a perspective consistent at the wall base; light shafts are drawn in 2D. | camMatrix, lancetLit, proj3, renderScene
+  story.js (214) | Timeline: 80 BPM (beat 0.75 s). One function t -> scene state. Glass figures step at 8 fps; light and camera move on ones. | DUR, LINES, SUBS, WELDS, emberLit, emberWorld, knightJointWorld, EV, state
+  subs.js (27) | Subtitles as a parchment banderole (scroll ribbon) that unfurls from the centre. | drawBanderole
+  subs_export.py (8) |  | 
+  test.js (120) | Test / model-sheet pages (lightbox lighting through the real compositor). | knightTest, dragonTest, modelSheet
+  tools/final_asr.py (18) |  | 
+  window.js (280) | The East Window: four lancets + a rose, set in a splayed stone wall. World units, y down. | FLOOR, LW, LX, APEX, ROSE, ARCH, lancetPath, lozenges, vineCurl, drawStone, drawTracery, drawLancet, drawRose, LTINT
+
+######## swiss-motion
+  ease.js (43) | 精确缓动与吸附工具。瑞士动态图形只允许两种曲线：精确缓动 cubic-bezier(.7,0,.2,1) 与线性。 | clamp, lerp, seg, cubicBezier, E, BPM, snap, lin, steps, track
+  film.js (532) | Five Rules for a Poster —— 时间线与绘制。所有坐标都在网格上；所有运动都是 snap（精确缓动）或 lin（线性）。 / 唯一例外：红圆出走（线性、不吸附、离开网格）。 | W, C, fx, PW, px, T, setScore, setWords, setLines, subs, flight, circleState, posterMatrix, measureNumeral
+  index.html (6) |  | 
+  main.js (15) |  | 
+  mix.py (116) |  | type_clack, rule_line, knife, paper, thunk, slide, snap, thump, tick, db
+  music/score.py (168) |  | kit, kick, snare, hat, crash, motorik_bar, bnote, bass_phrase, saw, root_at, arp_span, square, lnote, phrase
+  tools/subs.py (11) |  | 
+  tools/words.py (20) |  | 
+
+######## teardown
+  index.html (14) |  | 
+  mix.py (211) |  | buf, b, up, sec, kick, plastic, switch_click, metal, board, thud, swoosh, tick, pen, suck
+  src/comps.js (77) | Parts on the back of the board, placed at their KiCad footprint positions (left half, B side). / Bodies follow the package names in the footprints (QFN-56 7×7, SOIC-8 5.23, 3225 crystal, 0402 …); / heights are typical package heig | buildBackParts
+  src/main.js (248) | 《二十一键》 21 Keys, Opened — Exploded Teardown demo. render(t) draws one frame; everything is a function of t. | slab, layerE, capLandT, capY, setCamera
+  src/overlay.js (163) | Marks layer: anchored labels, dimension lines on the object, bilingual subtitles, end card. / Every label hangs on a 3D point projected each frame; every number on screen is in FACTS.md. | initOverlay, overlayTexts, subcheck, drawOverlay
+  src/parts.js (149) | 零件几何：圆角矩形放样（键帽、轴体外壳）、KiCad 轮廓挤出（定位板、电路板） / 圆角矩形一圈点（逆时针，固定点数，便于放样） | rrect, loft, dishedCap, keycapGeometry, switchGeometries, clean, shapeFrom, inset, hexSpacer, screwGeometry
+  src/pcbtex.js (68) | 用 KiCad 数据画电路板贴图：阻焊、铜皮、走线、焊盘、过孔、钻孔、丝印 / 输出 color / ORM（G=粗糙度 B=金属度）/ bump 三张画布，坐标 = PCB 毫米 × PPM | paintPCB
+  src/timeline.js (72) | 《二十一键》 21 Keys, Opened — the single timeline (seconds). Picture, voice, score, subtitles and checks all read this file. / 96 BPM, 4/4: one beat = 0.625 s, one bar = 2.5 s. Cuts, landings and label hits sit on beats or half-beats. | BPM, BEAT, b, T, DUR, LAYERS, OFF, UP, DOWN, UPDUR, GAP, GAP2, VO, LBL
+  tools/export.mjs (23) | timeline.js -> voice/lines.json (Kokoro input); after TTS, cues.json (burned-in subtitles) + out/cues_srt.json (.srt) / usage: node tools/export.mjs <demo_dir> / Each cue holds >= max(1.8 s, speech + 0.6 s) and never overlaps the  | 
+  tools/extract_pcb.py (115) | Extract the left half of the Corne Cherry v4.1 PCB + 3x6 switch plate from the KiCad sources / usage: python -I tools/extract_pcb.py <corne-cherry.kicad_pcb> <plate-top-cherrymx.kicad_pcb> <out.json> | sh, inside_left, ref_of, val_of
+  tools/fetch_fonts.py (23) | Fonts (all SIL OFL 1.1, from Google Fonts): Noto Sans SC subset to the characters the overlay uses (CSS API text=), / Inter and JetBrains Mono as variable TTFs from github.com/google/fonts, plus their licence texts / usage: python | 
+  tools/kicad_geom.py (111) | KiCad .kicad_pcb geometry helpers: Edge.Cuts primitives -> polylines -> closed loops | num, xy, xform, arc3, bez, prim_poly, collect, chain, area, bbox
+  tools/motioncheck.py (21) | Picture checks on the final film: blank or NaN-block frames, and motion per second. / usage: python -I tools/motioncheck.py <film.mp4> / A NaN pixel in the 3D pass becomes a black square after bloom: we look for 64 px tiles that a | 
+  tools/sexp.py (17) |  | parse, kids, kid
+  tools/step2mesh.mjs (20) | Corne v4 case STEP -> triangle mesh in PCB coordinates (x right, y down = KiCad, z up from case bottom), mm / usage: node tools/step2mesh.mjs left.step data/case.bin   (needs: npm i occt-import-js@0.0.23) / Alignment (measured): x | 
+  tools/subcheck.mjs (14) | Subtitle single-line check, measured in the page with the real fonts (Noto Sans SC 500 38 px for the Chinese line, / Inter 400 29 px for the English line, no wrapping): every line must fit the safe width. / usage (from the library | 
+
+######## tilt-shift
+  city.js (531) | 程序化小城：路网、街区、带窗建筑（着色器开窗 + 夜间亮窗）、屋顶细节、树、路灯、红绿灯、公园池塘、工地塔吊、学校跑道、停车场、火车站与铁轨、屋顶霓虹招牌、郊区与农田 | AV, ST, avW, stW, SW, CURB, RAIL, EXT, PARK, POND, ZEBRA_Z, SIGN, U, buildingMaterial
+  ducks.js (138) | 鸭子一家：母鸭（白羽）+ 四只小鸭（黄绒毛）。车削（lathe）有机曲面身体、sheen 绒毛材质 / 表演：过斑马线（摇摆步态）→ 跳路沿（预备压缩 → 起跳拉伸 → 落地压缩回弹）；最后一只第一次撞到路沿弹回，第二次才上去 | HOPS_Y, makeDucks, duckState
+  geo.js (107) | 几何构建器：把成千上万个盒子/面片合并成一个 BufferGeometry（一次 draw call） / 属性：position / normal / color / uv（立面坐标：u = 沿立面米数，v = 离地高度；屋顶 u=-1）/ wp（vec3：开间宽、层高、种子） | GB
+  index.html (7) |  | 
+  main.js (444) | Toy Town Rush Hour — Tilt-Shift Miniature 风格 demo | SUBS
+  mix.py (141) | 混音：环境与拟音（按 events.json）+ 旁白 + 配乐（旁白时闪避）→ mix.wav / 声音设计：延时段以音乐为主，只留很轻的"加速城市"底噪、轨道咔哒、变灯继电器；真实速度段突然"真实"——怠速、鸟叫、鸭子、蹼掌拍地 | seg, envw, colored, chirp, relay, car_pass, rail, squeal, chime, hiss, honk, pat, quack, peep
+  music/score.py (281) |  | note, put, ev, near, chord_at, fill_rate, jam_bar, tape_stop, rms, onset
+  post.js (129) | 移轴后期（由 core/three/post.js 复制改写） / 场景以 ssaa 倍分辨率渲染（MSAA + 深度）→ [GTAO] → CoC 计算并 2×2 降采样到输出分辨率 / → 移轴景深 gather（物理 CoC 与屏幕空间"上下虚化带"混合，逐像素旋转采样盘）→ 辉光 → 调色（高饱和/对比/暗角）→ 色调映射 / 相比 core 的改动：① DOF 在 1× 分辨率做（半径大、采样多、快）；② 加入 band 虚化带；③ 调色加 li | makePost
+  sky.js (84) | 天空与时刻：城市时钟（6:00 起的秒数）→ 太阳高度/方位、天空渐变、雾、光照、夜间系数；环境贴图按太阳高度量化缓存 | sunElev, sunAz, skyState, makeSky
+  story.js (59) | 时间线：120 BPM（1 拍 0.5s，1 小节 2s）。每个"时间窗"有自己的城市时钟起点与延时倍率曲线（倍率随时间变化 = 速度变化） | BPM, DUR, T, SHOTS, shotAt, WINDOWS, windowAt, clockAt, fmtClock, VO, TITLE
+  subs.mjs (8) | 从页面导出字幕时间线（与烧录字幕同一份数据）：node styles/tilt-shift/demo/subs.mjs → demo/cues.json | 
+  traffic.js (274) | 交通：车道、红绿灯相位、IDM 跟驰预模拟（按时间窗）、路口"堵死"占用、斑马线让行；行人（人行道绕街区 + 路口成群过街）；车辆实例化渲染与车灯光轨 | LANES, laneWorld, laneYaw, LIGHT, ixOff, lightState, HERO_COL, simulate, sampleSim, carS, makeFleet, makeTrails, makeWalkers
+  train.js (47) | 通勤火车：6 节车厢（白车身 + 色带 + 车窗 + 车门 + 受电弓），沿铁轨 x 方向 | CAR_L, makeTrain
+
+######## ukiyoe
+  check_asr.py (16) |  | 
+  index.html (6) |  | 
+  main.js (284) | Toward the Mountain · 山へ五景 — Ukiyo-e 风格 demo | SUBS
+  mix.py (169) |  | nz, brown, fade, sines, slow, baren, slip, seal, scroll, block, step, cup, chime, lark
+  music/score.py (301) |  | bpf, lpf, hpf, st, mark, hyoshigi, odaiko, cut, shime, sam, _f0track, shaku, put, swell
+  nature.js (186) | 自然元素：山、松、岩、海浪、雨、雁 / —— 山（原创轮廓：两坡不对称，顶上一个缺口）—— | mtnPts, snowPts, snowPath, mountain, pine, rock, rain, goose, claw
+  print.js (279) | 木版画引擎：和纸、色版（带错位 / 胡麻摺 / 木纹）、ぼかし、刻刀墨线、吃墨显现、题签与朱印 / 画框（墨线边框） | W, FR, PAL, mk, fbm, rgba, mix, TX, buildTextures, inkify, smooth, poly, dense, carve
+  story.js (33) | 时间线（唯一真值）：镜头、印刷、题签、旁白、配乐 cue 都从这里导出 / 五幅画在手卷上的位置（从右往左：第一幅在最右） | DUR, q8, q12, GAP, SLOT, T, REVEAL_DUR, VO
+  subs.py (8) |  | VO
+  traveler.js (186) | 旅人：斗笠、藍色旅装（下摆掖起）、深色绑腿、草鞋、背后包袱、手杖；雨天披蓑衣 / 局部坐标：脚底 (0,0)，身高约 100 单位（含斗笠），面朝左（-x）。s = 像素身高。 | kasa, traveler
+  views.js (398) | 五幅画：每幅 = 若干缓存色版（layers）+ 每帧的动态元素（paint） / 图层组 g：0 = 墨线版，1 = 蓝版，2 = 绿/次色版，3 = 红/人物版（用于"一版一版印出来"） | V1, V2, V3, HZ4, ROCK4, V4, V5, VIEWS
+  wave.js (176) | 海与立起来的巨浪：普鲁士蓝浪身 + 流线条纹 + 白色浪沫带 + 浪爪 | sea, wstate, B, waveGeo, wave, fclaw, foam
+
+######## urban-sketch
+  api.js (11) | DEMO.md（Engine reference）的最小示例：?api=1 | 
+  audio/foley.py (155) | Where the Wind Went —— 拟音 + 环境底（全部程序合成） / 纸上钢笔、湿画洇开、风、草帽翻飞、脚步、车铃、扑接、点水、公园/城市环境 | buf, pen, write, wet, band_env, envk, step_grass, bell, chirp
+  audio/mix.py (43) | 混音：音乐分轨 + 拟音分轨 → mix.wav（响度交给 mux.sh 两遍 loudnorm） | 
+  audio/score.py (161) | Where the Wind Went —— 配乐：150 BPM 3/4 爵士华尔兹（F 大调），按 cue map 写死每个小节 / 小节 n 起点 = n * 1.2 s；摇摆八分音符（后半拍落在 2/3 处） | mel, waltz_bar, brush_sweep, brush_tap, render, gate
+  engine.js (612) | Urban Sketch · Pen & Wash engine / 钢笔淡彩引擎：细墨线（抖、出头、断笔、按笔顺出现）+ 透明水彩（错位、溢出、积色边、颗粒） / 所有绘制都是确定性的（同样的 seed → 同样的笔触），可以逐帧离线渲染。 / 三层结构： / 1. 静态层：penStroke/rasterPen 把墨线画进 ink+time 两张画布（time = 这一笔在第几秒被画到）； | INK, PAPER, clamp, lerp, ss, TAU, rng, n2, fbm, rgba, hex, mix3, resample, spline
+  film.js (355) | Where the Wind Went —— 主时间线：镜头、帽子、人物表演、颜色到达、声音事件 | BPM
+  index.html (11) |  | 
+  look.js (14) | 风格试看：?look=1&cx=..&cy=..&z=.. | 
+  main.js (2) |  | 
+  poses.js (61) | 角色造型 + 姿势库（身体坐标，单位 = 身高；yaw 0 = 背对镜头） | LOOK, sit, run, walk, stand, cycle, dive, prone, wave, mixPose
+  sheet.js (30) | 角色设定表：?sheet=1 | 
+  tools/export_cues.mjs (10) | 导出声音设计用的 cues.json：世界笔画时间、帽子轨迹（速度/声像）、事件 / node styles/urban-sketch/demo/tools/export_cues.mjs | 
+  tools/sheets.py (6) | 把 out/fr/t*.jpg 每 25 张拼一张总览 out/cs0..N.jpg（用仓库 .venv 的 PIL） | 
+  world.js (374) | 静态世界：整页公园速写（5120×2880 世界坐标 = 最后拉远时的整页） / 画进四张画布：color（淡彩）、inkA/timeA（开场扩散的线稿）、inkB/timeB（天际线，按笔顺） | W, WIN_A, depthS, FIG_H, ORIGIN, LAMP, PATH, POND, BRIDGE, BLANKET, CROWNS, pageMask, inPage, buildWorld
+
+######## watercolor
+  asr.py (8) | whisper 回听：逐条转写 voices/v*.wav，和 tts/lines.json 对照（VOICES=dir 可改目录） | 
+  aus.js (1) |  | 
+  engine.js (142) | 基础工具 ---------- | mulberry, withSeed, monotone, qcurve, qctrl, mk, drawS, drawList, bbox, sprite, clump, edgeOf
+  extract_aus.mjs (17) | 生成 aus.js（澳洲大陆 + 塔斯马尼亚两条海岸线环）：node extract_aus.mjs / 依赖已内置 vendor/：topojson-client 3.1.0（ISC）+ world-atlas 2.0.2 countries-50m.json（Natural Earth，ISC/公有领域） | 
+  fetch_fonts.mjs (21) |  | 
+  index.html (5) |  | 
+  main.js (239) | 地图（深时间） ---------- / 近似多年平均降雨（mm），只用来画示意分带 | vn2, mmColor, buildMap, mapTau, drawMapFill, drawMap, drawMist, drawHUD, wrap, drawSubs, titleBlock, drawTitle, drawEnd, render
+  mix.py (164) | 配乐 + 旁白 + 合成环境声 → mix.wav（48k 立体声） / 用法（仓库根）：.venv/bin/python styles/watercolor/demo/mix.py [out.wav]   （默认写 demo/mix.wav） / 输入：music/score.wav、voices/v*.wav + dur.json、scene.js 里 VO 表的开始时间 | bp, lp, hp, noise, pink, norm, st, env, fade, dbfs, verb, put, brush, stamp
+  music/analyze.py (30) |  | 
+  music/edit.py (27) | 配乐跳剪：在 beats[85]（61.23 s）处跳到 beats[437]（265.61 s），砍掉中间 204.4 s，0.18 s 等功率交叉淡化 → score.wav（≈117.8 s） / wf48.wav = Wildflowers.mp3 解码为 48 kHz 立体声（见 prep.sh） | 
+  music/jump.py (29) |  | sc
+  music/lag.py (24) |  | 
+  music/lib.html (2424) |  | 
+  paper.py (27) |  | smooth_noise
+  plants.js (216) | 植物生成器：局部坐标，原点 = 根部落地点，y 向上为负 ---------- | spinifex, desertOak, mulga, saltbush, wattle, tussock, gum, ash, frond, treeFern, groundFern, rfTree, fanPalm, vine
+  render.mjs (85) | 用法（任意目录均可运行，脚本会先 chdir 到 demo/）： / node render.mjs stills 1.9 3.1 ...   → stills/t_*.png（OUT=dir 可改输出目录） / node render.mjs events               → events.json / node render.mjs video [workers]      → out/seg_<w>.mp4 + out/list.txt（ | openPage
+  scene.js (526) | 时间轴 ---------- | rainAt, add, build, ampAt, zoneGrad, mkStrip, washPoly, buildStrips, buildHorizon, drawStripAt, plantP, drawPlants, mixZone, drawSky
+  sheet.py (10) |  | 
+  tts/gen.py (17) | 旁白：Kokoro af_heart, speed .93 → ../voices/v01..v13.wav + dur.json / 用法（仓库根）：.venv/bin/python styles/watercolor/demo/tts/gen.py   （OUT=dir 可改输出目录，默认 ../voices） / 模型用 core/tts/ 里的同一份 kokoro-v1.0.onnx / voices-v1.0.bin（与原项目 tts/ 下的逐字 | 
+
+######## white-model
+  index.html (7) |  | 
+  main.js (256) | 《被炸平的城市怎样长回来》 How a Flattened City Grew Back — Projection on White Model demo. / Rotterdam centre at 1:1000 (3DBAG LOD1.3 + BAG construction years + BGT water). render(t) is a pure function of t: / camera from keys, projection sta | sunAt, setCamera, setLight, drawOverlay
+  mix.py (260) |  | sos, lpf, hpf, bpf, tv, put, place, b, hum, room_tone, relay, lamp, swell, tick
+  overlay.js (110) | 2D layer over the model: readouts (left third), pins anchored to the model through the camera, the shadow range line, / the bilingual subtitle strip, the identity label and the end card. Every text that must be read registers in T | W, font, SUB, makeOverlay
+  studio.js (218) | The showroom: a white 1:1000 massing model on a dark plinth, a projector above it, house lights and a sun. / Every data colour is projected light: it is added to the lit white surface in the shader (projLight), scaled by how / squ | PAL, makeStudio
+  timeline.js (52) | The one timeline: picture, score, foley, voice and subtitles read these numbers. / 100 BPM, 4/4: one beat = 0.6 s, one bar = 2.4 s. Key actions sit on beats (tools/cuecheck.py checks). | BPM, BEAT, b, T, GROW, CLOCK, VO
+  tools/cuecheck.py (18) |  | 
+  tools/export.mjs (26) | timeline.js -> voice/lines.json (TTS input), timeline.json (mix.py, cuecheck), and, once voice/out/dur.json exists, / cues.json (burned-in subtitles) + out/cues_srt.json (.srt). Each cue holds >= max(1.8 s, speech + 0.6 s) and nev | 
+  tools/finalasr.py (17) |  | 
+  tools/fonts.py (25) |  | 
+  tools/impactcheck.py (27) |  | 
+  tools/motioncheck.py (22) |  | 
+  tools/prep.py (153) |  | area, ring_c, clip, pos, near_rd, hmap, shadow_by
+  tools/rd.py (19) | WGS84 <-> Rijksdriehoek (EPSG:28992), Schreutelkamp & Strang van Hees approximation (~1 m) | to_rd, to_wgs
+  tools/subcheck.mjs (14) | Subtitle single-line check, measured in the page with the real fonts (Noto Sans SC 500 36 px for the Chinese line, / Inter Tight 400 30 px for the English line, no wrapping): every line must be narrower than the safe width. / usag | 
+  tools/sun.py (23) |  | solar
+
+######## whiteboard
+  engine/wb.js (487) | Whiteboard Explainer engine (v2) — dry-erase marker ink on a glossy board, no hands. / World units ≈ screen px at zoom 1. Everything is deterministic in t. / shapes  : line / poly / curve / arc / circle / rect / arrow / dashed / t | INK, Stroke, line, poly, curve, arc, circle, rect, roundRect, arrow, dashed, hatch, loadFont, text
+  film.js (403) | "Einstein in Your Pocket" — Whiteboard Explainer v2. One continuous board, no hands. / All times are seconds. VO start times live in VO; visual beats hang off spoken words via at(id, word). | BPM, VO, END, build
+  index.html (4) |  | 
+  main.js (8) |  | 
+  mix.py (198) |  | db, dec, band, marker, tap, ring, magnet, magnet_off, cap_pop, cap_on, eraser, plop, tray_clack, thud
+  music.py (196) |  | n, up, arp, groove, theme, phase_layer
+  test.js (21) |  | build
+  tools/asr_check.py (19) |  | 
+  tools/cuecheck.py (24) |  | near_word
+  tools/subs.mjs (8) | 导出烧录字幕的时间表 → out/subs.json（再用 core/render/srt.py 转 .srt） | 
+  tools/svgfont2json.py (18) |  | 
+  tools/vo_try.py (19) |  | 
+
+######## woodcut
+  chars.js (217) | The Bell Founder · characters (profile views, rigged) — the Founder and the Apprentice / Local space: feet at (0,0), y up is negative, facing +x. Founder ≈ 650 tall, Apprentice ≈ 450. | LKEY, FOUNDER_POSE, drawFounder, TONGS_TIP, BOY_POSE, drawBoy, compassPoly, drawCompass
+  engine/filter.js (74) | Woodcut engine · image / video-frame → woodcut filter / Luminance decides how wide each white cut is (bright = wide), the structure tensor of the image decides / which way the cuts run (along the isophotes, i.e. around the forms,  | woodcutFilter
+  engine/hatch.js (181) | Woodcut engine · regions + flow-aligned hatching (white-line technique) / A Region is a rasterised shape (mask + exact distance-to-edge field). From it we derive / an "inflated" normal (the shape read as a soft relief) → tone from | Region, light, reliefTone, dirAngle, dirRadial, dirRing, dirContour, hatch, lines
+  engine/index.js (115) | Woodcut engine · public API / Draw anything as a relief print: shapes become black wood with white knife cuts that follow the form, / light is literally carved (bright = wide cuts), and the result is printed by the WebGL composito | INK, canvas, pathOf, fillPoly, offsetPoly, cutAlong, flecks, rays, shape, plate, ellipse, rect
+  engine/knife.js (137) | Woodcut engine · knife strokes / A stroke is one cut of a carving tool: a centreline, a width per point, a tool profile, and (optionally) / a reveal time so it can be carved "live" (the knife travels from the first point to the la | mkStroke, resample, spline, strokePath, progOf, drawStrokes, chip, strokeBounds, xform
+  engine/print.js (101) | Woodcut engine · printing compositor (WebGL2) / Takes the carve MASK (white = cut away, black = wood left standing) and an optional COLOUR PLATE / (alpha = plate density) and turns them into either / mode 'print': black ink pulled | makePrinter
+  film.js (41) | The Bell Founder — film assembly: timeline, shots, transitions, captions, events | DUR, ctx, init, captionAt, render
+  fx.js (157) | The Bell Founder · props & effects: the bell, bellows, gifts, heap, villagers, door, sound rings | bellPoly, bell, bellows, GIFT, drawGift, heap, crucibleTop, villager, rings
+  hands.js (188) | The Bell Founder · close-up maquettes: a tiny height-field sculptor (capsules, blobs, planks) → lit grayscale / image → woodcutFilter. Used for the long close-up of the old founder's hands (fine engraving density). / height-field  | Sculpt, founderHands, boyCompass
+  index.html (6) |  | 
+  interior.js (129) | The Bell Founder · the foundry workshop: walls, furnace, the loam mould, crucible, the pour (plate coords 1848×912) | fire, drawWorkshop, MOULD, crucible, stream, sparks, mouldBreak, steam
+  main.js (14) | The Bell Founder — Woodcut Print demo (entry) | 
+  mix.py (270) |  | t_, nz, env, modal, crackle, ins, norm, knife_bite, knife_run, gouge, stabs, fine_scratch, brayer, paper_lay
+  music/score.py (511) |  | snap, idx, key, section_end, onset_of, place, shape, vv, cb, vc, va, spic, cbpizz, fdrum
+  rig.js (42) | The Bell Founder · tiny 2-D rig for carved characters / A part = closed outline (spline control points in its own local space) + a pivot + hatch settings / + optional feature cuts (open splines, carved white or left black). Hatchi | part, drawPart, mul, T, R, S, about, put, ap
+  sheet.js (94) | The Bell Founder · model sheet (two 1920×1080 pages, stitched vertically by build tools) | sheetA, sheetB
+  shots.js (243) | The Bell Founder — shots. Each shot: { t0, t1, draw(g, t, lt), events(K) } | SHOTS, printFrame, jolt, regJolt, blockFrame, setup
+  shots2.js (483) | The Bell Founder — shots 5–17 (15 s → end) | register
+  stage.js (47) | The Bell Founder · stage: plate framing, camera, print pass, captions | W, IMG, printer, camMatrix, begin, end, caption, print
+  test.js (113) |  | init, test, testChar, preload, testPour, testHands
+  tools/cuecheck.py (43) |  | ev, mk
+  tools/final_asr.py (20) |  | 
+  tools/subs.py (7) |  | 
+  trans.js (67) | The Bell Founder · paper transitions: a sheet with weight that curls off a surface (page curl on a cylinder) / Draw a sheet lying on the frame whose free (right) edge has been peeled back to the fold line xf, rolling / over a cyli | curl, peelState
+  views.js (84) | The Bell Founder · front / back views for the model sheet (static, symmetric drawings) | drawFounderFront, drawFounderBack, drawBoyFront, drawBoyBack
+  world.js (175) | The Bell Founder · exterior world: the snowbound valley, village and bell tower (plate coordinates 1848×912) | PW, HOR, TOWER, BELFRY, buildWorld, snowAt, drawValley

@@ -1,0 +1,13 @@
+/out/
+/paint/out/
+/paint/cache/
+/review/*
+!/review/motion-check/
+__pycache__/
+*.pyc
+node_modules/
+.venv/
+.cache/
+*.onnx
+*.mp4
+!/1.mp4

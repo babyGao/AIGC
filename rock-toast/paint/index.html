@@ -1,0 +1,9 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>巨石吐司 · 油画</title>
+<style>
+@font-face{font-family:'Noto Serif SC';src:url('fonts/NotoSerifSC-VF.ttf') format('truetype');font-weight:200 900;}
+@font-face{font-family:'Cormorant Garamond';font-weight:500;src:url('fonts/cormorant-500.woff2') format('woff2');}
+html,body{margin:0;background:#000;overflow:hidden}canvas{display:block;position:absolute;left:0;top:0}
+</style>
+</head><body><canvas id="gl"></canvas><canvas id="ov"></canvas>
+<script type="module">import(new URLSearchParams(location.search).has('shot') ? './src/film.js' : './src/main.js');</script></body></html>

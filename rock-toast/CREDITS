@@ -1,0 +1,26 @@
+巨石吐司 · 油画厚涂版 —— 素材与授权
+
+画面
+- 原始素材：用户提供的原片 1.mp4（菜品与制作过程）。成片画面由代码逐帧重画成油画笔触，没有直接放原片像素；原片里的真人、手、字幕不出现在成片里。
+  使用这段原片的权利由用户负责。
+- 笔触渲染：Lemo-Opuscar 油画厚涂引擎（impasto，MIT），WebGL2。
+- 分割、防抖、光流：OpenCV（Apache 2.0）。
+- 开场的熔岩巨石巨人为原创角色，不是任何真人肖像；背景、石盘、蓝莓、薄荷、光斑、火星为程序新画，没有使用外部图片。
+
+声音
+- 配乐：原创，乐器采样来自
+  VS Chamber Orchestra: Community Edition（Versilian Studios），CC0 1.0；
+  Versilian Community Sample Library（Versilian Studios），CC0 1.0。
+- 拟音：全部由程序合成（numpy / scipy），无录音素材。
+- 旁白：微软神经语音 zh-CN-XiaoxiaoNeural、zh-CN-YunjianNeural（开场一句），经 edge-tts 生成（需遵守微软语音服务的使用条款）。
+- 旁白复核：faster-whisper（MIT）。
+
+字体
+- Noto Serif SC（思源宋体，可变字重），Google / Adobe，SIL Open Font License 1.1。
+- Cormorant Garamond，Christian Thalmann，SIL Open Font License 1.1。
+
+工具
+- Lemo-Opuscar 渲染与混音工具（MIT）。
+
+内容
+- 菜品与做法取自原片；旁白按原片信息重写。

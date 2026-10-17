@@ -1,0 +1,79 @@
+[
+ {
+  "id": "v01",
+  "text": "四英寸厚的法式吐司。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%",
+  "asr": "4英寸后的法式吐司"
+ },
+ {
+  "id": "v02",
+  "text": "整条布里欧修，一刀两段。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%",
+  "asr": "整条布里欧修,一刀两断。"
+ },
+ {
+  "id": "v03",
+  "text": "一百毫升牛奶，两颗鸡蛋，",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%",
+  "asr": "100毫升牛奶,2颗鸡蛋。"
+ },
+ {
+  "id": "v04",
+  "text": "再加一勺肉桂粉。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%"
+ },
+ {
+  "id": "v05",
+  "text": "让每一面，都吸饱蛋液。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%"
+ },
+ {
+  "id": "v06",
+  "text": "不断翻面，直到每一面都焦糖金黄。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%"
+ },
+ {
+  "id": "v07",
+  "text": "灵魂，在最后三种酱。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%",
+  "asr": "灵魂在最后三种匠。"
+ },
+ {
+  "id": "v08",
+  "text": "花生奶油酱。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%"
+ },
+ {
+  "id": "v09",
+  "text": "蓝莓果酱。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%"
+ },
+ {
+  "id": "v10",
+  "text": "还有枫糖浆。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%",
+  "asr": "还有疯糖浆。"
+ },
+ {
+  "id": "v11",
+  "text": "热量很高，满足感更高。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%"
+ },
+ {
+  "id": "v12",
+  "text": "这就是，巨石吐司。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%"
+ }
+]

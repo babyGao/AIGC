@@ -1,0 +1,90 @@
+[
+ {
+  "id": "v00",
+  "shot": "s00",
+  "text": "热量炸弹！巨石强森的放纵餐。",
+  "voice": "zh-CN-YunjianNeural",
+  "rate": "+12%",
+  "pitch": "-2Hz"
+ },
+ {
+  "id": "v01",
+  "shot": "s01",
+  "text": "这一口，是强森留给自己的放纵。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%"
+ },
+ {
+  "id": "v02",
+  "shot": "s02",
+  "text": "四英寸厚的吐司，",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%",
+  "say": "四英寸厚的吐司，",
+  "asr": "4英寸厚的吐司"
+ },
+ {
+  "id": "v03",
+  "shot": "s03",
+  "text": "一百毫升牛奶，两颗鸡蛋，一勺肉桂。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%",
+  "asr": "100毫升牛奶,2颗鸡蛋,1勺肉桂"
+ },
+ {
+  "id": "v04",
+  "shot": "s06",
+  "text": "每一面，都喝饱蛋液。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%"
+ },
+ {
+  "id": "v05",
+  "shot": "s07",
+  "text": "翻一次面，焦香就深一层。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%"
+ },
+ {
+  "id": "v06",
+  "shot": "s10",
+  "text": "花生奶油酱，顺着边缘慢慢垂下；",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-10%"
+ },
+ {
+  "id": "v07",
+  "shot": "s11",
+  "text": "蓝莓果酱，整勺落下；",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-10%"
+ },
+ {
+  "id": "v08",
+  "shot": "s12",
+  "text": "最后，一线枫糖。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-12%"
+ },
+ {
+  "id": "v09",
+  "shot": "s13",
+  "text": "一叉下去，外脆，里软，蛋奶香冒出来。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%"
+ },
+ {
+  "id": "v10",
+  "shot": "s14",
+  "text": "热量很高，可练完腿的周日早上，就该有这一口。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-8%"
+ },
+ {
+  "id": "v11",
+  "shot": "s14",
+  "text": "巨石吐司。",
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "rate": "-15%"
+ }
+]
