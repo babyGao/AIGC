@@ -74,6 +74,7 @@ class Clip:
                     import seg
                     f = face.robe_black(f, seg.mask(f, 'u2net_human_seg'))
                 if 's' in self.fy: f = face.swap(f)
+            if len(self.clean_cache) > 6: self.clean_cache.pop(next(iter(self.clean_cache)))
             self.clean_cache[i] = f
         return self.clean_cache[i], i
 
@@ -89,6 +90,7 @@ class Clip:
             for k in range(1, n):
                 if st[k, 4] > tot * 0.004: keep[lab == k] = 1
             m = m * cv2.dilate(keep, np.ones((9, 9), np.uint8))
+            if len(self.mask_cache) > 6: self.mask_cache.pop(next(iter(self.mask_cache)))
             self.mask_cache[i] = cv2.GaussianBlur(m, (0, 0), 1.2)
         return self.mask_cache[i]
 
