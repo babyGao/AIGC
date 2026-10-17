@@ -19,10 +19,12 @@
 | `sucai/keyframes/` | 从视频里截的关键帧（不进仓库） |
 | `sucai/refs_hi/` | 素材图高清版（不进仓库） |
 | `sucai/shots/` | 视频镜头切分索引页（`tools/shot_index.py` 生成，不进仓库） |
+| `sucai/cast/` | 剪影用的角色轮廓（`tools/build_cast.py` 从素材里抠，不进仓库） |
 | `sucai/models/` | 抠像 u2net_human_seg / isnetis、换脸 inswapper_128 + buffalo_l、修复 GFPGAN 1.4（不进仓库） |
 | `film/shots.py` | **分镜表**：每个镜头的素材入出点、运镜、特效、拟声字 |
 | `film/render.py` | 逐帧渲染器（运镜、分格、遮幅、字幕） |
 | `film/manga.py` | 漫画化滤镜（XDoG 墨线 + 实黑 + 网点 + 专色） |
+| `film/scene.py` | **场景重绘**：逆流河、草原、风暴云顶、河外三方剪影（不取视频背景） |
 | `film/fx.py` | 集中线、速度线、音浪、黑色闪电、光爆、粒子、拟声字 |
 | `film/seg.py` | 人物抠像（冲击帧、希区柯克变焦、压黑袍用） |
 | `film/face.py` | 方源换成黑衣版的脸（inswapper + GFPGAN），白衣压黑袍 |

@@ -40,9 +40,9 @@ def noise1(t, seed, freq):
 
 # ---------------- 素材 ----------------
 class Clip:
-    def __init__(self, key, a, b, fy=''):
-        # fy：方源镜头的处理。's' 换成黑衣方源的脸，'r' 白衣压成黑袍
-        self.key, self.a, self.b, self.fy = key, a, b, fy
+    def __init__(self, key, a, b, fy='', segm='u2net_human_seg'):
+        # fy：方源镜头的处理。's' 换成黑衣方源的脸，'r' 白衣压成黑袍；segm：抠像模型（毛里球用 u2net）
+        self.key, self.a, self.b, self.fy, self.segm = key, a, b, fy, segm
         cap = cv2.VideoCapture(os.path.join(ROOT, 'sucai/videos', VID[key] + '.mp4'))
         self.fps = cap.get(cv2.CAP_PROP_FPS)
         cap.set(cv2.CAP_PROP_POS_MSEC, a * 1000)
@@ -80,7 +80,16 @@ class Clip:
     def mask(self, i):
         if i not in self.mask_cache:
             import seg
-            self.mask_cache[i] = seg.mask(self.get(i)[0], 'u2net_human_seg')
+            m = seg.mask(self.get(i)[0], self.segm)
+            m = np.clip((m - 0.25) * 2.2, 0, 1)
+            # 去掉零碎小块（礁石、浪花被误认成人）
+            n, lab, st, _ = cv2.connectedComponentsWithStats((m > 0.5).astype(np.uint8))
+            keep = np.zeros_like(m)
+            tot = m.shape[0] * m.shape[1]
+            for k in range(1, n):
+                if st[k, 4] > tot * 0.004: keep[lab == k] = 1
+            m = m * cv2.dilate(keep, np.ones((9, 9), np.uint8))
+            self.mask_cache[i] = cv2.GaussianBlur(m, (0, 0), 1.2)
         return self.mask_cache[i]
 
 # ---------------- 运镜 ----------------
@@ -121,28 +130,89 @@ def warp_M(sw, sh, size, z, cx, cy, rot, dx, dy):
     M[:, 2] = np.float32([Wt / 2 + dx, Ht / 2 + dy]) - M[:, :2] @ np.float32([px, py])
     return M
 
-def render_view(clip, idx, cs, size, tone, need_mask=False, vertigo=None, u=0.0):
+def place_M(mask, sw, sh, size, place):
+    """按人物的包围盒重新摆位：place=dict(x, y, h)——脚底中心落在 (x,y)，人高 h（都按画面比例）。"""
+    ys, xs = np.nonzero(mask > 0.4)
+    if len(ys) < 20: return None
+    y0, y1 = ys.min(), ys.max(); xc = xs.mean()
+    Wt, Ht = size
+    sc = place['h'] * Ht / max(y1 - y0, 1)
+    return np.float32([[sc, 0, place['x'] * Wt - xc * sc], [0, sc, place['y'] * Ht - y1 * sc]])
+
+def cam_on(M, size, z, dx, dy, rot):
+    """在已摆好的层上再叠一层画面运镜（绕画面中心缩放/转/平移）。"""
+    Wt, Ht = size
+    A = cv2.getRotationMatrix2D((Wt / 2, Ht / 2), -rot, z); A[0, 2] += dx; A[1, 2] += dy
+    M3 = np.vstack([M, [0, 0, 1]]); A3 = np.vstack([A, [0, 0, 1]])
+    return (A3 @ M3)[:2].astype(np.float32)
+
+_plate_cache = {}
+def bg_ink(bg, size, t, cs, u):
+    import scene
+    Wt, Ht = size
+    tq = round(t * 15) / 15                                # 背景一拍二
+    kw = dict(bg); kw.pop('nochar', None); kw.pop('feet', None); kind = kw.pop('kind'); par = kw.pop('par', 0.35); bz = kw.pop('z', None)
+    ink = scene.plate(kind, Ht, Wt, tq, **kw)
+    z, cx, cy, rot, dx, dy, blur = cs
+    zb = 1 + (z - 1) * par
+    if bz: zb *= lerp(bz[0], bz[1], ease(u))                # 背景单独推拉（希区柯克变焦）
+    A = cv2.getRotationMatrix2D((Wt / 2, Ht / 2), -rot * par, zb); A[0, 2] += dx * par; A[1, 2] += dy * par
+    if zb != 1 or dx or dy or rot:
+        ink = cv2.warpAffine(ink, A, size, flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+    return ink
+
+def composite(ink_c, mk, bg, feet=True, rim=True, water=False):
+    m = np.clip(mk, 0, 1)
+    out = ink_c * m + bg * (1 - m)
+    if rim:   # 漫画的“白边”：人物和背景之间留一道白，再勾一道墨
+        hard = (m > 0.5).astype(np.uint8)
+        ring = cv2.dilate(hard, np.ones((9, 9), np.uint8)) - hard
+        edge = hard - cv2.erode(hard, np.ones((3, 3), np.uint8))
+        out = np.maximum(out, ring.astype(np.float32))
+        out = out * (1 - cv2.GaussianBlur(edge.astype(np.float32), (0, 0), 0.8) * 0.9)
+    if feet and water:   # 脚下的涟漪（腿被水截断的地方）
+        ys, xs = np.nonzero(m > 0.5)
+        if len(ys):
+            yb = ys.max(); H_, W_ = m.shape
+            if yb < H_ - 4:
+                row = xs[ys > yb - 6]; xc = row.mean() if len(row) else xs.mean(); wdt = max(30, (row.max() - row.min()) * 1.6 if len(row) else 60)
+                for k, sc in enumerate((1.0, 1.7, 2.6)):
+                    cv2.ellipse(out, (int(xc), int(yb)), (int(wdt * sc / 2), max(3, int(wdt * sc * 0.09))), 0, 0, 360, 0.0, max(1, 3 - k), cv2.LINE_AA)
+    return out
+
+def render_view(clip, idx, cs, size, tone, need_mask=False, vertigo=None, u=0.0, bg=None, place=None, t=0.0):
     src, i = clip.get(idx); sh, sw = src.shape[:2]
     z, cx, cy, rot, dx, dy, blur = cs
     M = warp_M(sw, sh, size, z, cx, cy, rot, dx, dy)
     mk = None
-    if vertigo:                             # 希区柯克变焦：人物大小不变，背景纵深推拉
+    tn = dict(tone or {}); tn.pop('past', None); tn.pop('paper', None)
+    if bg is not None:                      # 人物抠出来，场景重画
+        m = clip.mask(i) if not bg.get('nochar') else np.zeros(src.shape[:2], np.float32)
+        if place:
+            Mp = place_M(m, sw, sh, size, place)
+            if Mp is not None: M = cam_on(Mp, size, z, dx, dy, rot)
+        img = cv2.warpAffine(src, M, size, flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
+        mk = cv2.warpAffine(m, M, size, flags=cv2.INTER_LINEAR)
+        ink_c = manga(img, **tn)
+        B = bg_ink(bg, size, t, cs, u)
+        ink = composite(ink_c, mk, B, water=bg.get('kind') in ('river', 'high') and bg.get('feet', True))
+    elif vertigo:                             # 希区柯克变焦：人物大小不变，背景纵深推拉
         zf0, zf1, zb0, zb1 = vertigo; e = ease(u)
         m = clip.mask(i); md = cv2.dilate((m > 0.3).astype(np.float32), np.ones((25, 25), np.uint8))
         keep = (1 - md)[..., None]
         fill = cv2.blur(src.astype(np.float32) * keep, (61, 61)) / (cv2.blur(keep, (61, 61))[..., None] + 1e-4)
-        bg = (src * keep + fill * (1 - keep)).astype(np.uint8)
+        bgi = (src * keep + fill * (1 - keep)).astype(np.uint8)
         Mb = warp_M(sw, sh, size, lerp(zb0, zb1, e), cx, cy, rot, dx, dy)
         Mf = warp_M(sw, sh, size, lerp(zf0, zf1, e), cx, cy, rot, dx, dy)
-        B = cv2.warpAffine(bg, Mb, size, flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
+        B = cv2.warpAffine(bgi, Mb, size, flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
         F = cv2.warpAffine(src, Mf, size, flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
         mk = cv2.warpAffine(m, Mf, size, flags=cv2.INTER_LINEAR)
         img = (F * mk[..., None] + B * (1 - mk[..., None])).astype(np.uint8)
+        ink = manga(img, **tn)
     else:
         img = cv2.warpAffine(src, M, size, flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
         if need_mask: mk = cv2.warpAffine(clip.mask(i), M, size, flags=cv2.INTER_LINEAR)
-    t = dict(tone or {}); t.pop('past', None); t.pop('paper', None)
-    ink = manga(img, **t)
+        ink = manga(img, **tn)
     if blur > 0.002: ink = fx.zoom_blur(ink, size[0] / 2, size[1] / 2, blur)
     return ink, img, mk
 
@@ -252,7 +322,7 @@ def render_panel_frame(shot, tr, fi, clips):
         idx = int(ptr * spd * clip.fps / 2) * 2
         cs = cam_state(p.get('cam'), ptr, pdur)
         need = any(f['k'] in ('radial', 'silhouette', 'lightning', 'flatwhite') and f.get('focus', True) for f in p.get('fx', []))
-        ink, src_img, mk = render_view(clip, idx, cs, size, p.get('tone'), need)
+        ink, src_img, mk = render_view(clip, idx, cs, size, p.get('tone'), need, bg=p.get('bg'), place=p.get('place'), t=ptr, u=ptr / max(pdur, 1e-3))
         ink = apply_ink_fx(ink, p.get('fx', []), ptr, fi, mk, size)
         sub = paper_of(ink, p.get('tone'))
         sub = apply_rgb_fx(sub, p.get('fx', []), ptr, fi, size, src_img)
@@ -296,7 +366,7 @@ def frame(shot, fi, clips):
         fxs = shot.get('fx', [])
         need = any(f['k'] in ('silhouette', 'lightning', 'flatwhite') or (f['k'] == 'radial' and f.get('focus')) for f in fxs)
         vt = shot.get('cam', {}).get('vertigo')
-        ink, src_img, mk = render_view(clip, idx, cs, (W, H), shot.get('tone'), need, vt, tr / dur)
+        ink, src_img, mk = render_view(clip, idx, cs, (W, H), shot.get('tone'), need, vt, tr / dur, bg=shot.get('bg'), place=shot.get('place'), t=tr)
         ink = apply_ink_fx(ink, fxs, tr, fi, mk, (W, H))
         img = paper_of(ink, shot.get('tone'))
         img = apply_rgb_fx(img, fxs, tr, fi, (W, H), src_img)
@@ -330,9 +400,9 @@ def render_title(shot, tr, fi):
 # ---------------- 镜头编码 ----------------
 def load_clips(shot):
     if shot.get('kind') == 'panels':
-        return [Clip(*p['src'], fy=p.get('fy', '')) for p in shot['panels']]
+        return [Clip(*p['src'], fy=p.get('fy', ''), segm=p.get('seg', 'u2net_human_seg')) for p in shot['panels']]
     if shot.get('kind') == 'title': return []
-    return [Clip(*shot['src'], fy=shot.get('fy', ''))]
+    return [Clip(*shot['src'], fy=shot.get('fy', ''), segm=shot.get('seg', 'u2net_human_seg'))]
 
 def render_shot(args):
     k, shot, outdir = args

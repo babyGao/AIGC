@@ -17,12 +17,39 @@ PINK = dict(k='spot', h=(135, 179), s=50, v=90)            # 爱情仙蛊的粉�
 BLUE = dict(k='spot', h=(95, 125), s=60, v=110)            # 爱情仙蛊的湛蓝
 WARM = dict(k='spot', h=(5, 25), s=110, v=150, a=0.55)     # 夕照（只在蓝兔的夕阳镜头里轻轻带一点）
 
+
+# ── 场景（全部重画，见 film/scene.py）：河外三方的剪影
+FAR = [('xuehu', 0.13, 0.64, 0.30, dict(gray=0.55)), ('maoliqiu', 0.87, 0.64, 0.26, dict(gray=0.5, flip=True)),
+       ('xian_l', 0.32, 0.22, 0.09, dict()), ('xian_c', 0.5, 0.18, 0.08, dict()), ('xian_r', 0.68, 0.24, 0.08, dict())]
+FAR_BIG = [('xuehu', 0.10, 0.80, 0.62, dict(gray=0.5)), ('maoliqiu', 0.90, 0.80, 0.55, dict(gray=0.45, flip=True)),
+           ('xian_l', 0.30, 0.30, 0.16, dict()), ('xian_c', 0.5, 0.24, 0.14, dict()), ('xian_r', 0.70, 0.32, 0.15, dict())]
+RIVER = dict(kind='river', hy=0.58, vx=0.5, fy=0.86, half=0.24, sil=FAR, crowd=8)
+SKY = dict(kind='skyonly', glow=(0.5, 0.92), mood='storm', par=0.25)
+SKYX = dict(kind='skyonly', glow=(0.75, 0.95), mood='storm', seed=4, par=0.25)
+BANK = dict(kind='river', hy=0.80, vx=0.25, fy=0.97, half=0.12, feet=False, sil=[('xian_l', 0.7, 0.4, 0.14, dict()), ('xian_r', 0.85, 0.3, 0.12, dict())])
+SHORE = dict(kind='river', hy=0.72, vx=0.72, fy=0.95, half=0.1, crowd=10, feet=False)
+BURST = dict(kind='river', hy=0.70, vx=0.5, fy=0.92, half=0.28, mood='burst', glow=(0.5, 0.5), sil=FAR)
+DARK = dict(kind='dark', par=0.0)
+
+def scene_for(it):
+    """没有单独指定场景的镜头，按素材内容给一个默认场景。"""
+    if 'bg' in it or 'src' not in it: return
+    k = it['src'][0]; fy = it.get('fy', ''); fxs = it.get('fx', [])
+    if (it.get('tone') or {}).get('past'): it['bg'] = DARK; return
+    if any(f is PURPLE for f in fxs):
+        if k == 'P' and 10.0 <= it['src'][1] < 12.8: return      # 毛里球脸占满画面，抠不出，也不需要背景
+        it['bg'] = BANK; return
+    if fy and k == 'Z': it['bg'] = RIVER; return
+    if fy: it['bg'] = SKY; return
+    if k == 'P': it['bg'] = SKYX; return
+    it['bg'] = SHORE
+
 SHOTS = [
     # ── 0 前奏：一只脚踩进水里 → 拉到极远景（诺兰：先看到人，再看到河有多长）
-    S(0.00, ('Z', 227.45, 229.4), dict(z=(1.3, 1.1), c=((0.5, 0.45), (0.5, 0.45)), ease='lin'),
+    S(0.00, ('Z', 159.1, 163.8), dict(z=(1.0, 1.1), ease='lin'),
       [dict(k='fadein', at=0, dur=0.8), dict(k='ripples', cx=0.5, cy=0.86, at=0.9, speed=0.7),
-       sfx('咚', 1.15, 1.4, 0.80, 0.30, 200, -8, fade=0.5)], fy='rs'),
-    S(2.70, ('Z', 212.3, 218.0), dict(z=(2.1, 1.0), c=((0.49, 0.53), (0.5, 0.5)), ease='out'), [], speed=0.9, fy='r'),
+       sfx('咚', 1.15, 1.4, 0.80, 0.30, 200, -8, fade=0.5)], fy='r', bg=dict(kind='river', hy=0.64, vx=0.5, fy=0.84, half=0.2, sil=FAR), place=dict(x=0.5, y=0.84, h=0.13)),
+    S(2.70, ('Z', 173.1, 179.3), dict(z=(1.7, 1.0), ease='out'), [], fy='r', bg=dict(kind='river', hy=0.16, vx=0.5, fy=0.70, half=0.09, crowd=40, rays=False), place=dict(x=0.5, y=0.70, h=0.07)),
 
     # ── 1 暴怒：雪胡老祖
     S(7.25, ('P', 0.1, 1.8), dict(z=(1.15, 1.32), c=((0.5, 0.42), (0.5, 0.40)), shake=6),
@@ -94,15 +121,15 @@ SHOTS = [
     ]),
     S(62.84, ('P', 83.6, 90.4), dict(z=(1.05, 1.3), c=((0.5, 0.42), (0.5, 0.4)), r=(1.5, -1)), [], fy='s'),
     S(66.43, ('Z', 73.4, 78.2), dict(z=(1.05, 1.3), c=((0.5, 0.55), (0.5, 0.45)), r=(0, -5), ease='in'), [dict(k='gloom', depth=0.25)]),
-    S(70.04, ('Z', 107.4, 110.5), dict(z=(1.1, 1.3), c=((0.45, 0.45), (0.45, 0.38)), r=(4, 4)), []),
+    S(70.04, ('Z', 82.3, 89.3), dict(z=(1.0, 1.15), r=(4, 4), ease='lin'), [], bg=dict(kind='skyonly', nochar=True, glow=(0.5, 1.0), mood='storm', seed=6, par=1.0, sil=[('xian_c', 0.5, 0.95, 0.85, dict()), ('xian_l', 0.18, 0.75, 0.5, dict()), ('xian_r', 0.84, 0.8, 0.55, dict()), ('xian_c2', 0.33, 0.6, 0.3, dict(gray=0.5)), ('xian_c2', 0.68, 0.55, 0.28, dict(gray=0.5, flip=True))])),  # 仰拍：群仙压下来
     S(72.64, ('P', 202.4, 204.0), dict(z=(1.15, 1.25), c=((0.5, 0.45), (0.5, 0.45)), r=(-4, -4), shake=4), []),
     S(75.16, ('P', 157.1, 160.0), dict(z=(1.0, 1.0), c=((0.55, 0.45), (0.55, 0.45)), crash=(0.0, 0.2, 1.45), hit=[(0.15, 26, 0.5)]),
       [dict(k='radial', cx=0.5, cy=0.45, rx=0.25, ry=0.35, n=170, at=0, dur=9),
        sfx('杀', 0.1, 2.6, 0.18, 0.35, 340, -12, shake=7)], speed=0.7),
 
     # ── 4 无尽：河没有尽头 → 一步再一步
-    S(78.03, ('Z', 82.3, 89.3), dict(z=(1.0, 1.18), c=((0.5, 0.48), (0.5, 0.45)), ease='lin'), [], speed=0.9),
-    S(79.91, ('B', 44.0, 49.5), dict(z=(1.25, 1.0), c=((0.5, 0.45), (0.5, 0.5)), ease='out'), [], tone=dict(contrast=1.1)),
+    S(78.03, ('Z', 159.1, 163.8), dict(z=(1.0, 1.25), ease='lin'), [], fy='r', bg=dict(kind='river', hy=0.10, vx=0.55, fy=0.82, half=0.07, rays=False, gseed=9), place=dict(x=0.55, y=0.82, h=0.06)),
+    S(79.91, ('Z', 173.1, 179.3), dict(z=(1.0, 1.06), ease='lin'), [], fy='r', bg=dict(kind='river', hy=0.80, vx=0.5, fy=0.93, half=0.35, sil=FAR_BIG), place=dict(x=0.5, y=0.93, h=0.16)),
     S(81.48, ('Z', 141.25, 143.8), dict(z=(1.1, 1.2), c=((0.5, 0.45), (0.5, 0.45))), [dict(k='ripples', cx=0.5, cy=0.85, speed=0.6)], fy='rs'),
     S(83.77, ('P', 131.9, 135.3), dict(z=(1.05, 1.22), c=((0.5, 0.42), (0.5, 0.42))), [], fy='s'),
     S(86.30, ('P', 100.0, 120.0), dict(z=(1.05, 1.18), c=((0.55, 0.45), (0.55, 0.42))), [], fy='s'),
@@ -200,13 +227,13 @@ SHOTS = [
     S(204.68, ('Z', 325.75, 327.8), dict(z=(1.05, 1.15), hit=[(0.45, 34, 0.8)]),
       [dict(k='burst', cx=0.5, cy=0.5, at=0, dur=1.9, curve='bell', a=0.8), dict(k='flash', at=0, dur=0.5),
        dict(k='rings', cx=0.5, cy=0.5, at=0.45, speed=1.2, n=5, thick=16),
-       sfx('轰', 0.45, 1.5, 0.5, 0.45, 520, 0, shake=10)]),
+       sfx('轰', 0.45, 1.5, 0.5, 0.45, 520, 0, shake=10)], bg=BURST),
     S(206.60, ('Z', 327.85, 330.5), dict(z=(1.0, 1.25), c=((0.5, 0.55), (0.5, 0.45)), ease='out', shake=5),
-      [dict(k='burst', cx=0.5, cy=0.45, at=0, dur=1.92, curve='bell', a=0.45)]),
+      [dict(k='burst', cx=0.5, cy=0.45, at=0, dur=1.92, curve='bell', a=0.45)], bg=BURST),
     S(208.52, ('Z', 330.55, 331.8), dict(z=(1.0, 1.15), c=((0.5, 0.4), (0.5, 0.38)), crash=(0.0, 0.2, 1.2), hit=[(0.1, 20, 0.6)]),
       [dict(k='radial', focus=True, cx=0.5, cy=0.38, rx=0.22, ry=0.4, n=200, at=0, dur=9),
-       dict(k='burst', cx=0.5, cy=0.4, at=0, dur=1.92, curve='bell', a=0.35)], speed=0.66, fy='rs'),
-    S(210.44, ('Z', 331.85, 339.0), dict(z=(1.3, 1.0), ease='out'), [dict(k='burst', cx=0.5, cy=0.5, at=0, dur=1.54, curve='down', a=0.7)], speed=1.0),
+       dict(k='burst', cx=0.5, cy=0.4, at=0, dur=1.92, curve='bell', a=0.35)], speed=0.66, fy='rs', bg=BURST),
+    S(210.44, ('Z', 331.85, 339.0), dict(z=(1.3, 1.0), ease='out'), [dict(k='burst', cx=0.5, cy=0.5, at=0, dur=1.54, curve='down', a=0.7)], speed=1.0, bg=BURST),
     S(211.98, ('P', 872.8, 877.6), dict(z=(1.0, 1.1), c=((0.5, 0.42), (0.5, 0.4)), crash=(0.0, 0.18, 1.3), hit=[(0.1, 30, 0.8)]),
       [dict(k='invert', at=0, dur=0.08), dict(k='radial', cx=0.5, cy=0.42, rx=0.24, ry=0.36, n=200, at=0, dur=9),
        dict(k='burst', cx=0.5, cy=0.42, at=0.0, dur=2.1, curve='bell', a=0.25),
@@ -215,6 +242,11 @@ SHOTS = [
         sfx('坚', 0.15, 3, 0.40, 0.48, 360, -4), sfx('持', 0.45, 3, 0.60, 0.52, 360, 4),
         dict(k='fadeout', at=1.6, dur=0.6)]),
 ]
+
+for s_ in SHOTS:
+    if s_.get('kind') == 'panels':
+        for p_ in s_['panels']: scene_for(p_)
+    else: scene_for(s_)
 
 for i, s in enumerate(SHOTS):
     s['t1'] = SHOTS[i + 1]['t0'] if i + 1 < len(SHOTS) else 216.293628
