@@ -1,0 +1,87 @@
+{
+  "frames": 2418,
+  "fps": 60,
+  "duration": 40.3,
+  "audio_duration": 40.3,
+  "decoded_without_error": true,
+  "timestamp_step_min": 0.016665999999997183,
+  "timestamp_step_max": 0.016667000000005316,
+  "unexpected_black_frames": [],
+  "clips": [
+    {
+      "id": "s00",
+      "frames": 164,
+      "fps": "60/1"
+    },
+    {
+      "id": "s01",
+      "frames": 205,
+      "fps": "60/1"
+    },
+    {
+      "id": "s02",
+      "frames": 82,
+      "fps": "60/1"
+    },
+    {
+      "id": "s03",
+      "frames": 82,
+      "fps": "60/1"
+    },
+    {
+      "id": "s04",
+      "frames": 82,
+      "fps": "60/1"
+    },
+    {
+      "id": "s05",
+      "frames": 82,
+      "fps": "60/1"
+    },
+    {
+      "id": "s06",
+      "frames": 123,
+      "fps": "60/1"
+    },
+    {
+      "id": "s07",
+      "frames": 82,
+      "fps": "60/1"
+    },
+    {
+      "id": "s08",
+      "frames": 123,
+      "fps": "60/1"
+    },
+    {
+      "id": "s09",
+      "frames": 82,
+      "fps": "60/1"
+    },
+    {
+      "id": "s10",
+      "frames": 164,
+      "fps": "60/1"
+    },
+    {
+      "id": "s11",
+      "frames": 164,
+      "fps": "60/1"
+    },
+    {
+      "id": "s12",
+      "frames": 164,
+      "fps": "60/1"
+    },
+    {
+      "id": "s13",
+      "frames": 245,
+      "fps": "60/1"
+    },
+    {
+      "id": "s14",
+      "frames": 492,
+      "fps": "60/1"
+    }
+  ]
+}

@@ -32,7 +32,8 @@ const reused = () => {
   try {
     const record = JSON.parse(fs.readFileSync(out + '.render.json', 'utf8'));
     const outputHash = createHash('sha256').update(fs.readFileSync(out)).digest('hex');
-    if (record.signature !== signature || record.outputHash !== outputHash) return false;
+    if (record.signature !== signature || record.outputHash !== outputHash
+      || (record.page || 'paint/index.html') !== opt('--page', 'paint/index.html')) return false;
     console.log(JSON.stringify({ sid, reused: true, frames: record.frames, out })); return true;
   } catch { return false; }
 };
@@ -44,6 +45,9 @@ if (cacheable) while (!lockHeld) {
   catch (error) {
     if (error.code !== 'EEXIST') throw error;
     const pid = Number(fs.readFileSync(lock, 'utf8')); let alive = Number.isInteger(pid) && pid > 0;
+    if (!alive && Date.now() - fs.statSync(lock).mtimeMs < 5000) {
+      await new Promise(resolve => setTimeout(resolve, 100)); continue;
+    }
     if (alive) try { process.kill(pid, 0); } catch { alive = false; }
     if (!alive) { fs.unlinkSync(lock); continue; }
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -104,7 +108,7 @@ try {
     const glError = await page.evaluate(() => document.querySelector('#gl').getContext('webgl2').getError());
     if (code !== 0 || errors.length || glError) throw new Error(JSON.stringify({ code, errors, glError }));
     fs.renameSync(pending, out);
-    if (cacheable) fs.writeFileSync(out + '.render.json', JSON.stringify({ signature, frames: total,
+    if (cacheable) fs.writeFileSync(out + '.render.json', JSON.stringify({ signature, frames: total, page: opt('--page', 'paint/index.html'),
       outputHash: createHash('sha256').update(fs.readFileSync(out)).digest('hex') }, null, 2));
     console.log(JSON.stringify({ sid, renderer, frames: total, seconds: (Date.now() - began) / 1000, out }));
   }
